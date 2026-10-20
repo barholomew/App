@@ -55,7 +55,8 @@ body {
 .right { display: flex; gap: 8px; align-items: flex-start; }
 .wave { text-align: right; white-space: nowrap; line-height: 1.1; text-shadow: 2px 2px 0 var(--ink); }
 .wave b { display: block; font-size: 20px; color: var(--gold); font-weight: 700; }
-.wave small { font: 10px var(--font-ui); color: var(--text); letter-spacing: .04em; }
+.wave small { display: block; font: 10px var(--font-ui); color: var(--text); letter-spacing: .04em; }
+.wave .goldtxt { color: var(--gold); margin-top: 2px; }
 .icon-btn {
   pointer-events: auto; appearance: none; border: 0; width: 40px; height: 40px;
   background: var(--panel); color: var(--text); display: grid; place-items: center; cursor: pointer;
@@ -133,7 +134,16 @@ body {
   background: var(--card); padding: 12px; display: grid; gap: 4px; align-content: start; min-width: 0;
   box-shadow: inset 0 0 0 2px var(--edge), 0 4px 0 #0b0816;
 }
-.card:hover { background: #352a60; }
+.card:hover:not(:disabled) { background: #352a60; }
+.card:disabled { opacity: .45; cursor: default; }
+.card.shopitem { grid-template-columns: auto 1fr; column-gap: 10px; padding: 10px; }
+.card.shopitem .glyph { grid-row: span 3; width: 34px; height: 34px; display: grid; place-items: center; background: var(--ink); color: var(--gold); font: 10px var(--font-ui); box-shadow: inset 0 0 0 2px var(--edge); }
+.card.shopitem b { font-size: 15px; }
+.card.shopitem span:not(.glyph) { font-size: 12px; }
+.shophead { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.purse { display: flex; align-items: center; gap: 8px; background: var(--ink); padding: 6px 12px; font: 600 22px var(--font-display); color: var(--gold); font-variant-numeric: tabular-nums; }
+.purse i { width: 12px; height: 16px; background: var(--gold); box-shadow: inset -3px 0 0 #c48a1e, 0 0 0 2px #5a3a00; }
+.note { background: var(--ink); color: var(--gold); padding: 8px 10px; font-size: 14px; }
 .card:active { transform: translateY(2px); box-shadow: inset 0 0 0 2px var(--edge), 0 2px 0 #0b0816; }
 .card b { font-size: 18px; font-weight: 600; }
 .card span { font-size: 14px; color: var(--muted); line-height: 1.25; }
@@ -170,7 +180,7 @@ body {
     <div class="bar xp"><i id="xpFill"></i><span id="xpText">LV 1</span></div>
   </div>
   <div class="right">
-    <div class="wave"><b id="waveText">Wave 1</b><small id="killText">0 KILLS</small></div>
+    <div class="wave"><b id="waveText">Wave 1</b><small id="killText">0 KILLS</small><small id="goldText" class="goldtxt">0 G</small></div>
     <button class="icon-btn" id="soundBtn" aria-label="Toggle sound">
       <svg viewBox="0 0 16 16" fill="currentColor" shape-rendering="crispEdges"><path d="M2 6h3l4-3v10L5 10H2z"/><path id="waves" d="M11 5h1v6h-1zM13 3h1v10h-1z"/></svg>
     </button>
@@ -192,7 +202,7 @@ body {
     <div class="grid2" id="spellPick"></div>
     <div class="eyebrow">Touch damage</div>
     <div class="bestiary" id="bestiary"></div>
-    <div class="hint">Drag anywhere to move &middot; WASD on keyboard<br>Find spell tomes to unlock more spells &middot; Tap the bar to switch</div>
+    <div class="hint">Drag anywhere to move &middot; WASD on keyboard<br>Grab gold coins and spend them in the shop after each wave<br>Find spell tomes to unlock more spells &middot; Tap the bar to switch</div>
     <div class="hint" id="bestText"></div>
   </div>
 </div>
@@ -203,6 +213,22 @@ body {
     <h2 id="luTitle">Level 2</h2>
     <p>Choose one upgrade.</p>
     <div class="stack" id="luCards"></div>
+  </div>
+</div>
+
+<div class="overlay" id="shop" hidden>
+  <div class="modal">
+    <div class="shophead">
+      <div>
+        <div class="eyebrow" id="shopEyebrow">Wave cleared</div>
+        <h2>Merchant's Cart</h2>
+      </div>
+      <div class="purse" aria-label="Your gold"><i></i><span id="purse">0</span> G</div>
+    </div>
+    <p>Spend the gold you picked up. Prices go up each time you buy.</p>
+    <div class="note" id="shopNote" hidden></div>
+    <div class="grid2" id="shopCards"></div>
+    <button class="btn" id="nextWaveBtn">Start next wave</button>
   </div>
 </div>
 
@@ -323,6 +349,72 @@ osssoss
 ...osoo
 ..osso.
 ..oooo.`;
+const MUSH = `
+....oo
+..oorr
+.orrwr
+.orwrr
+orrrrr
+orrwrr
+oooooo
+..ocec
+..occc
+..occc
+...ooo`;
+const GHOST = `
+...ooo
+..owww
+.owwww
+.owkkw
+owwkkw
+owwwww
+owwwww
+owwwww
+owwwww
+owowow
+o.o.o.`;
+const BOAR = `
+.oo...
+ohho..
+ohhhoo
+.ohhhh
+ohhkhh
+ohhhhh
+ohhhpp
+ohwhpo
+.ohhpp
+..ohhh
+..oooo`;
+const BEETLE = `
+....o.
+.....o
+..oooo
+.ossss
+osbsss
+osssss
+ossrss
+osssss
+.ossss
+o.oooo
+..o..o`;
+const LICH = `
+.......o
+......op
+.....opp
+....oppp
+...oppoo
+...opoww
+...opwkk
+...opwkk
+...opwww
+..oppowo
+..ppppow
+.opppppo
+.ppppppp
+opppplll
+oppppppp
+oppppppp
+oooooooo`;
 const CROWN = `
 o..o
 oy.oy
@@ -339,18 +431,38 @@ function makeSprites() {
   def('batB', BAT_B, { o: '#120d1f', h: '#5b4f86', b: '#2b2340', r: '#ff4d6d' });
   def('skel', SKEL, { o: '#1b1622', w: '#ece6d6', k: '#2a2233' });
   def('golem', GOLEM, { o: '#1a1c24', s: '#8a92a6', d: '#565d70', y: '#ffb347' });
+  def('bigslime', SLIME, { o: '#0f3a1e', h: '#3ddc84', w: '#c8ffd9', k: '#082411' });
+  def('mush', MUSH, { o: '#2a0d12', r: '#e5484d', w: '#ffe9ec', c: '#f1e3c8', e: '#2a0d12' });
+  def('ghost', GHOST, { o: '#2b3550', w: '#e8f3ff', k: '#2b3550' });
+  def('boar', BOAR, { o: '#231208', h: '#8b5a2b', k: '#ff4d4d', p: '#f4a6a6', w: '#fff6e0' });
+  def('beetle', BEETLE, { o: '#120a0a', s: '#3a2a2a', b: '#8a6a6a', r: '#ff3b3b' });
+  def('lich', LICH, { o: '#140c24', p: '#4a2f86', w: '#ece6d6', k: '#7dff9a', l: '#ffd166' });
   SPR.crown = sprite(CROWN.trim().split('\n').map(r => r.trim().padEnd(5, '.')).join('\n'), { o: '#5a3a00', y: '#ffd166', r: '#ef4b5c' });
 }
 makeSprites();
 
 /* ---------- data ---------- */
 const TYPES = {
-  slime: { name: 'Slime', hp: 22, speed: 52, dmg: 10, r: 14, scale: 3, spr: 'slime', xp: 1, color: '#9b5de5' },
-  bat:   { name: 'Bat', hp: 12, speed: 112, dmg: 6, r: 11, scale: 3, spr: 'batA', xp: 1, color: '#5b4f86' },
-  skel:  { name: 'Skeleton', hp: 46, speed: 48, dmg: 16, r: 15, scale: 3, spr: 'skel', xp: 2, color: '#ece6d6' },
-  golem: { name: 'Golem', hp: 120, speed: 36, dmg: 26, r: 20, scale: 3, spr: 'golem', xp: 4, color: '#8a92a6' },
-  boss:  { name: 'Slime King', hp: 750, speed: 44, dmg: 35, r: 38, scale: 7, spr: 'boss', xp: 30, color: '#d63c4a', boss: true },
+  slime:    { name: 'Slime', hp: 22, speed: 52, dmg: 10, r: 14, scale: 3, spr: 'slime', xp: 1, gold: 1, color: '#9b5de5' },
+  bat:      { name: 'Bat', hp: 12, speed: 112, dmg: 6, r: 11, scale: 3, spr: 'batA', xp: 1, gold: 1, color: '#5b4f86' },
+  skel:     { name: 'Skeleton', hp: 46, speed: 48, dmg: 16, r: 15, scale: 3, spr: 'skel', xp: 2, gold: 2, color: '#ece6d6' },
+  mush:     { name: 'Spore Cap', hp: 34, speed: 40, dmg: 8, r: 14, scale: 3, spr: 'mush', xp: 2, gold: 2, color: '#e5484d', note: 'shoots spores' },
+  bigslime: { name: 'Mega Slime', hp: 70, speed: 40, dmg: 14, r: 21, scale: 4, spr: 'bigslime', xp: 3, gold: 3, color: '#3ddc84', note: 'splits in two' },
+  ghost:    { name: 'Ghost', hp: 30, speed: 78, dmg: 14, r: 13, scale: 3, spr: 'ghost', xp: 2, gold: 2, color: '#e8f3ff', note: 'floats through others' },
+  golem:    { name: 'Golem', hp: 120, speed: 36, dmg: 26, r: 20, scale: 3, spr: 'golem', xp: 4, gold: 4, color: '#8a92a6' },
+  boar:     { name: 'Boar', hp: 70, speed: 50, dmg: 20, r: 16, scale: 3, spr: 'boar', xp: 3, gold: 3, color: '#8b5a2b', note: 'charges at you' },
+  beetle:   { name: 'Bomb Beetle', hp: 26, speed: 74, dmg: 8, r: 13, scale: 3, spr: 'beetle', xp: 2, gold: 2, color: '#ff3b3b', blast: 28, note: 'explodes for 28' },
+  boss:     { name: 'Slime King', hp: 750, speed: 44, dmg: 35, r: 38, scale: 7, spr: 'boss', xp: 30, gold: 30, color: '#d63c4a', boss: true },
+  lich:     { name: 'Lich Lord', hp: 1000, speed: 34, dmg: 30, r: 30, scale: 4, spr: 'lich', xp: 50, gold: 50, color: '#7dff9a', boss: true, note: 'summons bats' },
 };
+// [type, first wave, spawn weight]
+const POOL = [['slime', 1, 5], ['bat', 2, 3], ['skel', 3, 3], ['mush', 4, 2], ['bigslime', 4, 2], ['ghost', 5, 2], ['golem', 6, 1.5], ['boar', 7, 1.6], ['beetle', 8, 1.6]];
+function pickType(n) {
+  const opts = POOL.filter(p => n >= p[1]);
+  let r = Math.random() * opts.reduce((a, p) => a + p[2], 0);
+  for (const p of opts) { r -= p[2]; if (r <= 0) return p[0]; }
+  return 'slime';
+}
 const SPELLS = [
   { id: 'fire', name: 'Fireball', color: '#ff8a3d', core: '#fff1c1', cd: .55, dmg: 16, speed: 340, r: 8, desc: 'Heavy hit that sets enemies on fire' },
   { id: 'ice', name: 'Frost Shard', color: '#7fdcff', core: '#f2fdff', cd: .28, dmg: 8, speed: 560, r: 5, desc: 'Rapid shards that slow enemies down' },
@@ -372,9 +484,23 @@ const UPGRADES = [
   { id: 'heal', glyph: '+HP', name: 'Healing Draught', desc: 'Restore 60% of your health', max: 999, apply: () => { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .6); }, cond: () => P.hp < P.maxHp * .75 },
 ];
 
+const lockedSpells = () => SPELLS.map((_, i) => i).filter(i => !unlocked.has(i));
+const SHOP = [
+  { id: 'potion', glyph: 'POT', name: 'Health Potion', desc: 'Heal 40 health', base: 15, grow: 5, max: 999, ok: () => P.hp < P.maxHp, why: 'FULL HP', buy: () => { P.hp = Math.min(P.maxHp, P.hp + 40); } },
+  { id: 'shield', glyph: 'SHD', name: 'Mana Shield', desc: 'Blocks the next hit. Hold up to 3', base: 25, grow: 0, max: 999, ok: () => S.shield < 3, why: 'FULL', buy: () => { S.shield++; } },
+  { id: 'heart', glyph: 'HP', name: 'Heart Crystal', desc: '+20 max health', base: 35, mult: 1.5, max: 10, buy: () => { P.maxHp += 20; P.hp += 20; } },
+  { id: 'power', glyph: 'DMG', name: 'Power Rune', desc: '+15% spell damage', base: 40, mult: 1.5, max: 10, buy: () => { S.dmg *= 1.15; } },
+  { id: 'haste', glyph: 'SPD', name: 'Haste Rune', desc: '+12% cast speed', base: 40, mult: 1.5, max: 8, buy: () => { S.rate *= 1.12; } },
+  { id: 'boots', glyph: 'MOV', name: 'Feather Boots', desc: '+8% move speed', base: 30, mult: 1.5, max: 5, buy: () => { S.move *= 1.08; } },
+  { id: 'spirit', glyph: 'FAM', name: 'Spirit Familiar', desc: 'A spirit circles you and hits enemies', base: 70, mult: 1.7, max: 4, buy: () => { S.spirits++; } },
+  { id: 'tome', glyph: 'NEW', name: 'Spell Tome', desc: 'Unlock a random new spell', base: 90, grow: 60, max: 3, ok: () => lockedSpells().length > 0, why: 'ALL KNOWN', buy: () => { const i = pick(lockedSpells()); unlocked.add(i); buildSpellbar(); shopNote = `You learned ${SPELLS[i].name}. Switch to it from the spell bar.`; } },
+];
+function shopPrice(it) { const n = shopLv[it.id] || 0; return Math.round(it.mult ? it.base * Math.pow(it.mult, n) : it.base + it.grow * n); }
+
 /* ---------- state ---------- */
 let mode = 'menu';
 let P, S, ups, enemies, shots, eshots, gems, items, parts, texts, zaps;
+let gold = 0, shopLv = {}, shopNote = '';
 let wave, queue, spawnT, waveState, clearT, kills, time, level, xp, xpNeed, pendingLv;
 let unlocked, cur, castT, aim, shake, flash, cam;
 let best = 0;
@@ -382,8 +508,8 @@ try { best = +localStorage.getItem('wizardGroveBest') || 0; } catch (e) {}
 
 function resetRun(spellIdx) {
   P = { x: 0, y: 0, r: 15, hp: 100, maxHp: 100, inv: 0, face: 1, moving: false, walk: 0 };
-  S = { dmg: 1, rate: 1, move: 1, multi: 0, pierce: 0, pspeed: 1, regen: 0, size: 1, magnet: 1, armor: 0 };
-  ups = {};
+  S = { dmg: 1, rate: 1, move: 1, multi: 0, pierce: 0, pspeed: 1, regen: 0, size: 1, magnet: 1, armor: 0, shield: 0, spirits: 0 };
+  ups = {}; gold = 0; shopLv = {}; shopNote = '';
   enemies = []; shots = []; eshots = []; gems = []; items = []; parts = []; texts = []; zaps = [];
   wave = 0; queue = []; spawnT = 0; waveState = 'fighting'; clearT = 0;
   kills = 0; time = 0; level = 1; xp = 0; xpNeed = 8; pendingLv = 0;
@@ -411,6 +537,10 @@ function sfx(type) {
   else if (type === 'gem') set('sine', 900, 1500, .06, .035);
   else if (type === 'level') set('square', 440, 1320, .35, .05);
   else if (type === 'tome') set('triangle', 300, 1200, .5, .08);
+  else if (type === 'coin') set('square', 1200, 1800, .05, .025);
+  else if (type === 'buy') set('square', 660, 990, .12, .05);
+  else if (type === 'boom') set('sawtooth', 120, 30, .4, .1);
+  else if (type === 'block') set('triangle', 800, 400, .15, .06);
 }
 function paintSound() { $('waves').style.display = soundOn ? '' : 'none'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
 paintSound();
@@ -453,7 +583,7 @@ function buildMenu() {
   $('spellPick').querySelectorAll('button').forEach(b => b.onclick = () => startGame(+b.dataset.i));
   $('bestiary').innerHTML = Object.values(TYPES).map(t => {
     const src = SPR[t.spr].n.toDataURL();
-    return `<span class="beast"><img src="${src}" alt=""> ${t.name} <b>${t.dmg}</b></span>`;
+    return `<span class="beast" title="${t.note || ''}"><img src="${src}" alt=""> ${t.name} <b>${t.dmg}</b></span>`;
   }).join('');
   $('bestText').textContent = best ? `Best run: wave ${best}` : '';
 }
@@ -482,15 +612,45 @@ function statsHTML() {
   return `<div><small>WAVE</small><strong>${wave}</strong></div>
     <div><small>LEVEL</small><strong>${level}</strong></div>
     <div><small>KILLS</small><strong>${kills}</strong></div>
-    <div><small>TIME</small><strong>${fmtTime(time)}</strong></div>`;
+    <div><small>TIME</small><strong>${fmtTime(time)}</strong></div>
+    <div><small>GOLD</small><strong>${gold}</strong></div>
+    <div><small>SPELLS</small><strong>${unlocked.size} / ${SPELLS.length}</strong></div>`;
 }
+function openShop() {
+  mode = 'shop'; joy = null; shopNote = '';
+  renderShop(); $('shop').hidden = false;
+  $('shop').scrollTop = 0;
+}
+function renderShop() {
+  $('shopEyebrow').textContent = `Wave ${wave} cleared`;
+  $('purse').textContent = gold;
+  $('shopNote').textContent = shopNote;
+  $('shopNote').hidden = !shopNote;
+  $('nextWaveBtn').textContent = `Start wave ${wave + 1}`;
+  $('shopCards').innerHTML = SHOP.map((it, k) => {
+    const n = shopLv[it.id] || 0, cost = shopPrice(it);
+    const maxed = n >= it.max, blocked = it.ok && !it.ok();
+    const label = maxed ? 'SOLD OUT' : blocked ? it.why : `${cost} G`;
+    const off = maxed || blocked || gold < cost;
+    const owned = it.max < 999 && n ? ` · OWNED ${n}` : (it.id === 'shield' && S.shield ? ` · HAVE ${S.shield}` : '');
+    return `<button class="card shopitem" data-k="${k}" ${off ? 'disabled' : ''}>
+      <span class="glyph">${it.glyph}</span><b>${it.name}</b><span>${it.desc}</span><em>${label}${owned}</em></button>`;
+  }).join('');
+  $('shopCards').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const it = SHOP[+b.dataset.k], cost = shopPrice(it);
+    if (gold < cost) return;
+    gold -= cost; shopLv[it.id] = (shopLv[it.id] || 0) + 1; shopNote = '';
+    it.buy(); sfx('buy'); renderShop();
+  });
+}
+$('nextWaveBtn').onclick = () => { $('shop').hidden = true; mode = 'play'; startWave(wave + 1); };
 let wakeLock = null;
 async function keepAwake() { try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => wakeLock = null); } } catch (e) {} }
 
 function startGame(i) {
   initAudio(); keepAwake();
   resetRun(i);
-  $('menu').hidden = true; $('dead').hidden = true; $('pause').hidden = true; $('levelup').hidden = true;
+  $('menu').hidden = true; $('dead').hidden = true; $('pause').hidden = true; $('levelup').hidden = true; $('shop').hidden = true;
   buildSpellbar();
   mode = 'play';
   startWave(1);
@@ -530,43 +690,56 @@ function showLevelUp() {
 /* ---------- waves ---------- */
 function startWave(n) {
   wave = n; waveState = 'fighting';
-  const boss = n % 5 === 0;
+  const boss = n % 10 === 0 ? 'lich' : n % 5 === 0 ? 'boss' : null;
   queue = [];
   const count = 5 + n * 3;
-  for (let i = 0; i < count; i++) {
-    let t = 'slime'; const r = Math.random();
-    if (n >= 2 && r < .35) t = 'bat';
-    if (n >= 3 && r > .66) t = 'skel';
-    if (n >= 6 && r > .88) t = 'golem';
-    queue.push(t);
-  }
-  if (boss) { queue.length = Math.ceil(queue.length * .5); queue.unshift('boss'); }
+  for (let i = 0; i < count; i++) queue.push(pickType(n));
+  if (boss) { queue.length = Math.ceil(queue.length * .5); queue.unshift(boss); }
   spawnT = 1;
-  if (boss) banner(`Wave ${n}`, 'The Slime King approaches');
+  const fresh = POOL.filter(p => p[1] === n && n > 1).map(p => TYPES[p[0]]);
+  if (boss) banner(`Wave ${n}`, `The ${TYPES[boss].name} approaches`);
+  else if (fresh.length) banner(`Wave ${n}`, 'New: ' + fresh.map(t => t.name + (t.note ? ` (${t.note})` : '')).join(', '));
   else banner(`Wave ${n}`);
 }
-function spawnEnemy(type) {
+function spawnEnemy(type, x, y) {
   const T = TYPES[type];
-  const a = Math.random() * Math.PI * 2;
-  const dist = Math.hypot(VW, VH) / 2 / ZOOM + 50;
+  if (x === undefined) {
+    const a = Math.random() * Math.PI * 2;
+    const dist = Math.hypot(VW, VH) / 2 / ZOOM + 50;
+    x = P.x + Math.cos(a) * dist; y = P.y + Math.sin(a) * dist;
+  }
   const hpMul = T.boss ? 1 + (wave / 5 - 1) * .9 : 1 + (wave - 1) * .16;
-  enemies.push({
-    type, T, x: P.x + Math.cos(a) * dist, y: P.y + Math.sin(a) * dist,
+  const dmgMul = 1 + (wave - 1) * .04;
+  const e = {
+    type, T, x, y,
     hp: T.hp * hpMul, maxHp: T.hp * hpMul, r: T.r, speed: T.speed * rand(.9, 1.1),
-    dmg: Math.round(T.dmg * (1 + (wave - 1) * .04)),
+    dmg: Math.round(T.dmg * dmgMul), dmgMul,
     kx: 0, ky: 0, flash: 0, slow: 0, burn: 0, burnDps: 0, burnTick: 0, ph: Math.random() * 6, face: 1,
-    shotT: 2.5, dashT: 4,
-  });
+    shotT: type === 'mush' ? rand(1, 2) : 2.5, dashT: 4, summonT: 5, st: 'walk', stT: 0, cx: 0, cy: 0, fuse: 0, spCd: 0,
+  };
+  enemies.push(e);
+  return e;
 }
 function waveCleared() {
-  waveState = 'cleared'; clearT = 2.4;
+  waveState = 'cleared'; clearT = 2.2;
   gems.forEach(g => g.pull = true);
-  const locked = SPELLS.map((_, i) => i).filter(i => !unlocked.has(i));
+  const bonus = 5 + wave * 2;
+  gold += bonus;
+  texts.push({ x: P.x, y: P.y - 44, text: `+${bonus} G`, life: 1.4, color: '#ffd166', big: true });
+  const locked = lockedSpells();
   if (locked.length && (wave % 3 === 2 || wave % 5 === 0)) {
     const a = Math.random() * Math.PI * 2;
     items.push({ x: P.x + Math.cos(a) * 90, y: P.y + Math.sin(a) * 90, spell: pick(locked), t: 0 });
-    banner('Wave cleared', 'A spell tome dropped nearby');
-  } else banner('Wave cleared');
+    banner('Wave cleared', 'A spell tome dropped. The shop opens next');
+  } else banner('Wave cleared', 'The shop opens next');
+}
+function explode(e) {
+  e.dead = true; shake = reduceMotion ? 0 : 10; sfx('boom');
+  const R = 78;
+  for (let i = 0; i < 36; i++) { const a = Math.random() * 6.28, s = rand(60, 280); parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.3, .6), max: .6, size: rand(3, 6), color: pick(['#ff3b3b', '#ff8a3d', '#ffd166']), glow: true }); }
+  zaps.push({ ring: true, x1: e.x, y1: e.y, r: R, life: .25 });
+  if ((P.x - e.x) ** 2 + (P.y - e.y) ** 2 < (R + P.r) ** 2) damagePlayer(Math.round(e.T.blast * e.dmgMul));
+  for (const o of enemies) if (o !== e && !o.dead && (o.x - e.x) ** 2 + (o.y - e.y) ** 2 < R * R) hurt(o, 40, '#ff8a3d');
 }
 
 /* ---------- combat ---------- */
@@ -614,9 +787,12 @@ function kill(e) {
     parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.3, .7), max: .7, size: rand(2, 5), color: e.T.color });
   }
   let v = e.T.xp;
-  const pieces = e.T.boss ? 10 : 1;
-  for (let i = 0; i < pieces; i++) gems.push({ x: e.x + rand(-8, 8) * (pieces > 1 ? 4 : 0), y: e.y + rand(-8, 8) * (pieces > 1 ? 4 : 0), v: Math.ceil(v / pieces), vx: 0, vy: 0, pull: false, ph: Math.random() * 6 });
-  if (e.T.boss) { shake = 14; banner('Slime King defeated!'); }
+  const pieces = e.T.boss ? 10 : 1, spread = pieces > 1 ? 32 : 0;
+  for (let i = 0; i < pieces; i++) gems.push({ x: e.x + rand(-spread, spread), y: e.y + rand(-spread, spread), v: Math.ceil(v / pieces), vx: 0, vy: 0, pull: false, ph: Math.random() * 6 });
+  const coins = e.T.boss ? 6 : 1;
+  for (let i = 0; i < coins; i++) gems.push({ gold: true, x: e.x + rand(-10, 10) + rand(-spread, spread), y: e.y + rand(-10, 10) + rand(-spread, spread), v: Math.ceil(e.T.gold / coins), vx: 0, vy: 0, pull: false, ph: Math.random() * 6 });
+  if (e.type === 'bigslime') for (let k = -1; k <= 1; k += 2) { const s = spawnEnemy('slime', e.x + k * 14, e.y); s.kx = k * 160; s.hp = s.maxHp *= .7; }
+  if (e.T.boss) { shake = 14; banner(`${e.T.name} defeated!`); }
   sfx('kill');
 }
 function onHit(s, e) {
@@ -639,6 +815,12 @@ function onHit(s, e) {
 }
 function damagePlayer(d) {
   if (P.inv > 0 || mode !== 'play') return;
+  if (S.shield > 0) {
+    S.shield--; P.inv = .6; sfx('block');
+    texts.push({ x: P.x, y: P.y - 30, text: 'BLOCK', life: .8, color: '#9fe6ff', big: true });
+    for (let i = 0; i < 16; i++) { const a = i / 16 * 6.28; parts.push({ x: P.x + Math.cos(a) * 26, y: P.y + Math.sin(a) * 26, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90, life: .4, max: .4, size: 3, color: '#9fe6ff', glow: true }); }
+    return;
+  }
   const taken = Math.max(Math.ceil(d * .3), Math.round(d - S.armor));
   P.hp -= taken; P.inv = .7; shake = reduceMotion ? 0 : 9; flash = .3;
   texts.push({ x: P.x, y: P.y - 30, text: '-' + taken, life: .9, color: '#ff5d6c', big: true });
@@ -696,8 +878,9 @@ function update(dt) {
       spawnT = Math.max(.18, 1 - wave * .05) * rand(.6, 1.2);
     }
     if (!queue.length && !enemies.length) waveCleared();
-  } else {
-    clearT -= dt; if (clearT <= 0) startWave(wave + 1);
+  } else if (waveState === 'cleared') {
+    clearT -= dt;
+    if (clearT <= 0 && !items.length && pendingLv === 0) { waveState = 'shop'; openShop(); return; }
   }
 
   // enemies
@@ -711,9 +894,32 @@ function update(dt) {
     }
     let dx = P.x - e.x, dy = P.y - e.y; const d = Math.hypot(dx, dy) || 1;
     dx /= d; dy /= d;
+    const ux = dx, uy = dy;
     let sp = e.speed * slowMul;
-    if (e.type === 'bat') { const w = Math.sin(time * 5 + e.ph) * .9; const px = -dy, py = dx; dx += px * w; dy += py * w; }
-    if (e.T.boss) {
+    e.spCd -= dt;
+    if (e.type === 'bat' || e.type === 'ghost') {
+      const w = e.type === 'bat' ? Math.sin(time * 5 + e.ph) * .9 : Math.sin(time * 2 + e.ph) * .5;
+      const px = -dy, py = dx; dx += px * w; dy += py * w;
+    } else if (e.type === 'mush') {
+      if (d < 150) { dx = -ux * .7; dy = -uy * .7; } else if (d < 230) { dx = 0; dy = 0; }
+      e.shotT -= dt;
+      if (e.shotT <= 0 && d < 340) {
+        e.shotT = 2.4; e.flash = .1;
+        eshots.push({ x: e.x, y: e.y - 8, vx: ux * 170, vy: uy * 170, r: 6, dmg: Math.round(10 * e.dmgMul), life: 3, color: '#b6e36b', core: '#efffd0' });
+      }
+    } else if (e.type === 'boar') {
+      e.stT -= dt;
+      if (e.st === 'walk' && d < 230) { e.st = 'wind'; e.stT = .65; }
+      else if (e.st === 'wind') { dx = 0; dy = 0; if (e.stT <= 0) { e.st = 'charge'; e.stT = .7; e.cx = ux; e.cy = uy; } }
+      else if (e.st === 'charge') {
+        dx = e.cx; dy = e.cy; sp = 340 * slowMul;
+        if (Math.random() < dt * 30) parts.push({ x: e.x, y: e.y + e.r * .7, vx: rand(-30, 30), vy: rand(-20, 0), life: .4, max: .4, size: 4, color: '#c9a36b' });
+        if (e.stT <= 0) { e.st = 'rest'; e.stT = .9; }
+      } else if (e.st === 'rest') { dx = 0; dy = 0; if (e.stT <= 0) e.st = 'walk'; }
+    } else if (e.type === 'beetle') {
+      if (e.fuse > 0) { dx = 0; dy = 0; e.fuse -= dt; if (e.fuse <= 0) { explode(e); continue; } }
+      else if (d < 50) { e.fuse = .7; }
+    } else if (e.type === 'boss') {
       e.shotT -= dt; e.dashT -= dt;
       if (e.shotT <= 0) {
         e.shotT = 2.6;
@@ -721,20 +927,44 @@ function update(dt) {
         for (let i = 0; i < k; i++) { const a = off + i / k * Math.PI * 2; eshots.push({ x: e.x, y: e.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, r: 7, dmg: 12, life: 4 }); }
       }
       if (e.dashT <= 0) { e.dashT = 5; e.kx += dx * 420; e.ky += dy * 420; }
+    } else if (e.type === 'lich') {
+      if (d < 180) { dx = -ux * .5; dy = -uy * .5; }
+      e.shotT -= dt; e.summonT -= dt;
+      if (e.shotT <= 0) {
+        e.shotT = 1.9; e.flash = .1;
+        const base = Math.atan2(uy, ux);
+        for (let i = -2; i <= 2; i++) { const a = base + i * .2; eshots.push({ x: e.x, y: e.y - 20, vx: Math.cos(a) * 200, vy: Math.sin(a) * 200, r: 7, dmg: Math.round(14 * e.dmgMul), life: 4, color: '#7dff9a', core: '#eafff0' }); }
+      }
+      if (e.summonT <= 0) {
+        e.summonT = 6.5;
+        for (let i = 0; i < 4; i++) { const a = i / 4 * 6.28; spawnEnemy('bat', e.x + Math.cos(a) * 50, e.y + Math.sin(a) * 50); }
+        for (let i = 0; i < 20; i++) { const a = Math.random() * 6.28; parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, life: .5, max: .5, size: 4, color: '#7dff9a', glow: true }); }
+      }
     }
     e.x += (dx * sp + e.kx) * dt; e.y += (dy * sp + e.ky) * dt;
     const damp = Math.pow(.02, dt); e.kx *= damp; e.ky *= damp;
     if (Math.abs(P.x - e.x) > 4) e.face = P.x < e.x ? -1 : 1;
     if (d < e.r + P.r) {
       damagePlayer(e.dmg);
-      if (!e.T.boss) { e.kx -= dx * 260; e.ky -= dy * 260; }
+      if (!e.T.boss) { e.kx -= ux * 260; e.ky -= uy * 260; }
+      if (e.st === 'charge') { e.st = 'rest'; e.stT = .9; }
+    }
+  }
+  // spirit familiars
+  for (let i = 0; i < S.spirits; i++) {
+    const a = time * 2.6 + i * Math.PI * 2 / S.spirits, fx = P.x + Math.cos(a) * 58, fy = P.y + Math.sin(a) * 58;
+    for (const e of enemies) {
+      if (e.dead || e.spCd > 0) continue;
+      if ((e.x - fx) ** 2 + (e.y - fy) ** 2 < (e.r + 10) ** 2) { e.spCd = .5; hurt(e, 12 * S.dmg, '#bfefff'); }
     }
   }
   // separation
   for (let i = 0; i < enemies.length; i++) {
     const a = enemies[i];
     for (let j = i + 1; j < enemies.length; j++) {
-      const b = enemies[j]; const dx = b.x - a.x, dy = b.y - a.y, min = (a.r + b.r) * .85;
+      const b = enemies[j];
+      if (a.type === 'ghost' || b.type === 'ghost') continue;
+      const dx = b.x - a.x, dy = b.y - a.y, min = (a.r + b.r) * .85;
       if (Math.abs(dx) > min || Math.abs(dy) > min) continue;
       const d = Math.hypot(dx, dy) || .01; if (d >= min) continue;
       const push = (min - d) / 2, ux = dx / d, uy = dy / d;
@@ -781,7 +1011,7 @@ function update(dt) {
     const dx = P.x - g.x, dy = P.y - g.y, d = Math.hypot(dx, dy) || 1;
     if (g.pull || d < mr) { g.pull = true; const sp = 420; g.vx += dx / d * sp * dt * 6; g.vy += dy / d * sp * dt * 6; const vm = Math.hypot(g.vx, g.vy); if (vm > sp) { g.vx *= sp / vm; g.vy *= sp / vm; } }
     g.x += g.vx * dt; g.y += g.vy * dt;
-    if (d < P.r + 8) { g.got = true; xp += g.v; sfx('gem'); }
+    if (d < P.r + 8) { g.got = true; if (g.gold) { gold += g.v; sfx('coin'); } else { xp += g.v; sfx('gem'); } }
   }
   gems = gems.filter(g => !g.got);
   while (xp >= xpNeed) { xp -= xpNeed; level++; pendingLv++; xpNeed = Math.floor(8 + level * 5); }
@@ -789,6 +1019,10 @@ function update(dt) {
   // items
   for (const it of items) {
     it.t += dt;
+    if (waveState !== 'fighting' && it.t > .8) {
+      const dx = P.x - it.x, dy = P.y - it.y, d = Math.hypot(dx, dy) || 1, v = Math.min(320, 80 + it.t * 120);
+      it.x += dx / d * v * dt; it.y += dy / d * v * dt;
+    }
     if ((P.x - it.x) ** 2 + (P.y - it.y) ** 2 < (P.r + 16) ** 2) {
       it.got = true; unlocked.add(it.spell); cur = it.spell; buildSpellbar();
       banner(`New spell: ${SPELLS[it.spell].name}`, 'Tap the spell bar to switch');
@@ -840,17 +1074,24 @@ function drawEnemy(e) {
   const T0 = e.T; let key = T0.spr;
   if (e.type === 'bat') key = Math.sin(T * 14 + e.ph) > 0 ? 'batA' : 'batB';
   const set = SPR[key];
-  const img = e.flash > 0 ? set.w : e.slow > 0 ? set.i : set.n;
+  const fuseBlink = e.fuse > 0 && Math.floor(e.fuse * 14) % 2 === 0;
+  const img = e.flash > 0 || fuseBlink ? set.w : e.slow > 0 ? set.i : set.n;
   const sc = T0.scale, w = img.width * sc, h = img.height * sc;
-  const fly = e.type === 'bat' ? 10 + Math.sin(T * 4 + e.ph) * 3 : 0;
-  shadow(e.x, e.y + e.r * .8, e.r * (e.type === 'bat' ? .7 : 1));
-  ctx.save(); ctx.translate(e.x, e.y + e.r * .8 - fly);
+  const floaty = e.type === 'bat' || e.type === 'ghost' || e.type === 'lich';
+  const fly = floaty ? (e.type === 'lich' ? 6 : 10) + Math.sin(T * 4 + e.ph) * 3 : 0;
+  shadow(e.x, e.y + e.r * .8, e.r * (floaty ? .7 : 1));
+  ctx.save();
+  const shakeX = e.st === 'wind' ? rand(-2, 2) : 0;
+  ctx.translate(e.x + shakeX, e.y + e.r * .8 - fly);
+  if (e.type === 'ghost') ctx.globalAlpha = .6 + Math.sin(T * 3 + e.ph) * .2;
+  if (e.fuse > 0) { const s = 1 + (.7 - e.fuse) * .4; ctx.scale(s, s); }
+  if (e.st === 'wind') { ctx.fillStyle = '#ff4d4d'; ctx.fillRect(-2, -h - 14, 4, 8); ctx.fillRect(-2, -h - 4, 4, 3); }
   let sx = e.face < 0 ? -1 : 1, sy = 1;
   if (e.type === 'slime' || e.type === 'boss') { const q = Math.sin(T * 6 + e.ph) * .08; sx *= 1 + q; sy = 1 - q; }
   else if (e.type === 'skel' || e.type === 'golem') ctx.rotate(Math.sin(T * 8 + e.ph) * .06);
   ctx.scale(sx, sy);
   ctx.drawImage(img, -w / 2, -h, w, h);
-  if (e.T.boss) { const cw = SPR.crown.width * 4, ch = SPR.crown.height * 4; ctx.drawImage(SPR.crown, -cw / 2, -h - ch + 10, cw, ch); }
+  if (e.type === 'boss') { const cw = SPR.crown.width * 4, ch = SPR.crown.height * 4; ctx.drawImage(SPR.crown, -cw / 2, -h - ch + 10, cw, ch); }
   ctx.restore();
   if (e.T.boss) {
     const bw = 90, by = e.y - e.r * 2.3;
@@ -873,6 +1114,15 @@ function drawPlayer() {
   ctx.translate(P.x, P.y - bob); ctx.scale(P.face, 1);
   if (WIZ.complete && WIZ.naturalWidth) ctx.drawImage(WIZ, -w / 2, -h / 2, w, h);
   ctx.restore();
+  if (S.shield > 0) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(159,230,255,.75)'; ctx.lineWidth = 2;
+    ctx.fillStyle = 'rgba(159,230,255,.12)';
+    ctx.beginPath(); ctx.arc(P.x, P.y, 34 + Math.sin(T * 4) * 1.5, 0, 6.28); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#9fe6ff';
+    for (let i = 0; i < S.shield; i++) { const a = T * 1.5 + i * 6.28 / S.shield; ctx.fillRect(P.x + Math.cos(a) * 34 - 3, P.y + Math.sin(a) * 34 - 3, 6, 6); }
+    ctx.restore();
+  }
   // wand
   const tip = wandTip(), sp = SPELLS[cur];
   ctx.save(); if (blink) ctx.globalAlpha = .45;
@@ -933,6 +1183,13 @@ function render() {
 
   // gems
   for (const g of gems) {
+    if (g.gold) {
+      const y = g.y + Math.sin(T * 4 + g.ph) * 2, cw = Math.max(1.5, Math.abs(Math.cos(T * 3 + g.ph)) * 5);
+      ctx.fillStyle = '#5a3a00'; ctx.fillRect(g.x - cw - 1, y - 6, cw * 2 + 2, 12);
+      ctx.fillStyle = '#ffd166'; ctx.fillRect(g.x - cw, y - 5, cw * 2, 10);
+      ctx.fillStyle = '#fff3c4'; ctx.fillRect(g.x - cw + 1, y - 4, 2, 3);
+      continue;
+    }
     const y = g.y + Math.sin(T * 4 + g.ph) * 2, big = g.v >= 3;
     const r = big ? 6 : 4;
     ctx.fillStyle = '#0b0816'; ctx.beginPath(); ctx.moveTo(g.x, y - r - 2); ctx.lineTo(g.x + r + 2, y); ctx.lineTo(g.x, y + r + 2); ctx.lineTo(g.x - r - 2, y); ctx.fill();
@@ -950,7 +1207,19 @@ function render() {
   for (const s of shots) drawShot(s);
   for (const p of parts) if (p.glow) { ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.color; ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size); }
   ctx.globalAlpha = 1;
+  for (let i = 0; i < S.spirits; i++) {
+    const a = time * 2.6 + i * Math.PI * 2 / S.spirits, fx = P.x + Math.cos(a) * 58, fy = P.y + Math.sin(a) * 58;
+    ctx.fillStyle = 'rgba(191,239,255,.3)'; ctx.beginPath(); ctx.arc(fx, fy, 11, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#bfefff'; ctx.beginPath(); ctx.arc(fx, fy, 6, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(fx - 2, fy - 3, 2, 2); ctx.fillRect(fx + 1, fy - 3, 2, 2);
+    if (mode === 'play' && Math.random() < .3) parts.push({ x: fx, y: fy, vx: rand(-15, 15), vy: rand(-15, 15), life: .3, max: .3, size: 3, color: '#bfefff', glow: true });
+  }
   for (const z of zaps) {
+    if (z.ring) {
+      ctx.strokeStyle = `rgba(255,138,61,${z.life * 4})`; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.arc(z.x1, z.y1, z.r * (1.1 - z.life * 2), 0, 6.28); ctx.stroke();
+      continue;
+    }
     ctx.strokeStyle = '#ffe45c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(z.x1, z.y1);
     for (let k = 1; k < 5; k++) ctx.lineTo(z.x1 + (z.x2 - z.x1) * k / 5 + rand(-7, 7), z.y1 + (z.y2 - z.y1) * k / 5 + rand(-7, 7));
     ctx.lineTo(z.x2, z.y2); ctx.stroke();
@@ -960,8 +1229,8 @@ function render() {
   ctx.globalAlpha = 1;
   for (const s of eshots) {
     ctx.fillStyle = '#0b0816'; ctx.beginPath(); ctx.arc(s.x, s.y, s.r + 2, 0, 6.28); ctx.fill();
-    ctx.fillStyle = '#ff4d6d'; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.28); ctx.fill();
-    ctx.fillStyle = '#ffd0d8'; ctx.fillRect(s.x - 2, s.y - 3, 3, 3);
+    ctx.fillStyle = s.color || '#ff4d6d'; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.28); ctx.fill();
+    ctx.fillStyle = s.core || '#ffd0d8'; ctx.fillRect(s.x - 2, s.y - 3, 3, 3);
   }
   ctx.textAlign = 'center';
   for (const t of texts) {
@@ -992,7 +1261,7 @@ function render() {
 let lastHud = '';
 function hud() {
   const hpTxt = `${Math.ceil(P.hp)} / ${P.maxHp}`;
-  const key = hpTxt + '|' + xp + '|' + level + '|' + wave + '|' + kills;
+  const key = hpTxt + '|' + xp + '|' + level + '|' + wave + '|' + kills + '|' + gold;
   if (key === lastHud) return; lastHud = key;
   $('hpFill').style.width = (P.hp / P.maxHp * 100) + '%';
   $('hpText').textContent = hpTxt;
@@ -1000,6 +1269,7 @@ function hud() {
   $('xpText').textContent = `LV ${level}`;
   $('waveText').textContent = `Wave ${Math.max(1, wave)}`;
   $('killText').textContent = `${kills} KILLS`;
+  $('goldText').textContent = `${gold} G`;
 }
 
 let last = performance.now();

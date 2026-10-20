@@ -1,0 +1,1027 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Wizard Grove</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Silkscreen&display=swap">
+<style>
+/* Layout: full-bleed canvas world, thin HUD rails top and bottom, spellbook cards in a centered modal */
+:root {
+  --night: #17122b;
+  --panel: #221a3d;
+  --card: #2c2250;
+  --edge: #5a479a;
+  --ink: #0b0816;
+  --text: #f4efff;
+  --muted: #b9add9;
+  --gold: #ffd166;
+  --hp: #ef4b5c;
+  --hp-dark: #4a1420;
+  --xp: #5cc8ff;
+  --xp-dark: #123048;
+  --font-display: "Pixelify Sans", "Trebuchet MS", system-ui, sans-serif;
+  --font-ui: "Silkscreen", ui-monospace, "Courier New", monospace;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  background: var(--night); color: var(--text); overflow: hidden;
+  font-family: var(--font-display);
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+/* HUD */
+.hud-top {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 2;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  pointer-events: none;
+}
+.stats { display: grid; gap: 6px; width: min(230px, 56vw); }
+.bar { position: relative; height: 18px; background: var(--hp-dark); box-shadow: 0 0 0 2px var(--ink), 0 3px 0 2px #0006; }
+.bar.xp { height: 12px; background: var(--xp-dark); }
+.bar > i { position: absolute; inset: 0 auto 0 0; width: 100%; background: var(--hp); box-shadow: inset 0 3px 0 #ffffff40; }
+.bar.xp > i { background: var(--xp); }
+.bar > span {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font: 10px/1 var(--font-ui); letter-spacing: .04em; color: var(--text);
+  text-shadow: 1px 1px 0 var(--ink), -1px 1px 0 var(--ink), 1px -1px 0 var(--ink), -1px -1px 0 var(--ink);
+}
+.bar.xp > span { font-size: 8px; }
+.right { display: flex; gap: 8px; align-items: flex-start; }
+.wave { text-align: right; white-space: nowrap; line-height: 1.1; text-shadow: 2px 2px 0 var(--ink); }
+.wave b { display: block; font-size: 20px; color: var(--gold); font-weight: 700; }
+.wave small { font: 10px var(--font-ui); color: var(--text); letter-spacing: .04em; }
+.icon-btn {
+  pointer-events: auto; appearance: none; border: 0; width: 40px; height: 40px;
+  background: var(--panel); color: var(--text); display: grid; place-items: center; cursor: pointer;
+  box-shadow: 0 0 0 2px var(--ink), inset 0 0 0 2px var(--edge), 0 4px 0 2px #0007;
+}
+.icon-btn:focus-visible, .slot:focus-visible, .card:focus-visible, .btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.icon-btn svg { width: 20px; height: 20px; }
+
+.spellbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 2;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; justify-content: center; gap: 8px; pointer-events: none;
+}
+.slot {
+  pointer-events: auto; appearance: none; border: 0; cursor: pointer;
+  width: 64px; padding: 8px 2px 6px; display: grid; justify-items: center; gap: 5px;
+  background: var(--panel); color: var(--text);
+  box-shadow: 0 0 0 2px var(--ink), inset 0 0 0 2px var(--edge), 0 4px 0 2px #0007;
+  font: 7px/1 var(--font-ui); letter-spacing: .03em;
+}
+.slot.on { box-shadow: 0 0 0 2px var(--ink), inset 0 0 0 3px var(--gold), 0 4px 0 2px #0007; background: #3a2c66; }
+.slot.locked { opacity: .45; cursor: default; }
+.slot kbd { font: inherit; color: var(--muted); }
+.orb {
+  width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 40% 38%, var(--core, #fff) 0 22%, var(--c, #888) 60%, #0000 72%);
+  box-shadow: 0 0 12px var(--c, #888);
+  font: 12px var(--font-ui); color: var(--ink);
+}
+.locked .orb { --c: #555068; --core: #8a85a0; box-shadow: none; }
+
+#banner {
+  position: fixed; left: 0; right: 0; top: 26%; z-index: 2; text-align: center; pointer-events: none;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  font-size: clamp(26px, 8vw, 44px); font-weight: 700; color: var(--gold);
+  text-shadow: 3px 3px 0 var(--ink), -2px -2px 0 var(--ink), 2px -2px 0 var(--ink), -2px 2px 0 var(--ink);
+  opacity: 0; text-wrap: balance;
+}
+#banner small { display: block; font: 12px var(--font-ui); color: var(--text); margin-top: 6px; letter-spacing: .04em; }
+#banner.show { animation: pop 2.2s ease-out forwards; }
+@keyframes pop {
+  0% { opacity: 0; transform: scale(.7); }
+  12% { opacity: 1; transform: scale(1.06); }
+  20% { transform: scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-14px); }
+}
+
+/* Overlays */
+.overlay {
+  position: fixed; inset: 0; z-index: 5; display: grid; place-items: center;
+  background: #0b0816c4;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  overflow-y: auto;
+}
+.modal {
+  width: min(460px, 100%); background: var(--panel); padding: 20px 18px;
+  box-shadow: 0 0 0 3px var(--ink), inset 0 0 0 3px var(--edge), 8px 8px 0 3px #0009;
+  display: grid; gap: 14px;
+}
+.modal h1, .modal h2 { margin: 0; font-weight: 700; color: var(--gold); line-height: 1; text-wrap: balance; text-shadow: 3px 3px 0 var(--ink); }
+.modal h1 { font-size: clamp(36px, 11vw, 52px); }
+.modal h2 { font-size: 30px; }
+.modal p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.35; }
+.eyebrow { font: 10px var(--font-ui); letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stack { display: grid; gap: 10px; }
+.card {
+  appearance: none; border: 0; font: inherit; color: var(--text); text-align: left; cursor: pointer;
+  background: var(--card); padding: 12px; display: grid; gap: 4px; align-content: start; min-width: 0;
+  box-shadow: inset 0 0 0 2px var(--edge), 0 4px 0 #0b0816;
+}
+.card:hover { background: #352a60; }
+.card:active { transform: translateY(2px); box-shadow: inset 0 0 0 2px var(--edge), 0 2px 0 #0b0816; }
+.card b { font-size: 18px; font-weight: 600; }
+.card span { font-size: 14px; color: var(--muted); line-height: 1.25; }
+.card em { font: normal 9px var(--font-ui); color: var(--gold); letter-spacing: .04em; }
+.card .orb { margin-bottom: 4px; }
+.card.up { grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; }
+.card.up .glyph { grid-row: span 3; width: 40px; height: 40px; display: grid; place-items: center; background: var(--ink); color: var(--gold); font: 16px var(--font-ui); box-shadow: inset 0 0 0 2px var(--edge); }
+.bestiary { display: flex; flex-wrap: wrap; gap: 6px; }
+.beast { display: flex; align-items: center; gap: 6px; background: var(--ink); padding: 4px 8px 4px 4px; font: 9px var(--font-ui); letter-spacing: .03em; color: var(--muted); }
+.beast img { width: 24px; height: 24px; object-fit: contain; image-rendering: pixelated; }
+.beast b { color: var(--hp); font-weight: 400; }
+.hint { font: 9px/1.6 var(--font-ui); color: var(--muted); letter-spacing: .03em; }
+.btn {
+  appearance: none; border: 0; cursor: pointer; font: 600 18px var(--font-display); padding: 12px 16px;
+  background: var(--gold); color: var(--ink); box-shadow: inset 0 -4px 0 #c48a1e, 0 0 0 3px var(--ink);
+}
+.btn.ghost { background: var(--card); color: var(--text); box-shadow: inset 0 0 0 2px var(--edge), 0 0 0 3px var(--ink); }
+.btn:active { transform: translateY(2px); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row > .btn { flex: 1 1 140px; }
+.statgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.statgrid div { background: var(--ink); padding: 10px; display: grid; gap: 4px; }
+.statgrid small { font: 9px var(--font-ui); color: var(--muted); letter-spacing: .05em; }
+.statgrid strong { font-size: 24px; font-variant-numeric: tabular-nums; }
+@media (max-width: 360px) { .grid2 { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { #banner.show { animation-duration: 2.2s; animation-timing-function: steps(1); } }
+</style>
+
+</head>
+<body>
+<canvas id="game" aria-label="Game world"></canvas>
+
+<div class="hud-top" id="hud">
+  <div class="stats">
+    <div class="bar" id="hpBar"><i id="hpFill"></i><span id="hpText">100 / 100</span></div>
+    <div class="bar xp"><i id="xpFill"></i><span id="xpText">LV 1</span></div>
+  </div>
+  <div class="right">
+    <div class="wave"><b id="waveText">Wave 1</b><small id="killText">0 KILLS</small></div>
+    <button class="icon-btn" id="soundBtn" aria-label="Toggle sound">
+      <svg viewBox="0 0 16 16" fill="currentColor" shape-rendering="crispEdges"><path d="M2 6h3l4-3v10L5 10H2z"/><path id="waves" d="M11 5h1v6h-1zM13 3h1v10h-1z"/></svg>
+    </button>
+    <button class="icon-btn" id="pauseBtn" aria-label="Pause">
+      <svg viewBox="0 0 16 16" fill="currentColor" shape-rendering="crispEdges"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="spellbar" id="spellbar"></div>
+<div id="banner"></div>
+
+<div class="overlay" id="menu">
+  <div class="modal">
+    <div class="eyebrow">A grassland siege</div>
+    <h1>Wizard Grove</h1>
+    <p>Monsters crawl out of the grass in waves. Your wand aims at the closest one and casts on its own. You just keep moving and stay alive.</p>
+    <div class="eyebrow">Pick your first spell</div>
+    <div class="grid2" id="spellPick"></div>
+    <div class="eyebrow">Touch damage</div>
+    <div class="bestiary" id="bestiary"></div>
+    <div class="hint">Drag anywhere to move &middot; WASD on keyboard<br>Find spell tomes to unlock more spells &middot; Tap the bar to switch</div>
+    <div class="hint" id="bestText"></div>
+  </div>
+</div>
+
+<div class="overlay" id="levelup" hidden>
+  <div class="modal">
+    <div class="eyebrow" id="luEyebrow">Level up</div>
+    <h2 id="luTitle">Level 2</h2>
+    <p>Choose one upgrade.</p>
+    <div class="stack" id="luCards"></div>
+  </div>
+</div>
+
+<div class="overlay" id="pause" hidden>
+  <div class="modal">
+    <h2>Paused</h2>
+    <div class="statgrid" id="pauseStats"></div>
+    <div class="row">
+      <button class="btn" id="resumeBtn">Resume</button>
+      <button class="btn ghost" id="quitBtn">New run</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="dead" hidden>
+  <div class="modal">
+    <div class="eyebrow">The grove claims another wizard</div>
+    <h2>You were overwhelmed</h2>
+    <div class="statgrid" id="deadStats"></div>
+    <div class="hint" id="deadBest"></div>
+    <button class="btn" id="againBtn">Cast again</button>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const WIZ = new Image(); WIZ.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFIAAABQCAYAAACK5CKQAAAACXBIWXMAAAsTAAALEwEAmpwYAAAGTGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIwLTAyLTE2VDE5OjA1OjUxKzAyOjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMC0wMi0xNlQxOToyNzoyOCswMjowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMC0wMi0xNlQxOToyNzoyOCswMjowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo2ZTUwMzhlOC05MTU5LThiNGYtYTg0Mi1mZWE2M2Q4OTBiOGQiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDpjNzNiZmFkZS1iZjg3LTdiNDQtYTYyNC1kNjE3Njc1OTNmNjYiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo5NTAyN2EwZi1lYmM4LTFiNGQtOGIyMC1kMjhmMDU1MzFmMzQiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjk1MDI3YTBmLWViYzgtMWI0ZC04YjIwLWQyOGYwNTUzMWYzNCIgc3RFdnQ6d2hlbj0iMjAyMC0wMi0xNlQxOTowNTo1MSswMjowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjb252ZXJ0ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImZyb20gaW1hZ2UvZ2lmIHRvIGltYWdlL3BuZyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6NmU1MDM4ZTgtOTE1OS04YjRmLWE4NDItZmVhNjNkODkwYjhkIiBzdEV2dDp3aGVuPSIyMDIwLTAyLTE2VDE5OjI3OjI4KzAyOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+opn2iwAAAYNJREFUeNrt3LFNxDAUBuBbCK6mpGEAVriOCRAT0CJaxA5scA0DMAQSEg0MAIHW74qnR+wjkb7ir5wo9mfp7Lwkt5mmaSPzAwEkSJACEiRIkAISJEgBCRIkyD9muz2degYkSJAg1wwZB35599bk5Oq5ycXte5Ps+CVDgwQJEmQGF2F6pwoNEiRIkGuGjDC9k8H2vCEACRIkyLmQ2WIxOtkNw83Td5PKxIAECRJkFTKDe73fDU22eES4z4+vJrEdJEiQIEcWcqsDjameX+3vYhYbkCBBgvxN/HGPx8f26eWhSXZ+tf+P52dN/q1oARIkyFVCzt2AR4jROYAI7XFip/11E5AgQYIcCZfCho73Trx+bD+AzCYCJEiQIAc+3MqKDL0fdsX+9dyAgwQJEuTcl6TSDXmyAa4uZjEgQYIEuSbIapGgCpn1ByRIkCCXBJkNpHdRJLt+TziQIEGCPPZHm70hYztIkCBBzoHMCq1Lh8yOBwkSJMiekKM/TK+m+gLCMf9w6Qfh8cZ9vtoSgQAAAABJRU5ErkJggg==";
+const GRASS = new Image(); GRASS.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAA4JGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxMzggNzkuMTU5ODI0LCAyMDE2LzA5LzE0LTAxOjA5OjAxICAgICAgICAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgICAgICAgICAgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIgogICAgICAgICAgICB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIKICAgICAgICAgICAgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOmV4aWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vZXhpZi8xLjAvIj4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5BZG9iZSBQaG90b3Nob3AgQ0MgMjAxNyAoV2luZG93cyk8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHhtcDpDcmVhdGVEYXRlPjIwMTctMTEtMDJUMTQ6MTA6NDErMDE6MDA8L3htcDpDcmVhdGVEYXRlPgogICAgICAgICA8eG1wOk1vZGlmeURhdGU+MjAxNy0xMS0wMlQxNDoxMTo1MCswMTowMDwveG1wOk1vZGlmeURhdGU+CiAgICAgICAgIDx4bXA6TWV0YWRhdGFEYXRlPjIwMTctMTEtMDJUMTQ6MTE6NTArMDE6MDA8L3htcDpNZXRhZGF0YURhdGU+CiAgICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2UvcG5nPC9kYzpmb3JtYXQ+CiAgICAgICAgIDxwaG90b3Nob3A6Q29sb3JNb2RlPjM8L3Bob3Rvc2hvcDpDb2xvck1vZGU+CiAgICAgICAgIDx4bXBNTTpJbnN0YW5jZUlEPnhtcC5paWQ6NjViNDhkNzItODY0Yy0xNjRiLThhN2QtYWVmZTk0MzA0NzdmPC94bXBNTTpJbnN0YW5jZUlEPgogICAgICAgICA8eG1wTU06RG9jdW1lbnRJRD54bXAuZGlkOjY1YjQ4ZDcyLTg2NGMtMTY0Yi04YTdkLWFlZmU5NDMwNDc3ZjwveG1wTU06RG9jdW1lbnRJRD4KICAgICAgICAgPHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD54bXAuZGlkOjY1YjQ4ZDcyLTg2NGMtMTY0Yi04YTdkLWFlZmU5NDMwNDc3ZjwveG1wTU06T3JpZ2luYWxEb2N1bWVudElEPgogICAgICAgICA8eG1wTU06SGlzdG9yeT4KICAgICAgICAgICAgPHJkZjpTZXE+CiAgICAgICAgICAgICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0iUmVzb3VyY2UiPgogICAgICAgICAgICAgICAgICA8c3RFdnQ6YWN0aW9uPmNyZWF0ZWQ8L3N0RXZ0OmFjdGlvbj4KICAgICAgICAgICAgICAgICAgPHN0RXZ0Omluc3RhbmNlSUQ+eG1wLmlpZDo2NWI0OGQ3Mi04NjRjLTE2NGItOGE3ZC1hZWZlOTQzMDQ3N2Y8L3N0RXZ0Omluc3RhbmNlSUQ+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDp3aGVuPjIwMTctMTEtMDJUMTQ6MTA6NDErMDE6MDA8L3N0RXZ0OndoZW4+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDpzb2Z0d2FyZUFnZW50PkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE3IChXaW5kb3dzKTwvc3RFdnQ6c29mdHdhcmVBZ2VudD4KICAgICAgICAgICAgICAgPC9yZGY6bGk+CiAgICAgICAgICAgIDwvcmRmOlNlcT4KICAgICAgICAgPC94bXBNTTpIaXN0b3J5PgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpYUmVzb2x1dGlvbj43MjAwMDAvMTAwMDA8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOllSZXNvbHV0aW9uPjcyMDAwMC8xMDAwMDwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPGV4aWY6Q29sb3JTcGFjZT42NTUzNTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+NjQ8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFlEaW1lbnNpb24+NjQ8L2V4aWY6UGl4ZWxZRGltZW5zaW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAKPD94cGFja2V0IGVuZD0idyI/PhrtnekAAAAgY0hSTQAAeiUAAICDAAD5/wAAgOkAAHUwAADqYAAAOpgAABdvkl/FRgAAA1pJREFUeNrsW9l6qjAY5KWEuC99HBFJtWq1fS1xRThatdo+038uFBohuIGEEC9y2a/N8C8zk6mU/fcKIh/pCcATgBt+wMaA5rqYAKCFDrKhQmZYB7TQxQIAmTpkhnX3yIYKWRsLVAEWhszx6ztHmTcFawGnCow6IDPay+eWLShtuskfgspMA2RFW/qFrzeo/XzAy+9nKBDI6swM63yswdKmCy+/nycnt2yJA0B+1fYBUNr2OATAxpC9szXIKuC2BZSp9rciRyrIkwYoUw3Q4jpQytse5FdtfqmwPG74vgAvhCkaADwcwS1DC4sBAO3yt/Qh1wAgC1MvL48bibooMvUHVYCFQZ40QB55qPJES87l5013QCMPhZdou7mw7oSqCDRvJmoAej8OCYLkpaXOTi58vaVC7HiVbMao0yugSKGlrHZzpABYGJSJBhnj2JpTjQ5AYd3x01JGCu0hxz7MAu9qPmkBsgqKDC+PLAxZm9EaLG26zPofzZsuq1RmTX6IUJSr6sR2SwoA92r0mxml4dESps4egNyyBbX9IJaB6KpK40CkUAxa4iIAlV3fHYzl7/fH/kFHEhXXALwIQPn73bcaq/tBbC3BFIAihRc4p/bzkRoQpKC+D7p8LK2QhArIr9quXU2eyq4vzttgbtmCKjEEeSh9ZabdtD6v4gGlbY8PcUSYM7Lh1/6hmCAPQ490p0n5q8w0MQISQebsuUpIDQDIbAabs7YAERl5Qn+buORNpqoF0EL3AXHJm0xnSMrCoEw1kMdqsv2A3LIFxXUHKgyZJRMA8qu2T2ixcqFiB4CU10nQF7EDQLPfw6ZDuALgnNIshniR4moGBLVBlYHSZAIA+QTnSOzCuiNGCzinuutDadtjLrKeafGrZGZKYrE3A4BMIiGeUhCkYGuJ8lRli1QBNiUhPmMQe7Ff7wa+uh+4XmZ116daetJVD5bGmRaw8UOfsMgMomyohyDmuHFVBM/ratM2zsUhqEy1s/8c4fhw8kg9pEMjBsOb7/lzeS7/nmuodug16PXhon7RvTeDSKPckfMAtMBnA0hJCGHmli3Ir9qQD5DbUmjnZaK5wzLybKAdEMIcqcljgsjUI88GIwsfZoDxuBQqX1TY2TgRAv3UAk8AngCIDcD/AQDdA7/PhLopJAAAAABJRU5ErkJggg==";
+
+const $ = id => document.getElementById(id);
+const cv = $('game'), ctx = cv.getContext('2d');
+let VW = 0, VH = 0, DPR = 1, ZOOM = 1;
+function resize() {
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  VW = innerWidth; VH = innerHeight;
+  cv.width = Math.round(VW * DPR); cv.height = Math.round(VH * DPR);
+  ZOOM = Math.max(1, Math.min(1.6, Math.min(VW, VH) / 430));
+}
+addEventListener('resize', resize); resize();
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.random() * a.length | 0];
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- pixel sprites (left half, mirrored) ---------- */
+function sprite(src, pal, mirror = true) {
+  const rows = src.trim().split('\n').map(r => r.trim());
+  const full = rows.map(r => mirror ? r + [...r].reverse().join('') : r);
+  const w = Math.max(...full.map(r => r.length)), h = full.length;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  full.forEach((r, y) => [...r].forEach((ch, x) => { if (pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
+  return c;
+}
+function tint(src, color) {
+  const c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+  const g = c.getContext('2d'); g.drawImage(src, 0, 0);
+  g.globalCompositeOperation = 'source-atop'; g.fillStyle = color; g.fillRect(0, 0, c.width, c.height);
+  return c;
+}
+const SLIME = `
+....oo
+..oohh
+.ohhwh
+.ohwhh
+ohhhhh
+ohhkhh
+ohhkhh
+ohhhhh
+.ohhhh
+..oooo`;
+const BAT_A = `
+o......
+oo....o
+oho..ob
+ohhoobb
+.ohhbrb
+..oobbb
+....obb
+.....o.`;
+const BAT_B = `
+......o
+.....ob
+....obb
+.oohbrb
+ohhhbbb
+ohhooob
+oho...o
+o......`;
+const SKEL = `
+...oo
+..oww
+.owww
+.owkw
+.owww
+..owk
+...ow
+..oow
+.owow
+.o.ow
+...ow
+..ow.
+..ow.
+..oo.`;
+const GOLEM = `
+....ooo
+...osss
+..ossss
+..osyys
+..ossss
+.oooosd
+osssosd
+osssosd
+osssoss
+.ooosss
+...osss
+...osoo
+..osso.
+..oooo.`;
+const CROWN = `
+o..o
+oy.oy
+oyyoy
+oyyyy
+oyryy
+ooooo`;
+const SPR = {};
+function makeSprites() {
+  const def = (key, src, pal) => { const s = sprite(src, pal); SPR[key] = { n: s, w: tint(s, '#ffffff'), i: tint(s, '#9fe6ff') }; };
+  def('slime', SLIME, { o: '#2a1240', h: '#9b5de5', w: '#e0c3ff', k: '#1a0b2b' });
+  def('boss', SLIME, { o: '#3a0a10', h: '#d63c4a', w: '#ffb3b8', k: '#1a0508' });
+  def('batA', BAT_A, { o: '#120d1f', h: '#5b4f86', b: '#2b2340', r: '#ff4d6d' });
+  def('batB', BAT_B, { o: '#120d1f', h: '#5b4f86', b: '#2b2340', r: '#ff4d6d' });
+  def('skel', SKEL, { o: '#1b1622', w: '#ece6d6', k: '#2a2233' });
+  def('golem', GOLEM, { o: '#1a1c24', s: '#8a92a6', d: '#565d70', y: '#ffb347' });
+  SPR.crown = sprite(CROWN.trim().split('\n').map(r => r.trim().padEnd(5, '.')).join('\n'), { o: '#5a3a00', y: '#ffd166', r: '#ef4b5c' });
+}
+makeSprites();
+
+/* ---------- data ---------- */
+const TYPES = {
+  slime: { name: 'Slime', hp: 22, speed: 52, dmg: 10, r: 14, scale: 3, spr: 'slime', xp: 1, color: '#9b5de5' },
+  bat:   { name: 'Bat', hp: 12, speed: 112, dmg: 6, r: 11, scale: 3, spr: 'batA', xp: 1, color: '#5b4f86' },
+  skel:  { name: 'Skeleton', hp: 46, speed: 48, dmg: 16, r: 15, scale: 3, spr: 'skel', xp: 2, color: '#ece6d6' },
+  golem: { name: 'Golem', hp: 120, speed: 36, dmg: 26, r: 20, scale: 3, spr: 'golem', xp: 4, color: '#8a92a6' },
+  boss:  { name: 'Slime King', hp: 750, speed: 44, dmg: 35, r: 38, scale: 7, spr: 'boss', xp: 30, color: '#d63c4a', boss: true },
+};
+const SPELLS = [
+  { id: 'fire', name: 'Fireball', color: '#ff8a3d', core: '#fff1c1', cd: .55, dmg: 16, speed: 340, r: 8, desc: 'Heavy hit that sets enemies on fire' },
+  { id: 'ice', name: 'Frost Shard', color: '#7fdcff', core: '#f2fdff', cd: .28, dmg: 8, speed: 560, r: 5, desc: 'Rapid shards that slow enemies down' },
+  { id: 'bolt', name: 'Chain Bolt', color: '#ffe45c', core: '#fffbe0', cd: .75, dmg: 14, speed: 860, r: 5, desc: 'Lightning that jumps to 2 more enemies' },
+  { id: 'arcane', name: 'Arcane Orbs', color: '#c77dff', core: '#f6e8ff', cd: .8, dmg: 8, speed: 250, r: 6, count: 3, desc: 'Three orbs that chase their target' },
+];
+const UPGRADES = [
+  { id: 'dmg', glyph: 'DMG', name: 'Sharper Spells', desc: '+20% spell damage', max: 10, apply: () => S.dmg *= 1.2 },
+  { id: 'rate', glyph: 'SPD', name: 'Quick Casting', desc: '+15% cast speed', max: 8, apply: () => S.rate *= 1.15 },
+  { id: 'move', glyph: 'MOV', name: 'Swift Boots', desc: '+10% move speed', max: 6, apply: () => S.move *= 1.1 },
+  { id: 'hp', glyph: 'HP', name: 'Vital Robe', desc: '+25 max health and heal 25', max: 10, apply: () => { P.maxHp += 25; P.hp = Math.min(P.maxHp, P.hp + 25); } },
+  { id: 'multi', glyph: '+1', name: 'Split Cast', desc: '+1 projectile every cast', max: 4, apply: () => S.multi++ },
+  { id: 'pierce', glyph: 'PRC', name: 'Piercing Magic', desc: 'Spells pass through 1 more enemy', max: 4, apply: () => S.pierce++ },
+  { id: 'pspeed', glyph: 'VEL', name: 'Swift Spells', desc: '+20% projectile speed', max: 5, apply: () => S.pspeed *= 1.2 },
+  { id: 'regen', glyph: 'REG', name: 'Regrowth', desc: 'Regenerate 1 health per second', max: 5, apply: () => S.regen += 1 },
+  { id: 'size', glyph: 'BIG', name: 'Bigger Blasts', desc: '+25% spell size', max: 4, apply: () => S.size *= 1.25 },
+  { id: 'magnet', glyph: 'MAG', name: 'Gem Magnet', desc: '+60% gem pickup range', max: 4, apply: () => S.magnet *= 1.6 },
+  { id: 'armor', glyph: 'ARM', name: 'Stone Skin', desc: 'Take 3 less damage per hit', max: 5, apply: () => S.armor += 3 },
+  { id: 'heal', glyph: '+HP', name: 'Healing Draught', desc: 'Restore 60% of your health', max: 999, apply: () => { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .6); }, cond: () => P.hp < P.maxHp * .75 },
+];
+
+/* ---------- state ---------- */
+let mode = 'menu';
+let P, S, ups, enemies, shots, eshots, gems, items, parts, texts, zaps;
+let wave, queue, spawnT, waveState, clearT, kills, time, level, xp, xpNeed, pendingLv;
+let unlocked, cur, castT, aim, shake, flash, cam;
+let best = 0;
+try { best = +localStorage.getItem('wizardGroveBest') || 0; } catch (e) {}
+
+function resetRun(spellIdx) {
+  P = { x: 0, y: 0, r: 15, hp: 100, maxHp: 100, inv: 0, face: 1, moving: false, walk: 0 };
+  S = { dmg: 1, rate: 1, move: 1, multi: 0, pierce: 0, pspeed: 1, regen: 0, size: 1, magnet: 1, armor: 0 };
+  ups = {};
+  enemies = []; shots = []; eshots = []; gems = []; items = []; parts = []; texts = []; zaps = [];
+  wave = 0; queue = []; spawnT = 0; waveState = 'fighting'; clearT = 0;
+  kills = 0; time = 0; level = 1; xp = 0; xpNeed = 8; pendingLv = 0;
+  unlocked = new Set([spellIdx]); cur = spellIdx; castT = .3; aim = 0; shake = 0; flash = 0;
+  cam = { x: 0, y: 0 };
+}
+resetRun(0);
+
+/* ---------- audio ---------- */
+let AC = null, soundOn = true;
+try { soundOn = localStorage.getItem('wizardGroveSound') !== 'off'; } catch (e) {}
+function initAudio() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (AC && AC.state === 'suspended') AC.resume(); }
+function sfx(type) {
+  if (!soundOn || !AC) return;
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  const set = (wave, f1, f2, dur, vol) => {
+    o.type = wave; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); o.start(t); o.stop(t + dur);
+  };
+  if (type === 'cast') set('square', 520, 260, .07, .025);
+  else if (type === 'hit') set('triangle', 220, 90, .06, .05);
+  else if (type === 'kill') set('square', 330, 660, .09, .04);
+  else if (type === 'hurt') set('sawtooth', 160, 50, .25, .09);
+  else if (type === 'gem') set('sine', 900, 1500, .06, .035);
+  else if (type === 'level') set('square', 440, 1320, .35, .05);
+  else if (type === 'tome') set('triangle', 300, 1200, .5, .08);
+}
+function paintSound() { $('waves').style.display = soundOn ? '' : 'none'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+paintSound();
+
+/* ---------- input ---------- */
+const keys = {};
+addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
+  const m = /^Digit([1-4])$/.exec(e.code); if (m) selectSpell(+m[1] - 1);
+  if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+let joy = null;
+const JR = 56;
+cv.addEventListener('pointerdown', e => {
+  if (mode !== 'play') return;
+  joy = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: e.clientX, y: e.clientY };
+  try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+  e.preventDefault();
+});
+cv.addEventListener('pointermove', e => {
+  if (!joy || e.pointerId !== joy.id) return;
+  joy.x = e.clientX; joy.y = e.clientY;
+  const dx = joy.x - joy.ox, dy = joy.y - joy.oy, d = Math.hypot(dx, dy);
+  if (d > JR) { joy.ox = joy.x - dx / d * JR; joy.oy = joy.y - dy / d * JR; }
+});
+const endJoy = e => { if (joy && e.pointerId === joy.id) joy = null; };
+cv.addEventListener('pointerup', endJoy); cv.addEventListener('pointercancel', endJoy);
+document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'play') togglePause(); });
+
+/* ---------- UI ---------- */
+function orbStyle(sp) { return `--c:${sp.color};--core:${sp.core}`; }
+function buildMenu() {
+  $('spellPick').innerHTML = SPELLS.map((sp, i) => `
+    <button class="card" data-i="${i}" style="${orbStyle(sp)}">
+      <i class="orb"></i><b>${sp.name}</b><span>${sp.desc}</span>
+      <em>${sp.dmg}${sp.count ? ' x' + sp.count : ''} DMG &middot; ${(1 / sp.cd).toFixed(1)}/S</em>
+    </button>`).join('');
+  $('spellPick').querySelectorAll('button').forEach(b => b.onclick = () => startGame(+b.dataset.i));
+  $('bestiary').innerHTML = Object.values(TYPES).map(t => {
+    const src = SPR[t.spr].n.toDataURL();
+    return `<span class="beast"><img src="${src}" alt=""> ${t.name} <b>${t.dmg}</b></span>`;
+  }).join('');
+  $('bestText').textContent = best ? `Best run: wave ${best}` : '';
+}
+function buildSpellbar() {
+  $('spellbar').innerHTML = SPELLS.map((sp, i) => {
+    const has = unlocked.has(i);
+    return `<button class="slot ${has ? '' : 'locked'} ${i === cur ? 'on' : ''}" data-i="${i}" style="${orbStyle(sp)}" aria-label="${has ? sp.name : 'Locked spell'}">
+      <i class="orb">${has ? '' : '?'}</i>${has ? sp.name.split(' ')[0] : 'Locked'}<kbd>${i + 1}</kbd></button>`;
+  }).join('');
+  $('spellbar').querySelectorAll('button').forEach(b => {
+    b.onpointerdown = e => e.stopPropagation();
+    b.onclick = () => selectSpell(+b.dataset.i);
+  });
+}
+function selectSpell(i) {
+  if (mode !== 'play' || !unlocked.has(i) || i === cur) return;
+  cur = i; castT = Math.min(castT, .15); buildSpellbar();
+}
+function banner(text, sub) {
+  const b = $('banner');
+  b.innerHTML = text + (sub ? `<small>${sub}</small>` : '');
+  b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+}
+function fmtTime(t) { t = Math.floor(t); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; }
+function statsHTML() {
+  return `<div><small>WAVE</small><strong>${wave}</strong></div>
+    <div><small>LEVEL</small><strong>${level}</strong></div>
+    <div><small>KILLS</small><strong>${kills}</strong></div>
+    <div><small>TIME</small><strong>${fmtTime(time)}</strong></div>`;
+}
+let wakeLock = null;
+async function keepAwake() { try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => wakeLock = null); } } catch (e) {} }
+
+function startGame(i) {
+  initAudio(); keepAwake();
+  resetRun(i);
+  $('menu').hidden = true; $('dead').hidden = true; $('pause').hidden = true; $('levelup').hidden = true;
+  buildSpellbar();
+  mode = 'play';
+  startWave(1);
+}
+function togglePause() {
+  if (mode === 'play') { mode = 'paused'; joy = null; $('pauseStats').innerHTML = statsHTML(); $('pause').hidden = false; }
+  else if (mode === 'paused') { mode = 'play'; $('pause').hidden = true; }
+}
+$('pauseBtn').onclick = () => togglePause();
+$('resumeBtn').onclick = () => togglePause();
+$('quitBtn').onclick = () => { $('pause').hidden = true; toMenu(); };
+$('againBtn').onclick = () => { $('dead').hidden = true; toMenu(); };
+$('soundBtn').onclick = () => { soundOn = !soundOn; initAudio(); paintSound(); try { localStorage.setItem('wizardGroveSound', soundOn ? 'on' : 'off'); } catch (e) {} };
+function toMenu() { mode = 'menu'; resetRun(0); buildMenu(); buildSpellbar(); $('menu').hidden = false; }
+
+function showLevelUp() {
+  mode = 'levelup'; joy = null;
+  const pool = UPGRADES.filter(u => (ups[u.id] || 0) < u.max && (!u.cond || u.cond()));
+  const choices = [];
+  while (choices.length < 3 && pool.length) choices.push(pool.splice(Math.random() * pool.length | 0, 1)[0]);
+  $('luTitle').textContent = `Level ${level - pendingLv + 1}`;
+  $('luEyebrow').textContent = pendingLv > 1 ? `Level up · ${pendingLv} picks waiting` : 'Level up';
+  $('luCards').innerHTML = choices.map((u, k) => {
+    const lv = ups[u.id] || 0;
+    const tag = u.id === 'heal' ? 'INSTANT' : (lv ? `LV ${lv} → ${lv + 1}` : 'NEW');
+    return `<button class="card up" data-k="${k}"><span class="glyph">${u.glyph}</span><b>${u.name}</b><span>${u.desc}</span><em>${tag}</em></button>`;
+  }).join('');
+  $('luCards').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const u = choices[+b.dataset.k];
+    u.apply(); ups[u.id] = (ups[u.id] || 0) + 1; pendingLv--;
+    if (pendingLv > 0) showLevelUp();
+    else { $('levelup').hidden = true; mode = 'play'; }
+  });
+  $('levelup').hidden = false;
+}
+
+/* ---------- waves ---------- */
+function startWave(n) {
+  wave = n; waveState = 'fighting';
+  const boss = n % 5 === 0;
+  queue = [];
+  const count = 5 + n * 3;
+  for (let i = 0; i < count; i++) {
+    let t = 'slime'; const r = Math.random();
+    if (n >= 2 && r < .35) t = 'bat';
+    if (n >= 3 && r > .66) t = 'skel';
+    if (n >= 6 && r > .88) t = 'golem';
+    queue.push(t);
+  }
+  if (boss) { queue.length = Math.ceil(queue.length * .5); queue.unshift('boss'); }
+  spawnT = 1;
+  if (boss) banner(`Wave ${n}`, 'The Slime King approaches');
+  else banner(`Wave ${n}`);
+}
+function spawnEnemy(type) {
+  const T = TYPES[type];
+  const a = Math.random() * Math.PI * 2;
+  const dist = Math.hypot(VW, VH) / 2 / ZOOM + 50;
+  const hpMul = T.boss ? 1 + (wave / 5 - 1) * .9 : 1 + (wave - 1) * .16;
+  enemies.push({
+    type, T, x: P.x + Math.cos(a) * dist, y: P.y + Math.sin(a) * dist,
+    hp: T.hp * hpMul, maxHp: T.hp * hpMul, r: T.r, speed: T.speed * rand(.9, 1.1),
+    dmg: Math.round(T.dmg * (1 + (wave - 1) * .04)),
+    kx: 0, ky: 0, flash: 0, slow: 0, burn: 0, burnDps: 0, burnTick: 0, ph: Math.random() * 6, face: 1,
+    shotT: 2.5, dashT: 4,
+  });
+}
+function waveCleared() {
+  waveState = 'cleared'; clearT = 2.4;
+  gems.forEach(g => g.pull = true);
+  const locked = SPELLS.map((_, i) => i).filter(i => !unlocked.has(i));
+  if (locked.length && (wave % 3 === 2 || wave % 5 === 0)) {
+    const a = Math.random() * Math.PI * 2;
+    items.push({ x: P.x + Math.cos(a) * 90, y: P.y + Math.sin(a) * 90, spell: pick(locked), t: 0 });
+    banner('Wave cleared', 'A spell tome dropped nearby');
+  } else banner('Wave cleared');
+}
+
+/* ---------- combat ---------- */
+function wandTip() {
+  const hx = P.x + P.face * 10, hy = P.y + 6;
+  return { hx, hy, x: hx + Math.cos(aim) * 26, y: hy + Math.sin(aim) * 26 };
+}
+function nearest(x, y, range, skip) {
+  let bestE = null, bd = range * range;
+  for (const e of enemies) {
+    if (e.dead || (skip && skip.has(e))) continue;
+    const d = (e.x - x) ** 2 + (e.y - y) ** 2;
+    if (d < bd) { bd = d; bestE = e; }
+  }
+  return bestE;
+}
+function cast(target) {
+  const sp = SPELLS[cur];
+  const n = (sp.count || 1) + S.multi;
+  const spread = sp.id === 'arcane' ? .55 : .17;
+  const tip = wandTip();
+  const spd = sp.speed * S.pspeed;
+  for (let i = 0; i < n; i++) {
+    const a = aim + (i - (n - 1) / 2) * spread;
+    shots.push({
+      x: tip.x, y: tip.y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, spd,
+      r: sp.r * S.size, dmg: sp.dmg * S.dmg, sp, life: sp.id === 'arcane' ? 2.6 : 1.4,
+      pierce: 1 + S.pierce, hit: new Set(), target,
+    });
+  }
+  for (let i = 0; i < 5; i++) parts.push({ x: tip.x, y: tip.y, vx: rand(-60, 60), vy: rand(-60, 60), life: .25, max: .25, size: 3, color: sp.color, glow: true });
+  sfx('cast');
+}
+function hurt(e, d, color) {
+  if (e.dead) return;
+  e.hp -= d; e.flash = .08;
+  texts.push({ x: e.x + rand(-6, 6), y: e.y - e.r, text: Math.max(1, Math.round(d)), life: .7, color: color || '#ffffff' });
+  if (e.hp <= 0) kill(e);
+}
+function kill(e) {
+  e.dead = true; kills++;
+  const n = e.T.boss ? 40 : 12;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * 6.28, s = rand(40, e.T.boss ? 260 : 160);
+    parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.3, .7), max: .7, size: rand(2, 5), color: e.T.color });
+  }
+  let v = e.T.xp;
+  const pieces = e.T.boss ? 10 : 1;
+  for (let i = 0; i < pieces; i++) gems.push({ x: e.x + rand(-8, 8) * (pieces > 1 ? 4 : 0), y: e.y + rand(-8, 8) * (pieces > 1 ? 4 : 0), v: Math.ceil(v / pieces), vx: 0, vy: 0, pull: false, ph: Math.random() * 6 });
+  if (e.T.boss) { shake = 14; banner('Slime King defeated!'); }
+  sfx('kill');
+}
+function onHit(s, e) {
+  const sp = s.sp;
+  hurt(e, s.dmg, sp.id === 'bolt' ? '#ffe45c' : '#ffffff');
+  const sm = Math.hypot(s.vx, s.vy) || 1, kb = e.T.boss ? 20 : 140;
+  e.kx += s.vx / sm * kb; e.ky += s.vy / sm * kb;
+  for (let i = 0; i < 6; i++) parts.push({ x: s.x, y: s.y, vx: rand(-120, 120), vy: rand(-120, 120), life: .3, max: .3, size: rand(2, 4), color: sp.color, glow: true });
+  if (sp.id === 'fire') { e.burn = 2; e.burnDps = 5 * S.dmg; }
+  else if (sp.id === 'ice') { e.slow = 1.6; }
+  else if (sp.id === 'bolt') {
+    const hitSet = new Set([e]); let from = e;
+    for (let j = 0; j < 2 + Math.floor(S.pierce / 2); j++) {
+      const nx = nearest(from.x, from.y, 150, hitSet); if (!nx) break;
+      zaps.push({ x1: from.x, y1: from.y, x2: nx.x, y2: nx.y, life: .18 });
+      hitSet.add(nx); hurt(nx, s.dmg * .7, '#ffe45c'); from = nx;
+    }
+  }
+  sfx('hit');
+}
+function damagePlayer(d) {
+  if (P.inv > 0 || mode !== 'play') return;
+  const taken = Math.max(Math.ceil(d * .3), Math.round(d - S.armor));
+  P.hp -= taken; P.inv = .7; shake = reduceMotion ? 0 : 9; flash = .3;
+  texts.push({ x: P.x, y: P.y - 30, text: '-' + taken, life: .9, color: '#ff5d6c', big: true });
+  sfx('hurt');
+  if (P.hp <= 0) { P.hp = 0; die(); }
+}
+function die() {
+  mode = 'dead'; joy = null;
+  for (let i = 0; i < 40; i++) { const a = Math.random() * 6.28, s = rand(60, 260); parts.push({ x: P.x, y: P.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.5, 1.1), max: 1.1, size: rand(2, 5), color: pick(['#5a7fd6', '#a7c7ff', '#ffd166']), glow: true }); }
+  const isBest = wave > best;
+  if (isBest) { best = wave; try { localStorage.setItem('wizardGroveBest', best); } catch (e) {} }
+  setTimeout(() => {
+    $('deadStats').innerHTML = statsHTML();
+    $('deadBest').textContent = isBest ? 'New best run!' : `Best run: wave ${best}`;
+    $('dead').hidden = false;
+  }, 900);
+}
+
+/* ---------- update ---------- */
+function update(dt) {
+  time += dt;
+  // movement
+  let mx = 0, my = 0;
+  if (keys.KeyA || keys.ArrowLeft) mx--; if (keys.KeyD || keys.ArrowRight) mx++;
+  if (keys.KeyW || keys.ArrowUp) my--; if (keys.KeyS || keys.ArrowDown) my++;
+  if (joy) {
+    const dx = joy.x - joy.ox, dy = joy.y - joy.oy, d = Math.hypot(dx, dy);
+    if (d > 6) { const k = Math.min(1, d / JR); mx += dx / d * k; my += dy / d * k; }
+  }
+  const ml = Math.hypot(mx, my); if (ml > 1) { mx /= ml; my /= ml; }
+  P.x += mx * 150 * S.move * dt; P.y += my * 150 * S.move * dt;
+  P.moving = ml > .05; if (P.moving) P.walk += dt;
+  P.inv -= dt;
+  if (S.regen) P.hp = Math.min(P.maxHp, P.hp + S.regen * dt);
+
+  // aim and cast
+  const target = nearest(P.x, P.y, 440);
+  if (target) {
+    const want = Math.atan2(target.y - P.y, target.x - P.x);
+    let da = ((want - aim + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+    aim += da * Math.min(1, dt * 18);
+    P.face = Math.cos(aim) < 0 ? -1 : 1;
+  } else if (P.moving) {
+    aim = Math.atan2(my, mx); if (Math.abs(mx) > .1) P.face = Math.sign(mx);
+  }
+  castT -= dt;
+  if (castT <= 0 && target) { cast(target); castT = SPELLS[cur].cd / S.rate; }
+
+  // spawning and waves
+  if (waveState === 'fighting') {
+    spawnT -= dt;
+    if (spawnT <= 0 && queue.length && enemies.length < 70) {
+      const t = queue.shift(); spawnEnemy(t);
+      if (t === 'bat' && queue[0] === 'bat') spawnEnemy(queue.shift());
+      spawnT = Math.max(.18, 1 - wave * .05) * rand(.6, 1.2);
+    }
+    if (!queue.length && !enemies.length) waveCleared();
+  } else {
+    clearT -= dt; if (clearT <= 0) startWave(wave + 1);
+  }
+
+  // enemies
+  for (const e of enemies) {
+    const slowMul = e.slow > 0 ? .45 : 1; e.slow -= dt; e.flash -= dt;
+    if (e.burn > 0) {
+      e.burn -= dt; e.burnTick -= dt;
+      if (Math.random() < dt * 12) parts.push({ x: e.x + rand(-e.r, e.r) * .6, y: e.y - rand(0, e.r), vx: 0, vy: -40, life: .4, max: .4, size: 3, color: '#ff8a3d', glow: true });
+      if (e.burnTick <= 0) { e.burnTick = .4; hurt(e, e.burnDps * .4, '#ff9d5c'); }
+      if (e.dead) continue;
+    }
+    let dx = P.x - e.x, dy = P.y - e.y; const d = Math.hypot(dx, dy) || 1;
+    dx /= d; dy /= d;
+    let sp = e.speed * slowMul;
+    if (e.type === 'bat') { const w = Math.sin(time * 5 + e.ph) * .9; const px = -dy, py = dx; dx += px * w; dy += py * w; }
+    if (e.T.boss) {
+      e.shotT -= dt; e.dashT -= dt;
+      if (e.shotT <= 0) {
+        e.shotT = 2.6;
+        const k = 12, off = Math.random();
+        for (let i = 0; i < k; i++) { const a = off + i / k * Math.PI * 2; eshots.push({ x: e.x, y: e.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, r: 7, dmg: 12, life: 4 }); }
+      }
+      if (e.dashT <= 0) { e.dashT = 5; e.kx += dx * 420; e.ky += dy * 420; }
+    }
+    e.x += (dx * sp + e.kx) * dt; e.y += (dy * sp + e.ky) * dt;
+    const damp = Math.pow(.02, dt); e.kx *= damp; e.ky *= damp;
+    if (Math.abs(P.x - e.x) > 4) e.face = P.x < e.x ? -1 : 1;
+    if (d < e.r + P.r) {
+      damagePlayer(e.dmg);
+      if (!e.T.boss) { e.kx -= dx * 260; e.ky -= dy * 260; }
+    }
+  }
+  // separation
+  for (let i = 0; i < enemies.length; i++) {
+    const a = enemies[i];
+    for (let j = i + 1; j < enemies.length; j++) {
+      const b = enemies[j]; const dx = b.x - a.x, dy = b.y - a.y, min = (a.r + b.r) * .85;
+      if (Math.abs(dx) > min || Math.abs(dy) > min) continue;
+      const d = Math.hypot(dx, dy) || .01; if (d >= min) continue;
+      const push = (min - d) / 2, ux = dx / d, uy = dy / d;
+      const wa = a.T.boss ? .1 : 1, wb = b.T.boss ? .1 : 1;
+      a.x -= ux * push * wa; a.y -= uy * push * wa; b.x += ux * push * wb; b.y += uy * push * wb;
+    }
+  }
+  enemies = enemies.filter(e => !e.dead);
+
+  // shots
+  for (const s of shots) {
+    if (s.sp.id === 'arcane') {
+      if (!s.target || s.target.dead) s.target = nearest(s.x, s.y, 360, s.hit);
+      if (s.target) {
+        const want = Math.atan2(s.target.y - s.y, s.target.x - s.x), cura = Math.atan2(s.vy, s.vx);
+        let da = ((want - cura + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+        const na = cura + Math.max(-1, Math.min(1, da)) * dt * 6;
+        s.vx = Math.cos(na) * s.spd; s.vy = Math.sin(na) * s.spd;
+      }
+    }
+    s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+    if (s.sp.id === 'fire' && Math.random() < .7) parts.push({ x: s.x, y: s.y, vx: rand(-20, 20), vy: rand(-20, 20), life: .3, max: .3, size: s.r * .6, color: '#ff6a2a', glow: true });
+    for (const e of enemies) {
+      if (e.dead || s.hit.has(e)) continue;
+      if ((e.x - s.x) ** 2 + (e.y - s.y) ** 2 < (e.r + s.r) ** 2) {
+        s.hit.add(e); onHit(s, e); s.pierce--;
+        if (s.pierce <= 0) { s.life = 0; break; }
+        if (s.sp.id === 'arcane') s.target = null;
+      }
+    }
+  }
+  shots = shots.filter(s => s.life > 0);
+  enemies = enemies.filter(e => !e.dead);
+
+  for (const s of eshots) {
+    s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+    if ((P.x - s.x) ** 2 + (P.y - s.y) ** 2 < (P.r + s.r) ** 2 && P.inv <= 0) { damagePlayer(s.dmg); s.life = 0; }
+  }
+  eshots = eshots.filter(s => s.life > 0);
+
+  // gems
+  const mr = 70 * S.magnet;
+  for (const g of gems) {
+    const dx = P.x - g.x, dy = P.y - g.y, d = Math.hypot(dx, dy) || 1;
+    if (g.pull || d < mr) { g.pull = true; const sp = 420; g.vx += dx / d * sp * dt * 6; g.vy += dy / d * sp * dt * 6; const vm = Math.hypot(g.vx, g.vy); if (vm > sp) { g.vx *= sp / vm; g.vy *= sp / vm; } }
+    g.x += g.vx * dt; g.y += g.vy * dt;
+    if (d < P.r + 8) { g.got = true; xp += g.v; sfx('gem'); }
+  }
+  gems = gems.filter(g => !g.got);
+  while (xp >= xpNeed) { xp -= xpNeed; level++; pendingLv++; xpNeed = Math.floor(8 + level * 5); }
+
+  // items
+  for (const it of items) {
+    it.t += dt;
+    if ((P.x - it.x) ** 2 + (P.y - it.y) ** 2 < (P.r + 16) ** 2) {
+      it.got = true; unlocked.add(it.spell); cur = it.spell; buildSpellbar();
+      banner(`New spell: ${SPELLS[it.spell].name}`, 'Tap the spell bar to switch');
+      sfx('tome');
+      for (let i = 0; i < 30; i++) { const a = Math.random() * 6.28, s = rand(40, 200); parts.push({ x: it.x, y: it.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: .7, max: .7, size: 3, color: SPELLS[it.spell].color, glow: true }); }
+    }
+  }
+  items = items.filter(i => !i.got);
+
+  updateFx(dt);
+  if (pendingLv > 0 && mode === 'play') { sfx('level'); showLevelUp(); }
+}
+function updateFx(dt) {
+  for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= .92; p.vy *= .92; p.life -= dt; }
+  parts = parts.filter(p => p.life > 0);
+  if (parts.length > 600) parts.splice(0, parts.length - 600);
+  for (const t of texts) { t.y -= 40 * dt; t.life -= dt; }
+  texts = texts.filter(t => t.life > 0);
+  for (const z of zaps) z.life -= dt;
+  zaps = zaps.filter(z => z.life > 0);
+  shake = Math.max(0, shake - dt * 30); flash = Math.max(0, flash - dt);
+  cam.x += (P.x - cam.x) * Math.min(1, dt * 8); cam.y += (P.y - cam.y) * Math.min(1, dt * 8);
+}
+
+/* ---------- render ---------- */
+let grassPat = null, T = 0;
+function hash(x, y) { let h = x * 374761393 + y * 668265263; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967295; }
+function drawGround(l, t, r, b) {
+  if (!grassPat && GRASS.complete && GRASS.naturalWidth) grassPat = ctx.createPattern(GRASS, 'repeat');
+  ctx.fillStyle = grassPat || '#3fae5a';
+  ctx.fillRect(l, t, r - l, b - t);
+  const TS = 64;
+  for (let ty = Math.floor(t / TS); ty <= Math.floor(b / TS); ty++) for (let tx = Math.floor(l / TS); tx <= Math.floor(r / TS); tx++) {
+    const h = hash(tx, ty);
+    if (h < .07) {
+      const x = tx * TS + 16 + (h * 900 % 32), y = ty * TS + 16 + (h * 4000 % 32);
+      const col = h < .025 ? '#ffe066' : h < .05 ? '#ffffff' : '#ff8fab';
+      ctx.fillStyle = '#2a7a3d'; ctx.fillRect(x + 2, y + 4, 2, 5);
+      ctx.fillStyle = col; ctx.fillRect(x, y + 2, 2, 2); ctx.fillRect(x + 4, y + 2, 2, 2); ctx.fillRect(x + 2, y, 2, 2); ctx.fillRect(x + 2, y + 4, 2, 2);
+      ctx.fillStyle = '#f9a826'; ctx.fillRect(x + 2, y + 2, 2, 2);
+    } else if (h > .96) {
+      const x = tx * TS + 20 + (h * 700 % 24), y = ty * TS + 20 + (h * 3000 % 24);
+      ctx.fillStyle = '#5b6170'; ctx.fillRect(x, y + 2, 10, 5); ctx.fillStyle = '#8c93a3'; ctx.fillRect(x + 2, y, 6, 4);
+    }
+  }
+}
+function shadow(x, y, w) { ctx.fillStyle = 'rgba(10,30,15,.28)'; ctx.beginPath(); ctx.ellipse(x, y, w, w * .35, 0, 0, Math.PI * 2); ctx.fill(); }
+function drawEnemy(e) {
+  const T0 = e.T; let key = T0.spr;
+  if (e.type === 'bat') key = Math.sin(T * 14 + e.ph) > 0 ? 'batA' : 'batB';
+  const set = SPR[key];
+  const img = e.flash > 0 ? set.w : e.slow > 0 ? set.i : set.n;
+  const sc = T0.scale, w = img.width * sc, h = img.height * sc;
+  const fly = e.type === 'bat' ? 10 + Math.sin(T * 4 + e.ph) * 3 : 0;
+  shadow(e.x, e.y + e.r * .8, e.r * (e.type === 'bat' ? .7 : 1));
+  ctx.save(); ctx.translate(e.x, e.y + e.r * .8 - fly);
+  let sx = e.face < 0 ? -1 : 1, sy = 1;
+  if (e.type === 'slime' || e.type === 'boss') { const q = Math.sin(T * 6 + e.ph) * .08; sx *= 1 + q; sy = 1 - q; }
+  else if (e.type === 'skel' || e.type === 'golem') ctx.rotate(Math.sin(T * 8 + e.ph) * .06);
+  ctx.scale(sx, sy);
+  ctx.drawImage(img, -w / 2, -h, w, h);
+  if (e.T.boss) { const cw = SPR.crown.width * 4, ch = SPR.crown.height * 4; ctx.drawImage(SPR.crown, -cw / 2, -h - ch + 10, cw, ch); }
+  ctx.restore();
+  if (e.T.boss) {
+    const bw = 90, by = e.y - e.r * 2.3;
+    ctx.fillStyle = '#0b0816'; ctx.fillRect(e.x - bw / 2 - 2, by - 2, bw + 4, 9);
+    ctx.fillStyle = '#4a1420'; ctx.fillRect(e.x - bw / 2, by, bw, 5);
+    ctx.fillStyle = '#ef4b5c'; ctx.fillRect(e.x - bw / 2, by, bw * Math.max(0, e.hp / e.maxHp), 5);
+  } else if (e.hp < e.maxHp) {
+    const bw = e.r * 1.8, by = e.y - e.r * 1.6 - fly;
+    ctx.fillStyle = '#0b0816'; ctx.fillRect(e.x - bw / 2 - 1, by - 1, bw + 2, 5);
+    ctx.fillStyle = '#ef4b5c'; ctx.fillRect(e.x - bw / 2, by, bw * Math.max(0, e.hp / e.maxHp), 3);
+  }
+}
+function drawPlayer() {
+  if (mode === 'dead') return;
+  const s = .74, w = 82 * s, h = 80 * s;
+  const bob = P.moving ? Math.abs(Math.sin(P.walk * 11)) * 3 : Math.sin(T * 2.5) * 1;
+  shadow(P.x, P.y + h / 2 - 6, 18);
+  const blink = P.inv > 0 && Math.floor(P.inv * 16) % 2 === 0;
+  ctx.save(); if (blink) ctx.globalAlpha = .45;
+  ctx.translate(P.x, P.y - bob); ctx.scale(P.face, 1);
+  if (WIZ.complete && WIZ.naturalWidth) ctx.drawImage(WIZ, -w / 2, -h / 2, w, h);
+  ctx.restore();
+  // wand
+  const tip = wandTip(), sp = SPELLS[cur];
+  ctx.save(); if (blink) ctx.globalAlpha = .45;
+  ctx.translate(tip.hx, tip.hy - bob); ctx.rotate(aim);
+  ctx.fillStyle = '#2b1709'; ctx.fillRect(-3, -3, 30, 6);
+  ctx.fillStyle = '#8a5a2b'; ctx.fillRect(-2, -2, 28, 4);
+  ctx.fillStyle = '#c08a4a'; ctx.fillRect(-2, -2, 28, 1);
+  ctx.fillStyle = '#d9b44a'; ctx.fillRect(18, -3, 3, 6);
+  
+  const pulse = 1 + Math.sin(T * 8) * .2 + Math.max(0, .15 - castT) * 4;
+  ctx.fillStyle = sp.color + '55'; ctx.beginPath(); ctx.arc(28, 0, 9 * pulse, 0, 6.28); ctx.fill();
+  ctx.fillStyle = sp.color; ctx.beginPath(); ctx.arc(28, 0, 4.5, 0, 6.28); ctx.fill();
+  ctx.fillStyle = sp.core; ctx.beginPath(); ctx.arc(28, 0, 2.2, 0, 6.28); ctx.fill();
+  ctx.restore();
+}
+function drawShot(s) {
+  const sp = s.sp, a = Math.atan2(s.vy, s.vx);
+  ctx.save(); ctx.translate(s.x, s.y);
+  if (sp.id === 'ice') {
+    ctx.rotate(a);
+    ctx.fillStyle = sp.color + '66'; ctx.beginPath(); ctx.ellipse(0, 0, s.r * 3, s.r * 1.6, 0, 0, 6.28); ctx.fill();
+    ctx.fillStyle = sp.color; ctx.beginPath(); ctx.moveTo(s.r * 2.6, 0); ctx.lineTo(0, -s.r); ctx.lineTo(-s.r * 2, 0); ctx.lineTo(0, s.r); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = sp.core; ctx.fillRect(-s.r, -1, s.r * 2.5, 2);
+  } else if (sp.id === 'bolt') {
+    ctx.rotate(a);
+    ctx.strokeStyle = sp.color; ctx.lineWidth = 3; ctx.beginPath();
+    ctx.moveTo(-22, 0); ctx.lineTo(-14, rand(-4, 4)); ctx.lineTo(-6, rand(-4, 4)); ctx.lineTo(2, 0); ctx.stroke();
+    ctx.fillStyle = sp.color + '66'; ctx.beginPath(); ctx.arc(0, 0, s.r * 2.2, 0, 6.28); ctx.fill();
+    ctx.fillStyle = sp.core; ctx.beginPath(); ctx.arc(0, 0, s.r, 0, 6.28); ctx.fill();
+  } else {
+    const pr = s.r * (1 + Math.sin(T * 20 + s.x) * .1);
+    ctx.fillStyle = sp.color + '44'; ctx.beginPath(); ctx.arc(0, 0, pr * 2.2, 0, 6.28); ctx.fill();
+    ctx.fillStyle = sp.color; ctx.beginPath(); ctx.arc(0, 0, pr, 0, 6.28); ctx.fill();
+    ctx.fillStyle = sp.core; ctx.beginPath(); ctx.arc(-pr * .2, -pr * .2, pr * .5, 0, 6.28); ctx.fill();
+  }
+  ctx.restore();
+}
+function drawTome(it) {
+  const sp = SPELLS[it.spell], y = it.y + Math.sin(it.t * 3) * 4;
+  shadow(it.x, it.y + 16, 12);
+  ctx.save(); 
+  ctx.fillStyle = sp.color + '40'; ctx.beginPath(); ctx.arc(it.x, y, 26 + Math.sin(it.t * 5) * 3, 0, 6.28); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = '#0b0816'; ctx.fillRect(it.x - 12, y - 14, 24, 28);
+  ctx.fillStyle = sp.color; ctx.fillRect(it.x - 10, y - 12, 20, 24);
+  ctx.fillStyle = '#f4efff'; ctx.fillRect(it.x + 6, y - 10, 3, 20);
+  ctx.fillStyle = sp.core; ctx.fillRect(it.x - 5, y - 5, 8, 8);
+  ctx.fillStyle = '#0b0816'; ctx.fillRect(it.x - 3, y - 3, 4, 4);
+}
+function render() {
+  T += 1 / 60;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  const sx = shake ? rand(-shake, shake) : 0, sy = shake ? rand(-shake, shake) : 0;
+  ctx.translate(VW / 2 + sx, VH / 2 + sy); ctx.scale(ZOOM, ZOOM); ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
+  const hw = VW / 2 / ZOOM + 20, hh = VH / 2 / ZOOM + 20;
+  drawGround(cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh);
+
+  // gems
+  for (const g of gems) {
+    const y = g.y + Math.sin(T * 4 + g.ph) * 2, big = g.v >= 3;
+    const r = big ? 6 : 4;
+    ctx.fillStyle = '#0b0816'; ctx.beginPath(); ctx.moveTo(g.x, y - r - 2); ctx.lineTo(g.x + r + 2, y); ctx.lineTo(g.x, y + r + 2); ctx.lineTo(g.x - r - 2, y); ctx.fill();
+    ctx.fillStyle = big ? '#7ef0a8' : '#5cc8ff'; ctx.beginPath(); ctx.moveTo(g.x, y - r); ctx.lineTo(g.x + r, y); ctx.lineTo(g.x, y + r); ctx.lineTo(g.x - r, y); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(g.x - 1, y - r + 2, 2, 2);
+  }
+  for (const it of items) drawTome(it);
+
+  // y-sorted actors
+  const actors = enemies.map(e => ({ y: e.y, f: () => drawEnemy(e) }));
+  actors.push({ y: P.y + 10, f: drawPlayer });
+  actors.sort((a, b) => a.y - b.y).forEach(a => a.f());
+
+  ctx.save(); 
+  for (const s of shots) drawShot(s);
+  for (const p of parts) if (p.glow) { ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.color; ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size); }
+  ctx.globalAlpha = 1;
+  for (const z of zaps) {
+    ctx.strokeStyle = '#ffe45c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(z.x1, z.y1);
+    for (let k = 1; k < 5; k++) ctx.lineTo(z.x1 + (z.x2 - z.x1) * k / 5 + rand(-7, 7), z.y1 + (z.y2 - z.y1) * k / 5 + rand(-7, 7));
+    ctx.lineTo(z.x2, z.y2); ctx.stroke();
+  }
+  ctx.restore();
+  for (const p of parts) if (!p.glow) { ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.color; ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size); }
+  ctx.globalAlpha = 1;
+  for (const s of eshots) {
+    ctx.fillStyle = '#0b0816'; ctx.beginPath(); ctx.arc(s.x, s.y, s.r + 2, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#ff4d6d'; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#ffd0d8'; ctx.fillRect(s.x - 2, s.y - 3, 3, 3);
+  }
+  ctx.textAlign = 'center';
+  for (const t of texts) {
+    ctx.globalAlpha = Math.min(1, t.life * 2.5);
+    ctx.font = `${t.big ? 16 : 11}px Silkscreen, monospace`;
+    ctx.fillStyle = '#0b0816'; ctx.fillText(t.text, t.x + 1, t.y + 1);
+    ctx.fillStyle = t.color; ctx.fillText(t.text, t.x, t.y);
+  }
+  ctx.globalAlpha = 1;
+
+  // screen space
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (flash > 0) { ctx.fillStyle = `rgba(239,75,92,${flash * .5})`; ctx.fillRect(0, 0, VW, VH); }
+  if (mode === 'play' && P.hp / P.maxHp < .3) {
+    const g = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .3, VW / 2, VH / 2, Math.max(VW, VH) * .7);
+    g.addColorStop(0, 'rgba(239,75,92,0)'); g.addColorStop(1, `rgba(239,75,92,${.25 + Math.sin(T * 6) * .1})`);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
+  }
+  if (joy && mode === 'play') {
+    ctx.strokeStyle = 'rgba(244,239,255,.5)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(joy.ox, joy.oy, JR, 0, 6.28); ctx.stroke();
+    const dx = joy.x - joy.ox, dy = joy.y - joy.oy, d = Math.hypot(dx, dy), k = d > JR ? JR / d : 1;
+    ctx.fillStyle = 'rgba(244,239,255,.6)'; ctx.beginPath(); ctx.arc(joy.ox + dx * k, joy.oy + dy * k, 22, 0, 6.28); ctx.fill();
+  }
+}
+
+/* ---------- HUD ---------- */
+let lastHud = '';
+function hud() {
+  const hpTxt = `${Math.ceil(P.hp)} / ${P.maxHp}`;
+  const key = hpTxt + '|' + xp + '|' + level + '|' + wave + '|' + kills;
+  if (key === lastHud) return; lastHud = key;
+  $('hpFill').style.width = (P.hp / P.maxHp * 100) + '%';
+  $('hpText').textContent = hpTxt;
+  $('xpFill').style.width = (xp / xpNeed * 100) + '%';
+  $('xpText').textContent = `LV ${level}`;
+  $('waveText').textContent = `Wave ${Math.max(1, wave)}`;
+  $('killText').textContent = `${kills} KILLS`;
+}
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (mode === 'play') update(dt);
+  else if (mode === 'dead' || mode === 'menu') updateFx(dt);
+  render(); hud();
+  requestAnimationFrame(frame);
+}
+buildMenu(); buildSpellbar();
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>

@@ -36,6 +36,8 @@
 [hidden] { display: none !important; }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; }
+body { min-height: 100vh; min-height: 100dvh; }
+#errbox { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 50; background: #fff; color: #2d1f4f; border: 3px solid #2d1f4f; border-radius: 14px; padding: 10px 12px; font: 700 14px/1.35 system-ui, sans-serif; }
 body {
   background: var(--sky); color: var(--ink); overflow: hidden;
   font-family: var(--font-body); font-weight: 600;
@@ -340,7 +342,7 @@ button { font: inherit; color: inherit; }
 
 /* loading */
 #loading { background: linear-gradient(180deg, #8fdcff 0%, #c9f0ff 58%, #7fdc8a 58.2%, #4fc36a 100%); z-index: 9; }
-.load { margin: auto; width: min(360px, 100%); display: grid; justify-items: center; gap: 14px; text-align: center; }
+.load { margin: 6vh auto auto; width: min(360px, 100%); display: grid; justify-items: center; gap: 14px; text-align: center; }
 .load img { width: 124px; height: auto; image-rendering: pixelated; animation: hop 1.4s ease-in-out infinite; filter: drop-shadow(0 6px 0 #2d1f4f33); }
 .loadbar { width: 100%; height: 28px; background: var(--paper); border: 4px solid var(--ink); border-radius: 99px; overflow: hidden; box-shadow: 0 5px 0 var(--ink); }
 .loadbar i { display: block; height: 100%; width: 0; border-radius: 99px; background: repeating-linear-gradient(-45deg, var(--sun) 0 10px, #ffe27a 10px 20px); background-size: 28px 28px; animation: stripes .5s linear infinite; }
@@ -635,6 +637,17 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
   </div>
 </div>
 
+<script>
+window.__wgErr = function (msg) {
+  try {
+    var b = document.getElementById('errbox');
+    if (!b) { b = document.createElement('div'); b.id = 'errbox'; document.body.appendChild(b); }
+    b.textContent = 'Oops, something broke: ' + msg + ' (send this message to Claude)';
+  } catch (e) {}
+};
+window.addEventListener('error', function (e) { window.__wgErr((e && e.message) || 'unknown error'); });
+window.addEventListener('unhandledrejection', function (e) { window.__wgErr(String(e && e.reason)); });
+</script>
 <script>
 (() => {
 "use strict";
@@ -1287,6 +1300,7 @@ function boot() {
     $('loadPct').textContent = 'READY!';
     $('tapStart').hidden = false;
   })();
+  setTimeout(() => { if (mode === 'loading') { $('loadFill').style.width = '100%'; $('loadPct').textContent = 'READY!'; $('tapStart').hidden = false; } }, 6000);
   $('tapStart').onclick = () => {
     initAudio(); clearInterval(tipTimer); sfx('wave');
     mode = 'menu'; renderTitle(); showScreen('title');
@@ -2191,7 +2205,12 @@ function hud() {
 }
 
 let last = performance.now();
+let frameErr = false;
 function frame(now) {
+  requestAnimationFrame(frame);
+  try { step(now); } catch (e) { if (!frameErr) { frameErr = true; window.__wgErr(e && e.message); } }
+}
+function step(now) {
   const raw = Math.min(.05, (now - last) / 1000); last = now;
   if (mode === 'play') {
     if (freeze > 0) freeze -= raw;
@@ -2202,7 +2221,6 @@ function frame(now) {
     updateFx(raw);
   }
   render(); hud();
-  requestAnimationFrame(frame);
 }
 buildSpellbar(); boot();
 requestAnimationFrame(frame);

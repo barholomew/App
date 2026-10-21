@@ -502,6 +502,10 @@ button { font: inherit; color: inherit; }
 .bagbtn.bump { animation: bump .35s cubic-bezier(.3, 1.8, .5, 1); }
 .bagbtn .bagbadge { top: -8px; right: -8px; width: 18px; height: 18px; }
 /* backpack opens as a panel from the bottom */
+.xbtn { position: sticky; top: 10px; z-index: 3; justify-self: end; margin: -6px -4px -58px 0; width: 48px; height: 48px; padding: 0; display: grid; place-items: center; cursor: pointer; appearance: none; background: var(--berry); color: #fff; border: 4px solid var(--ink); border-radius: 50%; box-shadow: 0 4px 0 var(--ink); }
+.xbtn svg { width: 20px; height: 20px; }
+.xbtn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.xbtn:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
 #bag { padding-bottom: 0; }
 #bag .modal { margin: auto auto 0; border-bottom: 0; border-radius: 26px 26px 0 0; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); box-shadow: 0 -6px 0 #2d1f4f40; animation: sheetIn .3s cubic-bezier(.2, 1.3, .4, 1); }
 .resgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -707,6 +711,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
 
 <div class="overlay" id="bag" hidden>
   <div class="modal">
+    <button class="xbtn" id="bagX" aria-label="Close backpack"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M1 1h2v1H1zM2 2h2v1H2zM3 3h2v1H3zM4 4h2v2H4zM3 6h2v1H3zM2 7h2v1H2zM1 8h2v1H1zM7 1h2v1H7zM6 2h2v1H6zM5 3h2v1H5zM5 6h2v1H5zM6 7h2v1H6zM7 8h2v1H7z"/></svg></button>
     <h2>Backpack</h2>
     <p>Everything you found this run. The game is paused while it is open.</p>
     <h3 class="sub">Special weapons</h3>
@@ -1607,7 +1612,8 @@ function startGame(i) {
   startWave(1);
 }
 function togglePause() {
-  if (!$('settings').hidden || mode === 'bag') return;
+  if (mode === 'bag') { toggleBag(); return; }
+  if (!$('settings').hidden) return;
   if (mode === 'play') { mode = 'paused'; joy = null; $('pauseStats').innerHTML = statsHTML(); $('pause').hidden = false; sfx('click'); }
   else if (mode === 'paused') { mode = 'play'; $('pause').hidden = true; sfx('click'); }
 }
@@ -2140,6 +2146,7 @@ $('specialBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); 
 $('openBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); if (nearChest) openChest(nearChest); };
 $('bagBtn').onclick = () => toggleBag();
 $('bagClose').onclick = () => toggleBag();
+$('bagX').onclick = () => toggleBag();
 function toggleBag() {
   if (mode === 'play') { mode = 'bag'; joy = null; $('bagBadge').hidden = true; renderBag(); $('bag').hidden = false; $('bag').scrollTop = 0; sfx('click'); }
   else if (mode === 'bag') { mode = 'play'; $('bag').hidden = true; sfx('click'); }

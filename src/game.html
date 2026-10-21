@@ -120,7 +120,8 @@ button { font: inherit; color: inherit; }
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: flex; justify-content: center; align-items: flex-end; gap: 8px; pointer-events: none;
+  display: flex; justify-content: flex-end; align-items: flex-end; gap: 14px; pointer-events: none;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 34px);
 }
 .slot {
   pointer-events: auto; appearance: none; cursor: pointer;
@@ -384,7 +385,8 @@ button { font: inherit; color: inherit; }
 #resetBtn.armed { background: var(--berry); color: #fff; }
 /* inventory */
 .tabs { display: flex; gap: 4px; background: var(--paper); border: 3px solid var(--ink); border-radius: 99px; padding: 4px; }
-.tabs button { flex: 1; appearance: none; border: 0; cursor: pointer; background: none; border-radius: 99px; padding: 8px; font: 700 17px var(--font-display); color: var(--ink-soft); }
+.tabs button { flex: 1; appearance: none; border: 0; cursor: pointer; background: none; border-radius: 99px; padding: 8px 4px; font: 900 15px var(--font-body); color: var(--ink-soft); }
+.tabs button small { display: block; font-size: 11px; font-weight: 800; opacity: .75; }
 .tabs button[aria-selected="true"] { background: var(--sun); color: var(--ink); box-shadow: inset 0 0 0 3px var(--ink); }
 .card.item { grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; }
 .card.item.on { background: #e6fff2; }
@@ -423,7 +425,7 @@ button { font: inherit; color: inherit; }
 .info span { font-size: 14px; font-weight: 600; color: var(--ink-soft); line-height: 1.35; }
 .gem { flex: none; display: inline-block; width: 15px; height: 15px; margin: 0 3px; transform: rotate(45deg); border-radius: 3px; border: 3px solid var(--ink); background: linear-gradient(135deg, #ffd1ea 0 30%, #ff5fae 31% 70%, #d6338a 71%); }
 .gem.sm { width: 11px; height: 11px; border-width: 2px; margin: 0 2px; }
-.loadout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.loadout { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .slotbox { display: grid; justify-items: center; align-content: start; gap: 6px; text-align: center; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 10px 6px; min-width: 0; }
 .slotbox.empty { border-style: dashed; background: transparent; color: var(--ink-soft); }
 .slotbox small { font: 900 11px var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
@@ -437,6 +439,45 @@ button { font: inherit; color: inherit; }
 #toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); transform: translateX(-50%); z-index: 12; width: max-content; max-width: calc(100vw - 32px); text-align: center; background: var(--ink); color: #fff; font: 800 15px/1.3 var(--font-body); padding: 10px 16px; border-radius: 16px; box-shadow: 0 4px 0 #0004; }
 #toast.show { animation: toastIn .3s cubic-bezier(.2, 1.5, .4, 1); }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 20px); } }
+/* ability buttons */
+.abtn { pointer-events: auto; appearance: none; cursor: pointer; position: relative; width: 68px; height: 68px; padding: 0; border-radius: 50%; display: grid; place-items: center; background: var(--c); border: 4px solid var(--ink); box-shadow: 0 5px 0 var(--ink), inset 0 -6px 0 #00000026, inset 0 5px 0 #ffffff66; touch-action: none; -webkit-user-select: none; user-select: none; }
+.abtn svg { position: relative; z-index: 1; width: 30px; height: 30px; }
+.abtn .cdm { position: absolute; inset: 0; z-index: 2; border-radius: 50%; background: conic-gradient(rgba(20, 14, 45, .7) calc(var(--p, 0) * 360deg), transparent 0); }
+.abtn .cdt { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; font: 900 24px var(--font-body); color: #fff; text-shadow: var(--outline-sm); }
+.abtn small { position: absolute; left: 50%; bottom: -22px; transform: translateX(-50%); white-space: nowrap; font: 900 12px var(--font-body); color: #fff; text-shadow: var(--outline-sm); }
+.abtn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink), inset 0 -6px 0 #00000026; }
+.abtn.ready { animation: bump .35s cubic-bezier(.3, 1.8, .5, 1); }
+.abico { grid-row: span 3; flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--c); border: 3px solid var(--ink); box-shadow: inset 0 -5px 0 #00000026, inset 0 4px 0 #ffffff55; }
+.abico svg { width: 24px; height: 24px; }
+.row-item .abico, .slotbox .abico { grid-row: auto; }
+/* proper shop */
+.awning { position: relative; height: 30px; margin: -22px -18px 6px; border-radius: 22px 22px 0 0; border-bottom: 4px solid var(--ink); background: repeating-linear-gradient(90deg, var(--berry) 0 30px, var(--paper) 30px 60px); }
+.awning::after { content: ""; position: absolute; left: 0; right: 0; bottom: -16px; height: 12px; background: radial-gradient(circle at 15px 0, var(--berry) 0 11px, transparent 12px) 0 0 / 60px 12px repeat-x, radial-gradient(circle at 45px 0, var(--paper) 0 11px, transparent 12px) 0 0 / 60px 12px repeat-x; }
+.shophello { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.sgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.scard { appearance: none; cursor: pointer; position: relative; min-width: 0; display: grid; justify-items: center; align-content: start; gap: 6px; padding: 14px 10px 12px; text-align: center; color: var(--ink); background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; box-shadow: 0 5px 0 var(--ink); transition: transform .12s; }
+.scard:hover { transform: translateY(-2px); }
+.scard:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink); }
+.scard:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+.scard.enter { animation: cardIn .4s cubic-bezier(.2, 1.5, .4, 1) backwards; animation-delay: calc(var(--i, 0) * 50ms + 80ms); }
+.scard .sicon { width: 74px; height: 74px; border-radius: 20px; display: grid; place-items: center; background: #f2ecf7; background: color-mix(in srgb, var(--c) 28%, white); border: 3px solid var(--ink); }
+.scard .sicon > *, .sheet .bigicon > * { grid-row: auto; }
+.scard b { font: 900 16px/1.15 var(--font-body); }
+.scard .sdesc { font-size: 13px; line-height: 1.25; font-weight: 600; color: var(--ink-soft); }
+.sprice { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; font: 900 15px var(--font-body); background: var(--sun); border: 3px solid var(--ink); border-radius: 99px; padding: 4px 12px; }
+.scard.owned .sprice { background: var(--mint); }
+.scard.poor .sprice { background: #ece4f3; color: var(--ink-soft); }
+.scard .tag { position: absolute; top: 8px; right: 8px; font: 900 10px var(--font-body); letter-spacing: .05em; background: var(--ink); color: #fff; border-radius: 99px; padding: 3px 7px; }
+#sheet { position: fixed; inset: 0; z-index: 11; display: flex; align-items: flex-end; justify-content: center; background: #140c2a99; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); }
+.sheet { width: min(460px, 100%); display: grid; justify-items: center; gap: 12px; text-align: center; background: var(--cream); color: var(--ink); border: 4px solid var(--ink); border-bottom: 0; border-radius: 26px 26px 0 0; padding: 22px 18px calc(env(safe-area-inset-bottom, 0px) + 20px); animation: sheetIn .3s cubic-bezier(.2, 1.3, .4, 1); }
+@keyframes sheetIn { from { transform: translateY(100%); } }
+.sheet .bigicon { width: 108px; height: 108px; border-radius: 28px; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 28%, white); border: 4px solid var(--ink); }
+.sheet .bigicon > * { transform: scale(1.6); }
+.sheet h3 { margin: 0; font: 900 26px/1.1 var(--font-body); }
+.sheet .sd { margin: 0; max-width: 34ch; font-size: 16px; line-height: 1.4; font-weight: 600; color: var(--ink-soft); }
+.facts { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.sheet .btn { width: 100%; }
+.sheet .need { font-size: 15px; }
 body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visibility: hidden; }
 @media (max-width: 370px) { .grid2, .bestiary { grid-template-columns: 1fr; } .statgrid { grid-template-columns: repeat(2, 1fr); } }
 @media (prefers-reduced-motion: reduce) {
@@ -515,10 +556,12 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button></div>
     <h2>Pick your wand</h2>
     <p>You use one wand for the whole run. Buy more wands in the Shop with gems from bosses.</p>
+    <div class="note" id="abNote"></div>
     <div class="grid2" id="spellPick"></div>
     <div class="howto">
       <div><i style="--c: var(--aqua)"></i>Drag anywhere to move</div>
       <div><i style="--c: var(--sun)"></i>Your wand aims and fires by itself</div>
+      <div><i style="--c: var(--pink)"></i>Tap the round buttons to use abilities (Space and E on a keyboard)</div>
       <div><i style="--c: var(--mint)"></i>Spend gold on 4 power-ups after every wave</div>
       <div><i style="--c: var(--grape)"></i>Every 10 waves night falls and monsters get stronger</div>
     </div>
@@ -538,28 +581,36 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
 <div class="overlay sunny" id="store" hidden>
   <div class="clouds" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="modal">
+    <div class="awning" aria-hidden="true"></div>
     <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button><span class="stars" aria-label="Gems"><i class="gem"></i><span id="storeGems">0</span></span></div>
-    <h2>Shop</h2>
+    <div class="shophello"><h2>Shop</h2></div>
+    <p>Spend gems from bosses on new wands, abilities and relics. Tap an item to see more.</p>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-stab="wands">Wands<small id="cntWands"></small></button>
+      <button role="tab" data-stab="abilities">Abilities<small id="cntAbilities"></small></button>
+      <button role="tab" data-stab="relics">Relics<small id="cntRelics"></small></button>
+    </div>
+    <p id="storeTabNote"></p>
+    <div class="sgrid" id="storeGrid"></div>
     <div class="info"><img id="infoKing" alt=""><div><b>How to get gems</b><span>Beat the Slime King (wave 5) for 5 gems and the Lich Lord (wave 10) for 8 gems. A boss comes back every 5 waves.</span></div></div>
-    <h3 class="sub">Wands</h3>
-    <p>Each wand shoots a different spell. You pick one wand before every run.</p>
-    <div class="stack" id="storeWands"></div>
-    <h3 class="sub">Relics</h3>
-    <p>Relics give a bonus in every run. You can equip 2 at once.</p>
-    <div class="stack" id="storeRelics"></div>
   </div>
 </div>
+
+<div id="sheet" hidden><div class="sheet" id="sheetBody" role="dialog" aria-modal="true"></div></div>
 
 <div class="overlay sunny" id="inventory" hidden>
   <div class="clouds" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="modal">
     <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button></div>
     <h2>Inventory</h2>
-    <p>Equip up to 2 relics. They help you in every run.</p>
+    <p>Equip up to 2 abilities and 2 relics. They help you in every run.</p>
     <div class="loadout" id="loadout"></div>
     <h3 class="sub">Your wands</h3>
     <p>You pick one of these each time you press Play.</p>
     <div class="stack" id="invWands"></div>
+    <h3 class="sub">Your abilities</h3>
+    <p>Abilities are the round buttons in the corner. Tap one to use it, then it recharges.</p>
+    <div class="stack" id="invAbilities"></div>
     <h3 class="sub">Your relics</h3>
     <div class="stack" id="invRelics"></div>
   </div>
@@ -907,12 +958,12 @@ let P, S, ups, enemies, shots, eshots, gems, items, parts, texts, zaps, deaths;
 let gold = 0, totalGold = 0, shopLv = {}, shopNote = '';
 let wave, queue, spawnT, waveState, clearT, kills, time, level, xp, xpNeed, pendingLv;
 let unlocked, cur, castT, aim, shake, flash, flashW, cam, kick;
-let dark = 0, bossKills = 0, runGems = 0, combo = 0, comboT = 0, bestCombo = 0, gemChain = 0, gemChainT = 0, freeze = 0, lvlFx = 0;
+let abCd = {}, frozenT = 0, meteors = [], strikes = [], dark = 0, bossKills = 0, runGems = 0, combo = 0, comboT = 0, bestCombo = 0, gemChain = 0, gemChainT = 0, freeze = 0, lvlFx = 0;
 let best = 0;
 try { best = +localStorage.getItem('wizardGroveBest') || 0; } catch (e) {}
 
 function resetRun(spellIdx) {
-  P = { x: 0, y: 0, r: 15, hp: 100, maxHp: 100, inv: 0, face: 1, moving: false, walk: 0, dustT: 0 };
+  P = { x: 0, y: 0, r: 15, hp: 100, maxHp: 100, inv: 0, face: 1, moving: false, walk: 0, dustT: 0, dashT: 0, dvx: 0, dvy: 0, mdx: 1, mdy: 0 };
   S = { dmg: 1, rate: 1, move: 1, multi: 0, pierce: 0, pspeed: 1, regen: 0, size: 1, magnet: 1, armor: 0, shield: 0, spirits: 0, crit: .1, coinLuck: 0, rainbow: false, waveShield: false };
   ups = {}; gold = 0; totalGold = 0; shopLv = {}; shopNote = '';
   enemies = []; shots = []; eshots = []; gems = []; items = []; parts = []; texts = []; zaps = []; deaths = [];
@@ -920,7 +971,7 @@ function resetRun(spellIdx) {
   kills = 0; time = 0; level = 1; xp = 0; xpNeed = 12; pendingLv = 0;
   unlocked = new Set([spellIdx]); cur = spellIdx; castT = .3; aim = 0; shake = 0; flash = 0; flashW = 0;
   cam = { x: 0, y: 0 }; kick = { x: 0, y: 0 };
-  dark = 0; bossKills = 0; runGems = 0; combo = 0; comboT = 0; bestCombo = 0; gemChain = 0; gemChainT = 0; freeze = 0; lvlFx = 0;
+  abCd = {}; frozenT = 0; meteors = []; strikes = []; dark = 0; bossKills = 0; runGems = 0; combo = 0; comboT = 0; bestCombo = 0; gemChain = 0; gemChainT = 0; freeze = 0; lvlFx = 0;
 }
 resetRun(0);
 const addShake = n => { if (!reduceMotion && SET.shake) shake = Math.min(18, shake + n); };
@@ -932,7 +983,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
 const SET = Object.assign({ music: true, sfx: true, shake: true, numbers: true, vibrate: true, fx: 'lots' }, store.get('wgSettings', {}));
-const META_DEFAULT = { gems: 0, gemsTotal: 0, wands: ['oak'], relics: [], wand: 'oak', equip: [], runs: 0, kills: 0, bestCombo: 0, bosses: 0 };
+const META_DEFAULT = { gems: 0, gemsTotal: 0, wands: ['oak'], relics: [], wand: 'oak', equip: [], abilities: ['dash'], abEquip: ['dash'], runs: 0, kills: 0, bestCombo: 0, bosses: 0 };
 let META = Object.assign({}, META_DEFAULT, store.get('wgMeta', {}));
 delete META.stars; delete META.starsTotal;
 const GEMS_BY_BOSS = { boss: 5, lich: 8 };
@@ -960,6 +1011,26 @@ const RELICS = [
   { id: 'heart', glyph: 'HP', c: '#ff8fc8', name: 'Iron Heart', desc: '+25 max health', price: 10, apply() { P.maxHp += 25; P.hp += 25; } },
   { id: 'bubble', glyph: 'SHD', c: '#9fe6ff', name: 'Bubble Charm', desc: 'Start every wave with a Mana Shield', price: 15, apply() { S.waveShield = true; } },
 ];
+const ABILITIES = [
+  { id: 'dash', name: 'Dash', c: '#38c6ff', cd: 4, price: 0, desc: 'Zip forward and slip through monsters without getting hurt.',
+    icon: 'M1 2h2v1H1zM2 3h2v1H2zM3 4h2v2H3zM2 6h2v1H2zM1 7h2v1H1zM5 2h2v1H5zM6 3h2v1H6zM7 4h2v2H7zM6 6h2v1H6zM5 7h2v1H5z',
+    use() { abDash(); } },
+  { id: 'nova', name: 'Nova Blast', c: '#ff9a3d', cd: 10, price: 8, desc: 'A burst of fire that hurts every monster near you and knocks them back.',
+    icon: 'M4 0h2v3H4zM4 7h2v3H4zM0 4h3v2H0zM7 4h3v2H7zM3 3h4v4H3zM1 1h1v1H1zM8 1h1v1H8zM1 8h1v1H1zM8 8h1v1H8z',
+    use() { abNova(); } },
+  { id: 'heal', name: 'Healing Bloom', c: '#3fd99a', cd: 25, price: 10, desc: 'Heal 35% of your health and get a Mana Shield.',
+    icon: 'M4 1h2v8H4zM1 4h8v2H1z', use() { abHeal(); } },
+  { id: 'freeze', name: 'Time Freeze', c: '#9fe6ff', cd: 18, price: 12, desc: 'Freeze every monster and bullet in place for 3 seconds.',
+    icon: 'M4 0h2v10H4zM0 4h10v2H0zM1 1h2v2H1zM7 1h2v2H7zM1 7h2v2H1zM7 7h2v2H7z', use() { abFreeze(); } },
+  { id: 'meteor', name: 'Meteor', c: '#ff5d73', cd: 12, price: 15, desc: 'Drop a giant meteor on the biggest group of monsters.',
+    icon: 'M2 4h4v4H2zM1 5h1v2H1zM6 5h1v2H6zM3 3h2v1H3zM3 8h2v1H3zM6 1h1v1H6zM7 0h1v1H7zM5 2h1v1H5zM8 2h1v1H8zM7 3h1v1H7z', use() { return abMeteor(); } },
+  { id: 'storm', name: 'Thunderstorm', c: '#ffe45c', cd: 14, price: 18, desc: 'Lightning strikes up to 8 monsters on screen.',
+    icon: 'M5 0h3v1H5zM4 1h3v1H4zM3 2h3v1H3zM2 3h6v1H2zM5 4h2v1H5zM4 5h2v1H4zM3 6h2v1H3zM2 7h2v1H2zM2 8h1v1H2z', use() { return abStorm(); } },
+];
+const abSvg = A => `<svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="${A.icon}"/></svg>`;
+const abIcon = A => `<span class="abico" style="--c:${A.c}">${abSvg(A)}</span>`;
+if (!Array.isArray(META.abilities)) META.abilities = ['dash'];
+if (!Array.isArray(META.abEquip)) META.abEquip = ['dash'];
 const curWand = () => WANDS.find(w => w.id === META.wand) || WANDS[0];
 function applyLoadout() {
   META.equip.forEach(id => { const r = RELICS.find(x => x.id === id); if (r) r.apply(); });
@@ -1031,6 +1102,7 @@ function sfx(type, n = 0) {
     case 'combo': { const f = 660 * Math.pow(2, Math.min(12, n) / 12); tone('square', f, f * 1.5, .12, .04); tone('square', f * 1.5, f * 2, .14, .03, .08); break; }
     case 'wave': [523, 659, 784].forEach((f, i) => tone('square', f, f, .12, .04, i * .1)); tone('square', 1046, 1046, .3, .045, .3); break;
     case 'clear': [784, 988, 1175, 1568].forEach((f, i) => tone('triangle', f, f, .16, .06, i * .08)); break;
+    case 'dash': noise(.22, .07, 1400, .8); tone('sine', 300, 900, .16, .035); break;
     case 'click': tone('triangle', 700, 1000, .06, .05); break;
     case 'die': [523, 440, 349, 262].forEach((f, i) => tone('triangle', f, f * .97, .25, .07, i * .17)); break;
   }
@@ -1072,7 +1144,8 @@ const keys = {};
 addEventListener('keydown', e => {
   keys[e.code] = true;
   if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
-  const m = /^Digit([1-4])$/.exec(e.code); if (m) selectSpell(+m[1] - 1);
+  if (!e.repeat && (e.code === 'Space' || e.code === 'KeyQ')) useAbility(0);
+  if (!e.repeat && (e.code === 'KeyE' || e.code === 'ShiftLeft' || e.code === 'ShiftRight')) useAbility(1);
   if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -1102,6 +1175,8 @@ function buildLogo(el) {
   el.innerHTML = ['Wizard', 'Grove'].map(w => [...w].map(ch => `<span style="--i:${k};color:${HAPPY[k++ % HAPPY.length]}">${ch}</span>`).join('')).join('<br>');
 }
 function buildMenu() {
+  const eqA = META.abEquip.map(id => ABILITIES.find(a => a.id === id)).filter(Boolean).map(a => a.name);
+  $('abNote').textContent = eqA.length ? `Your abilities: ${eqA.join(' and ')}. Change them in your Inventory.` : 'No abilities equipped. Add some in your Inventory.';
   $('spellPick').innerHTML = WANDS.map((w, i) => {
     const sp = SPELLS[w.spell], owned = META.wands.includes(w.id);
     return `<button class="card spell enter ${owned ? '' : 'lockedw'}" data-w="${w.id}" style="${orbStyle(sp)};--i:${i}" ${owned ? '' : 'aria-disabled="true"'}>
@@ -1123,11 +1198,11 @@ function showScreen(id) {
   if ($(id)) $(id).scrollTop = 0;
 }
 function go(id) {
-  sfx('click');
+  sfx('click'); closeSheet();
   if (id === 'title') renderTitle();
   if (id === 'menu') buildMenu();
   if (id === 'inventory') renderInventory();
-  if (id === 'store') renderStore();
+  if (id === 'store') { closeSheet(); renderStore(true); }
   if (id === 'guide') renderGuide();
   if (id === 'records') renderRecords();
   if (id === 'settings') { settingsFrom = 'title'; renderSettings(); }
@@ -1186,7 +1261,7 @@ $('resetBtn').onclick = () => {
     sfx('nope'); return;
   }
   clearTimeout(resetTimer);
-  META = Object.assign({}, META_DEFAULT, { wands: ['oak'], relics: [], equip: [] }); saveMeta();
+  META = Object.assign({}, META_DEFAULT, { wands: ['oak'], relics: [], equip: [], abilities: ['dash'], abEquip: ['dash'] }); saveMeta();
   best = 0; try { localStorage.setItem('wizardGroveBest', 0); } catch (e) {}
   b.classList.remove('armed'); b.textContent = 'Progress erased';
   setTimeout(() => { b.textContent = 'Reset progress'; }, 2000);
@@ -1202,40 +1277,84 @@ function toast(msg) {
 const wandIcon = w => `<span class="wandico" style="--shaft:${w.shaft};--band:${w.band};--tip:${w.tip};--glow:${w.glow || w.tip}"></span>`;
 const relicIcon = r => `<span class="tile" style="--c:${r.c}">${r.glyph}</span>`;
 const gemTag = n => `<i class="gem sm"></i>${n}`;
-function renderStore(flash) {
+let storeTab = 'wands';
+function storeList(tab) {
+  if (tab === 'wands') return WANDS.map(w => {
+    const sp = SPELLS[w.spell];
+    return { kind: 'w', it: w, owned: META.wands.includes(w.id), color: sp.color, icon: wandIcon(w), cat: 'Wand',
+      facts: [`${sp.dmg}${sp.count ? ' x' + sp.count : ''} damage`, `${(1 / sp.cd).toFixed(1)} casts per second`] };
+  });
+  if (tab === 'abilities') return ABILITIES.map(A => ({ kind: 'a', it: A, owned: META.abilities.includes(A.id), color: A.c, icon: abIcon(A), cat: 'Ability',
+    facts: [`Recharges in ${A.cd} seconds`, 'Equip up to 2'] }));
+  return RELICS.map(r => ({ kind: 'r', it: r, owned: META.relics.includes(r.id), color: r.c, icon: relicIcon(r), cat: 'Relic', facts: ['Works every run', 'Equip up to 2'] }));
+}
+const STORE_NOTES = {
+  wands: 'Each wand shoots a different spell. You pick one wand before every run.',
+  abilities: 'Abilities are buttons you tap during a run. They recharge after each use.',
+  relics: 'Relics give you a bonus in every run, without tapping anything.',
+};
+function renderStore(enter = true) {
   $('storeGems').textContent = META.gems;
   $('infoKing').src = SPR.boss.n.toDataURL();
-  const row = (it, kind) => {
-    const owned = (kind === 'w' ? META.wands : META.relics).includes(it.id);
-    let btn, need = '';
-    if (owned) btn = '<button class="act mint" disabled>Owned</button>';
-    else if (META.gems >= it.price) btn = `<button class="act" data-buy="${kind}:${it.id}">Buy ${gemTag(it.price)}</button>`;
-    else {
-      const miss = it.price - META.gems;
-      btn = `<button class="act poor" data-buy="${kind}:${it.id}">${gemTag(it.price)}</button>`;
-      need = `<span class="need">Need ${miss} more gem${miss > 1 ? 's' : ''}</span>`;
-    }
-    return `<div class="row-item ${owned ? 'on' : ''} ${flash === it.id ? 'bought' : ''}">${kind === 'w' ? wandIcon(it) : relicIcon(it)}<div><b>${it.name}</b><span class="d">${it.desc}</span>${need}</div>${btn}</div>`;
-  };
-  $('storeWands').innerHTML = WANDS.filter(w => w.price > 0).map(w => row(w, 'w')).join('');
-  $('storeRelics').innerHTML = RELICS.map(r => row(r, 'r')).join('');
-  document.querySelectorAll('#store [data-buy]').forEach(b => b.onclick = () => {
-    const [kind, id] = b.dataset.buy.split(':');
-    const it = (kind === 'w' ? WANDS : RELICS).find(x => x.id === id);
-    if (META.gems < it.price) { sfx('nope'); retrigger(b, 'nope'); toast(`You need ${it.price - META.gems} more gems. Beat a boss to earn some!`); return; }
+  const count = (list) => `${list.filter(x => x.owned).length} of ${list.length} owned`;
+  $('cntWands').textContent = count(storeList('wands'));
+  $('cntAbilities').textContent = count(storeList('abilities'));
+  $('cntRelics').textContent = count(storeList('relics'));
+  document.querySelectorAll('[data-stab]').forEach(b => b.setAttribute('aria-selected', b.dataset.stab === storeTab));
+  $('storeTabNote').textContent = STORE_NOTES[storeTab];
+  const list = storeList(storeTab);
+  $('storeGrid').innerHTML = list.map((x, k) => {
+    const poor = !x.owned && META.gems < x.it.price;
+    const price = x.owned ? 'Owned' : `<i class="gem sm"></i>${x.it.price}`;
+    return `<button class="scard ${enter ? 'enter' : ''} ${x.owned ? 'owned' : ''} ${poor ? 'poor' : ''}" data-k="${k}" style="--c:${x.color};--i:${k}">
+      <span class="sicon">${x.icon}</span><b>${x.it.name}</b><span class="sdesc">${x.it.desc}</span><span class="sprice">${price}</span></button>`;
+  }).join('');
+  $('storeGrid').querySelectorAll('.scard').forEach(b => b.onclick = () => { sfx('click'); openSheet(list[+b.dataset.k]); });
+}
+document.querySelectorAll('[data-stab]').forEach(b => b.onclick = () => { storeTab = b.dataset.stab; sfx('click'); renderStore(true); });
+function closeSheet() { $('sheet').hidden = true; }
+$('sheet').onclick = e => { if (e.target === $('sheet')) closeSheet(); };
+function equippedText(x) {
+  if (x.kind === 'w') return 'You can pick it when you press Play.';
+  const eq = x.kind === 'a' ? META.abEquip : META.equip;
+  return eq.includes(x.it.id) ? 'Equipped. It is ready for your next run.' : 'Owned. Equip it in your Inventory.';
+}
+function openSheet(x) {
+  const it = x.it, miss = it.price - META.gems;
+  let action;
+  if (x.owned) action = `<p class="sd" style="color:var(--ink)"><b>${equippedText(x)}</b></p>`;
+  else if (miss <= 0) action = `<button class="btn go" id="sheetBuy">Buy for ${it.price} gems</button>`;
+  else action = `<button class="btn ghost" disabled style="opacity:.7">Buy for ${it.price} gems</button><span class="need">You need ${miss} more gem${miss > 1 ? 's' : ''}. Beat a boss to earn some!</span>`;
+  $('sheetBody').innerHTML = `
+    <em class="chip soft">${x.cat}</em>
+    <span class="bigicon" style="--c:${x.color}">${x.icon}</span>
+    <h3>${it.name}</h3>
+    <p class="sd">${it.desc}</p>
+    <div class="facts">${x.facts.map(f => `<em class="chip">${f}</em>`).join('')}</div>
+    ${action}
+    <button class="btn ghost small" id="sheetClose">Close</button>`;
+  $('sheet').hidden = false;
+  $('sheetClose').onclick = () => { sfx('click'); closeSheet(); };
+  const buy = $('sheetBuy');
+  if (buy) buy.onclick = () => {
+    if (META.gems < it.price) return;
     META.gems -= it.price;
-    if (kind === 'w') { META.wands.push(id); META.wand = id; toast(`${it.name} bought and equipped!`); }
-    else {
-      META.relics.push(id);
-      if (META.equip.length < 2) { META.equip.push(id); toast(`${it.name} bought and equipped!`); }
-      else toast(`${it.name} bought! Swap it in from your Inventory.`);
-    }
-    saveMeta(); sfx('buy'); confetti(24); renderStore(id);
-  });
+    let msg = `${it.name} bought!`;
+    if (x.kind === 'w') { META.wands.push(it.id); msg += ' Pick it when you press Play.'; }
+    else if (x.kind === 'a') { META.abilities.push(it.id); if (META.abEquip.length < 2) { META.abEquip.push(it.id); msg = `${it.name} bought and equipped!`; } else msg += ' Swap it in from your Inventory.'; }
+    else { META.relics.push(it.id); if (META.equip.length < 2) { META.equip.push(it.id); msg = `${it.name} bought and equipped!`; } else msg += ' Swap it in from your Inventory.'; }
+    saveMeta(); sfx('buy'); confetti(30); toast(msg);
+    x.owned = true; openSheet(x); renderStore(false);
+  };
 }
 function renderInventory() {
   const w = curWand();
-  const slots = [`<div class="slotbox"><small>Last wand</small>${wandIcon(w)}<b>${w.name}</b></div>`];
+  const slots = [];
+  for (let i = 0; i < 2; i++) {
+    const A = ABILITIES.find(x => x.id === META.abEquip[i]);
+    slots.push(A ? `<div class="slotbox"><small>Ability ${i + 1}</small>${abIcon(A)}<b>${A.name}</b></div>`
+      : `<div class="slotbox empty"><small>Ability ${i + 1}</small><span class="tile" style="--c:#efe9f5">+</span><b>Empty</b></div>`);
+  }
   for (let i = 0; i < 2; i++) {
     const r = RELICS.find(x => x.id === META.equip[i]);
     slots.push(r ? `<div class="slotbox"><small>Relic ${i + 1}</small>${relicIcon(r)}<b>${r.name}</b></div>`
@@ -1250,6 +1369,18 @@ function renderInventory() {
     const on = META.equip.includes(r.id);
     return `<div class="row-item ${on ? 'on' : ''}">${relicIcon(r)}<div><b>${r.name}</b><span class="d">${r.desc}</span></div>${on ? `<button class="act plain" data-eqr="${r.id}">Remove</button>` : `<button class="act" data-eqr="${r.id}">Equip</button>`}</div>`;
   }).join('') : '<div class="empty-note">You don\'t have any relics yet. Beat bosses to earn gems, then buy relics in the Shop.<button class="act" data-goto="store">Open the Shop</button></div>';
+  const ownedA = ABILITIES.filter(A => META.abilities.includes(A.id));
+  $('invAbilities').innerHTML = ownedA.map(A => {
+    const on = META.abEquip.includes(A.id);
+    return `<div class="row-item ${on ? 'on' : ''}">${abIcon(A)}<div><b>${A.name}</b><span class="d">${A.desc}</span></div>${on ? `<button class="act plain" data-eqa="${A.id}">Remove</button>` : `<button class="act" data-eqa="${A.id}">Equip</button>`}</div>`;
+  }).join('') + (ownedA.length < ABILITIES.length ? '<div class="empty-note">Get more abilities in the Shop with gems from bosses.<button class="act" data-goto="store">Open the Shop</button></div>' : '');
+  document.querySelectorAll('#inventory [data-eqa]').forEach(b => b.onclick = () => {
+    const id = b.dataset.eqa, A = ABILITIES.find(x => x.id === id);
+    if (META.abEquip.includes(id)) { META.abEquip = META.abEquip.filter(x => x !== id); toast(`${A.name} removed`); }
+    else if (META.abEquip.length >= 2) { const out = ABILITIES.find(x => x.id === META.abEquip.shift()); META.abEquip.push(id); toast(`Swapped ${out.name} for ${A.name}`); }
+    else { META.abEquip.push(id); toast(`${A.name} equipped`); }
+    saveMeta(); sfx('click'); renderInventory();
+  });
   document.querySelectorAll('#inventory [data-eqw]').forEach(b => b.onclick = () => {
     META.wand = b.dataset.eqw; saveMeta(); sfx('click'); toast(`${curWand().name} equipped`); renderInventory();
   });
@@ -1329,7 +1460,13 @@ function boot() {
   };
 }
 
-function buildSpellbar() { $('spellbar').innerHTML = ''; }
+function buildSpellbar() {
+  const eq = META.abEquip.map(id => ABILITIES.find(a => a.id === id)).filter(Boolean);
+  $('spellbar').innerHTML = eq.map((A, i) => `<button class="abtn" data-s="${i}" style="--c:${A.c}" aria-label="${A.name}">${abSvg(A)}<i class="cdm"></i><span class="cdt"></span><small>${({ nova: 'Nova', heal: 'Heal', freeze: 'Freeze', storm: 'Storm' })[A.id] || A.name}</small></button>`).join('');
+  $('spellbar').querySelectorAll('.abtn').forEach(b => {
+    b.onpointerdown = e => { e.stopPropagation(); e.preventDefault(); useAbility(+b.dataset.s); };
+  });
+}
 function selectSpell() {}
 function banner(text, sub, kind) {
   const b = $('banner');
@@ -1607,7 +1744,7 @@ function onHit(s, e) {
   }
 }
 function damagePlayer(d) {
-  if (P.inv > 0 || mode !== 'play') return;
+  if (P.inv > 0 || P.dashT > 0 || mode !== 'play') return;
   if (S.shield > 0) {
     S.shield--; P.inv = .6; sfx('block'); freeze = Math.max(freeze, .05);
     texts.push({ x: P.x, y: P.y - 30, text: 'BLOCKED!', life: .9, max: .9, color: '#9fe6ff', size: 18, vx: 0, vy: -50 });
@@ -1645,6 +1782,106 @@ function die() {
   }, 1100);
 }
 
+/* ---------- abilities ---------- */
+const abPower = () => S.dmg * (1 + (wave - 1) * .12);
+function useAbility(slot) {
+  if (mode !== 'play') return;
+  const A = ABILITIES.find(a => a.id === META.abEquip[slot]);
+  if (!A) return;
+  if ((abCd[A.id] || 0) > 0) { sfx('nope'); return; }
+  if (A.use() === false) { sfx('nope'); toast('No monsters nearby'); return; }
+  abCd[A.id] = A.cd;
+}
+function abDash() {
+  const dx = P.moving ? P.mdx : Math.cos(aim), dy = P.moving ? P.mdy : Math.sin(aim);
+  P.dvx = dx * 640; P.dvy = dy * 640; P.dashT = .2; sfx('dash');
+  zaps.push({ ring: true, x1: P.x, y1: P.y, r: 44, life: .25, max: .25, color: '#9fe6ff', w: 5 });
+}
+function abNova() {
+  const R = 170, d = 45 * abPower();
+  addShake(9); sfx('boom'); freeze = Math.max(freeze, .05);
+  zaps.push({ ring: true, x1: P.x, y1: P.y, r: R, life: .45, max: .45, color: '#ff9a3d', w: 12 });
+  zaps.push({ ring: true, x1: P.x, y1: P.y, r: R * .65, life: .35, max: .35, color: '#fff1c1', w: 8 });
+  for (let i = 0; i < 48; i++) { const a = i / 48 * 6.28, sp = rand(260, 420); parts.push({ x: P.x, y: P.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .45, max: .45, size: rand(5, 9), color: pick(['#ff9a3d', '#ffcf3f', '#ff5d73']), kind: 'dot', glow: true }); }
+  for (const e of [...enemies]) {
+    const dx = e.x - P.x, dy = e.y - P.y, dd = Math.hypot(dx, dy) || 1;
+    if (dd < R + e.r) { hurt(e, d, '#ff9a3d'); if (!e.T.boss) { e.kx += dx / dd * 560; e.ky += dy / dd * 560; } }
+  }
+  eshots = eshots.filter(b => (b.x - P.x) ** 2 + (b.y - P.y) ** 2 > R * R);
+}
+function abHeal() {
+  const amt = Math.round(P.maxHp * .35);
+  P.hp = Math.min(P.maxHp, P.hp + amt); S.shield = Math.min(3, S.shield + 1); sfx('tome');
+  texts.push({ x: P.x, y: P.y - 40, text: '+' + amt, life: 1.1, max: 1.1, color: '#3fd99a', size: 22, vx: 0, vy: -50 });
+  zaps.push({ ring: true, x1: P.x, y1: P.y, r: 90, life: .5, max: .5, color: '#3fd99a', w: 8 });
+  for (let i = 0; i < 30; i++) parts.push({ x: P.x + rand(-30, 30), y: P.y + rand(-10, 30), vx: rand(-20, 20), vy: rand(-140, -60), life: rand(.6, 1), max: 1, size: rand(5, 8), color: pick(['#3fd99a', '#c8ffd9', '#ffffff']), kind: 'star', glow: true });
+}
+function abFreeze() {
+  frozenT = 3; sfx('block'); flashW = .25;
+  zaps.push({ ring: true, x1: P.x, y1: P.y, r: Math.max(VW, VH) / ZOOM * .6, life: .6, max: .6, color: '#9fe6ff', w: 10 });
+  texts.push({ x: P.x, y: P.y - 44, text: 'FREEZE!', life: 1, max: 1, color: '#9fe6ff', size: 20, vx: 0, vy: -40 });
+  for (const e of enemies) for (let i = 0; i < 4; i++) parts.push({ x: e.x + rand(-e.r, e.r), y: e.y - rand(0, e.r * 1.5), vx: rand(-20, 20), vy: rand(-30, 0), life: .6, max: .6, size: 3, color: '#e9fbff', kind: 'star', glow: true });
+}
+function abMeteor() {
+  let best = null, bc = 0;
+  for (const e of enemies) { let c = 0; for (const o of enemies) if ((o.x - e.x) ** 2 + (o.y - e.y) ** 2 < 110 * 110) c++; if (c > bc) { bc = c; best = e; } }
+  if (!best) return false;
+  meteors.push({ x: best.x, y: best.y, t: 0, max: .75 }); sfx('dash');
+}
+function abStorm() {
+  const hw = VW / ZOOM * .6, hh = VH / ZOOM * .6;
+  const pool = enemies.filter(e => !e.dead && Math.abs(e.x - P.x) < hw && Math.abs(e.y - P.y) < hh).sort(() => Math.random() - .5).slice(0, 8);
+  if (!pool.length) return false;
+  pool.forEach((e, i) => strikes.push({ e, t: i * .09 }));
+}
+function updateAbilities(dt) {
+  for (const k in abCd) abCd[k] = Math.max(0, abCd[k] - dt);
+  frozenT = Math.max(0, frozenT - dt);
+  if (P.dashT > 0) {
+    P.dashT -= dt; P.x += P.dvx * dt; P.y += P.dvy * dt;
+    parts.push({ x: P.x + rand(-8, 8), y: P.y + rand(-14, 14), vx: -P.dvx * .1, vy: -P.dvy * .1, life: .3, max: .3, size: rand(5, 8), color: '#9fe6ff', kind: 'dot', glow: true });
+  }
+  for (const m of meteors) {
+    m.t += dt;
+    if (m.t >= m.max && !m.hit) {
+      m.hit = true;
+      const R = 125, d = 110 * abPower();
+      addShake(13); sfx('boom'); freeze = Math.max(freeze, .07);
+      zaps.push({ ring: true, x1: m.x, y1: m.y, r: R, life: .45, max: .45, color: '#ff5d73', w: 12 });
+      for (let i = 0; i < 50; i++) { const a = Math.random() * 6.28, sp = rand(80, 380); parts.push({ x: m.x, y: m.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(.4, .8), max: .8, size: rand(5, 10), color: pick(['#ff5d73', '#ff9a3d', '#ffcf3f']), kind: 'dot', glow: true }); }
+      for (let i = 0; i < 14; i++) parts.push({ x: m.x + rand(-40, 40), y: m.y + rand(-30, 30), vx: rand(-30, 30), vy: rand(-60, -20), life: rand(.7, 1.2), max: 1.2, size: rand(10, 18), color: '#5b5068', kind: 'smoke' });
+      for (const e of [...enemies]) if ((e.x - m.x) ** 2 + (e.y - m.y) ** 2 < (R + e.r) ** 2) { hurt(e, d, '#ff5d73'); e.burn = 2.5; e.burnDps = 6 * S.dmg; }
+    }
+  }
+  meteors = meteors.filter(m => !m.hit);
+  for (const st of strikes) {
+    st.t -= dt;
+    if (st.t <= 0 && !st.done) {
+      st.done = true;
+      const e = st.e; if (e.dead) continue;
+      zaps.push({ x1: e.x + rand(-30, 30), y1: e.y - 340, x2: e.x, y2: e.y, life: .3, max: .3 });
+      zaps.push({ ring: true, x1: e.x, y1: e.y, r: 40, life: .25, max: .25, color: '#ffe45c', w: 5 });
+      hurt(e, 40 * abPower(), '#ffe45c'); addShake(2); sfx('crit');
+    }
+  }
+  strikes = strikes.filter(st => !st.done);
+}
+function drawMeteors() {
+  for (const m of meteors) {
+    const k = Math.min(1, m.t / m.max);
+    ctx.globalAlpha = .25 + k * .35; ctx.fillStyle = '#2d1f4f';
+    ctx.beginPath(); ctx.ellipse(m.x, m.y, 20 + k * 70, (20 + k * 70) * .4, 0, 0, 6.28); ctx.fill();
+    ctx.globalAlpha = .7; ctx.strokeStyle = '#ff5d73'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(m.x, m.y, 125, 0, 6.28); ctx.stroke(); ctx.globalAlpha = 1;
+    const mx = m.x + (1 - k) * 260, my = m.y - (1 - k) * 480;
+    glow(mx, my, 60, '#ff9a3d', .8);
+    ctx.fillStyle = '#2d1f4f'; ctx.beginPath(); ctx.arc(mx, my, 22, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#ff5d73'; ctx.beginPath(); ctx.arc(mx, my, 18, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#ffcf3f'; ctx.beginPath(); ctx.arc(mx - 5, my + 4, 8, 0, 6.28); ctx.fill();
+    if (Math.random() < .9) parts.push({ x: mx + rand(-10, 10), y: my + rand(-10, 10), vx: 120, vy: -200, life: .4, max: .4, size: rand(6, 11), color: pick(['#ff9a3d', '#ffcf3f']), kind: 'dot', glow: true });
+  }
+}
+
 /* ---------- update ---------- */
 function update(dt) {
   time += dt;
@@ -1657,7 +1894,8 @@ function update(dt) {
   }
   const ml = Math.hypot(mx, my); if (ml > 1) { mx /= ml; my /= ml; }
   P.x += mx * 150 * S.move * dt; P.y += my * 150 * S.move * dt;
-  P.moving = ml > .05; if (P.moving) P.walk += dt;
+  P.moving = ml > .05; if (P.moving) { P.walk += dt; P.mdx = mx / ml; P.mdy = my / ml; }
+  updateAbilities(dt);
   P.inv -= dt;
   if (S.regen) P.hp = Math.min(P.maxHp, P.hp + S.regen * dt);
   P.dustT -= dt;
@@ -1699,6 +1937,7 @@ function update(dt) {
       if (e.burnTick <= 0) { e.burnTick = .4; hurt(e, e.burnDps * .4, '#ff9d5c'); }
       if (e.dead) continue;
     }
+    if (frozenT > 0) continue;
     let dx = P.x - e.x, dy = P.y - e.y; const d = Math.hypot(dx, dy) || 1;
     dx /= d; dy /= d;
     const ux = dx, uy = dy;
@@ -1808,7 +2047,7 @@ function update(dt) {
   enemies = enemies.filter(e => !e.dead);
 
   for (const s of eshots) {
-    s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+    if (frozenT <= 0) { s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt; }
     if ((P.x - s.x) ** 2 + (P.y - s.y) ** 2 < (P.r + s.r) ** 2 && P.inv <= 0) { damagePlayer(s.dmg); s.life = 0; }
   }
   eshots = eshots.filter(s => s.life > 0);
@@ -1955,7 +2194,7 @@ function drawEnemy(e) {
   if (e.type === 'bat') key = Math.sin(T * 14 + e.ph) > 0 ? 'batA' : 'batB';
   const set = SPR[key];
   const fuseBlink = e.fuse > 0 && Math.floor(e.fuse * 14) % 2 === 0;
-  const img = e.flash > 0 || fuseBlink ? set.w : e.slow > 0 ? set.i : set.n;
+  const img = e.flash > 0 || fuseBlink ? set.w : (e.slow > 0 || frozenT > 0) ? set.i : set.n;
   const sc = T0.scale, w = img.width * sc, h = img.height * sc;
   const floaty = e.type === 'bat' || e.type === 'ghost' || e.type === 'lich';
   const fly = floaty ? (e.type === 'lich' ? 6 : 10) + Math.sin(T * 4 + e.ph) * 3 : 0;
@@ -2121,6 +2360,7 @@ function render() {
     ctx.drawImage(d.img, -d.w / 2, -d.h, d.w, d.h); ctx.restore();
   }
 
+  drawMeteors();
   for (let i = 0; i < S.spirits; i++) {
     const a = time * 2.6 + i * Math.PI * 2 / S.spirits, fx = P.x + Math.cos(a) * 58, fy = P.y + Math.sin(a) * 58 + Math.sin(T * 6 + i) * 3;
     glow(fx, fy, 22, '#bfefff', .55);
@@ -2172,6 +2412,7 @@ function render() {
     ctx.fillStyle = `rgba(8,10,35,${dark * .6})`; ctx.fillRect(0, 0, VW, VH);
     ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
   }
+  if (frozenT > 0) { ctx.fillStyle = `rgba(160,225,255,${Math.min(.22, frozenT * .12)})`; ctx.fillRect(0, 0, VW, VH); }
   drawMotes();
   if (!vignette) {
     vignette = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .35, VW / 2, VH / 2, Math.hypot(VW, VH) * .62);
@@ -2199,7 +2440,17 @@ function render() {
 
 /* ---------- HUD ---------- */
 let lastHud = '', lastGold = 0, lastCombo = 0, lastWave = 0;
+let abLast = [0, 0];
 function hud() {
+  if (mode === 'play') $('spellbar').querySelectorAll('.abtn').forEach((b, i) => {
+    const A = ABILITIES.find(a => a.id === META.abEquip[i]); if (!A) return;
+    const rem = abCd[A.id] || 0;
+    b.style.setProperty('--p', rem / A.cd);
+    const txt = rem > 0 ? Math.ceil(rem) : '';
+    const c = b.querySelector('.cdt'); if (c.textContent != txt) c.textContent = txt;
+    if (abLast[i] > 0 && rem <= 0) retrigger(b, 'ready');
+    abLast[i] = rem;
+  });
   document.body.classList.toggle('menu-mode', mode === 'menu' || mode === 'loading');
   const comboEl = $('combo');
   if (combo >= 3 && mode === 'play') {

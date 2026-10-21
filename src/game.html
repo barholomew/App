@@ -488,7 +488,16 @@ button { font: inherit; color: inherit; }
 #openBtn { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 130px); transform: translateX(-50%); z-index: 3; white-space: nowrap; font-size: 19px; padding: 13px 22px; }
 #openBtn:active { transform: translate(-50%, 4px); }
 .bagbadge { position: absolute; top: -6px; right: -6px; width: 14px; height: 14px; border-radius: 50%; background: var(--berry); border: 2px solid var(--ink); }
-#bagBtn { position: relative; }
+.leftbar { display: flex; align-items: flex-end; gap: 14px; }
+.bagbtn { pointer-events: auto; appearance: none; cursor: pointer; position: relative; width: 66px; height: 66px; padding: 0; border-radius: 20px; display: grid; place-items: center; background: #ffe2a8; border: 4px solid var(--ink); box-shadow: 0 5px 0 var(--ink), inset 0 -6px 0 #e0b468, inset 0 5px 0 #ffffff88; touch-action: none; }
+.bagbtn svg { width: 36px; height: 39px; }
+.bagbtn small { position: absolute; left: 50%; bottom: -22px; transform: translateX(-50%); white-space: nowrap; font: 900 12px var(--font-body); color: #fff; text-shadow: var(--outline-sm); }
+.bagbtn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink); }
+.bagbtn.bump { animation: bump .35s cubic-bezier(.3, 1.8, .5, 1); }
+.bagbtn .bagbadge { top: -8px; right: -8px; width: 18px; height: 18px; }
+/* backpack opens as a panel from the bottom */
+#bag { padding-bottom: 0; }
+#bag .modal { margin: auto auto 0; border-bottom: 0; border-radius: 26px 26px 0 0; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); box-shadow: 0 -6px 0 #2d1f4f40; animation: sheetIn .3s cubic-bezier(.2, 1.3, .4, 1); }
 .resgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .rescell { display: grid; justify-items: center; gap: 4px; padding: 10px 4px; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; text-align: center; }
 .rescell b { font: 900 22px/1 var(--font-body); }
@@ -529,7 +538,6 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
       <button class="icon-btn" id="soundBtn" aria-label="Toggle sound">
         <svg viewBox="0 0 16 16" fill="currentColor" shape-rendering="crispEdges"><path d="M2 6h3l4-3v10L5 10H2z"/><path id="waves" d="M11 5h1v6h-1zM13 3h1v10h-1z"/></svg>
       </button>
-      <button class="icon-btn" id="bagBtn" aria-label="Backpack"><svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path fill="currentColor" d="M3 0h4v1H3zM2 1h1v2H2zM7 1h1v2H7zM1 3h8v7H1z"/><path fill="#f5ead2" d="M2 4h6v5H2z"/><path fill="currentColor" d="M4 5h2v2H4z"/></svg><i class="bagbadge" id="bagBadge" hidden></i></button>
       <button class="icon-btn" id="pauseBtn" aria-label="Pause">
         <svg viewBox="0 0 16 16" fill="currentColor" shape-rendering="crispEdges"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
       </button>
@@ -541,7 +549,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
 <div id="combo" hidden><b id="comboNum">x3</b><small>COMBO</small><i><u id="comboBar"></u></i></div>
 
 <div class="spellbar" id="spellbar"></div>
-<div class="leftbar"><button class="sbtn" id="specialBtn" hidden aria-label="Use special weapon"></button></div>
+<div class="leftbar"><button class="sbtn" id="specialBtn" hidden aria-label="Use special weapon"></button><button class="bagbtn" id="bagBtn" aria-label="Open backpack"><svg viewBox="0 0 12 13" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="M4 0h4v1H4zM3 1h1v2H3zM8 1h1v2H8zM1 2h10v11H1z"/><path fill="#c08a4a" d="M2 3h8v9H2z"/><path fill="#a0632b" d="M2 3h8v3H2z"/><path fill="#2d1f4f" d="M2 6h8v1H2z"/><path fill="#ffcf3f" d="M5 5h2v2H5z"/><path fill="#2d1f4f" d="M3 8h6v4H3z"/><path fill="#d9a35e" d="M4 9h4v2H4z"/></svg><small>Backpack</small><i class="bagbadge" id="bagBadge" hidden></i></button></div>
 <button class="btn go" id="openBtn" hidden>Open chest</button>
 <div id="banner"></div>
 
@@ -694,7 +702,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <h2>Backpack</h2>
     <p>Everything you found this run. The game is paused while it is open.</p>
     <h3 class="sub">Special weapons</h3>
-    <p>Pick one to hold. Use it with the square button in the bottom-left corner (R on a keyboard).</p>
+    <p>Pick one to hold. Use it with the square button next to the Backpack (R on a keyboard).</p>
     <div class="stack" id="bagSpecials"></div>
     <h3 class="sub">Resources</h3>
     <div class="resgrid" id="bagRes"></div>
@@ -1936,7 +1944,7 @@ function drawMeteors() {
 }
 
 /* ---------- structures, chests, resources, special weapons ---------- */
-const CH = 900;
+const CH = 1100;
 const RES = {
   wood: { name: 'Wood', c: '#c08a4a', svg: 'M0 3h9v4H0zM9 4h1v2H9z' },
   stone: { name: 'Stone', c: '#aab0bf', svg: 'M2 2h6v1H2zM1 3h8v4H1zM2 7h6v1H2z' },
@@ -1950,10 +1958,10 @@ const SPECIALS = {
   laser: { name: 'Laser Crystal', c: '#c77dff', desc: 'Fire a huge beam for 2.5 seconds.', icon: 'M4 0h2v1H4zM3 1h4v2H3zM2 3h6v2H2zM3 5h4v2H3zM4 7h2v2H4z' },
 };
 const RECIPES = [
-  { id: 'potion', name: 'Health Potion', desc: 'Heal 40% of your health', cost: { herb: 3, wood: 1 }, c: '#ff5d73', glyph: 'POT', make() { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .4); } },
-  { id: 'shieldc', name: 'Mana Shield', desc: 'Block the next hit', cost: { crystal: 3 }, c: '#38c6ff', glyph: 'SHD', make() { S.shield = Math.min(3, S.shield + 1); }, ok: () => S.shield < 3 },
-  { id: 'bombs', name: '3 Bombs', desc: 'Adds 3 Bomb Bag charges', cost: { stone: 3, wood: 1 }, c: '#ff9a3d', glyph: 'BMB', make() { addSpecial('bomb', 3); } },
-  { id: 'arrows', name: '5 Ice Arrows', desc: 'Adds 5 Ice Bow charges', cost: { crystal: 2, wood: 2 }, c: '#7fdcff', glyph: 'ARW', make() { addSpecial('bow', 5); } },
+  { id: 'potion', name: 'Health Potion', desc: 'Heal 40% of your health', cost: { herb: 6, wood: 3 }, c: '#ff5d73', glyph: 'POT', make() { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .4); } },
+  { id: 'shieldc', name: 'Mana Shield', desc: 'Block the next hit', cost: { crystal: 6, stone: 2 }, c: '#38c6ff', glyph: 'SHD', make() { S.shield = Math.min(3, S.shield + 1); }, ok: () => S.shield < 3 },
+  { id: 'bombs', name: '3 Bombs', desc: 'Adds 3 Bomb Bag charges', cost: { stone: 6, wood: 3, crystal: 1 }, c: '#ff9a3d', glyph: 'BMB', make() { addSpecial('bomb', 3); } },
+  { id: 'arrows', name: '5 Ice Arrows', desc: 'Adds 5 Ice Bow charges', cost: { crystal: 5, wood: 4 }, c: '#7fdcff', glyph: 'ARW', make() { addSpecial('bow', 5); } },
 ];
 const RARITY = {
   common: { name: 'Common', body: '#a0632b', dark: '#6e3f17', trim: '#ffcf3f', glow: '#ffcf3f' },
@@ -1971,7 +1979,7 @@ function genChunk(cx, cy) {
   chunkSet.add(key);
   if (cx === 0 && cy === 0) return;
   const r = mulberry32((Math.imul(cx, 73856093) ^ Math.imul(cy, 19349663) ^ runSeed) >>> 0);
-  if (r() > .55) return;
+  if (r() > .3) return;
   const type = wpick(r, { ruins: 3, hut: 3, circle: 2, camp: 3, grove: 1.2 });
   const x = cx * CH + 160 + r() * (CH - 320), y = cy * CH + 160 + r() * (CH - 320);
   const st = { type, x, y, parts: [], crates: [], chest: null, floor: null };
@@ -2118,7 +2126,7 @@ function buildSpecialBtn() {
   if (!held || spec[held] <= 0) { b.hidden = true; return; }
   const sp = SPECIALS[held];
   b.hidden = false; b.style.setProperty('--c', sp.c);
-  b.innerHTML = `<svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path fill="#2d1f4f" d="${sp.icon}"/></svg><span class="cnt">${spec[held]}</span><small>${sp.name}</small>`;
+  b.innerHTML = `<svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path fill="#2d1f4f" d="${sp.icon}"/></svg><span class="cnt">${spec[held]}</span><small>${({ bomb: 'Bombs', bow: 'Ice Bow', hammer: 'Hammer', laser: 'Laser' })[held]}</small>`;
 }
 $('specialBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); useSpecial(); };
 $('openBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); if (nearChest) openChest(nearChest); };
@@ -2840,7 +2848,6 @@ function render() {
     ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
   }
   if (frozenT > 0) { ctx.fillStyle = `rgba(160,225,255,${Math.min(.22, frozenT * .12)})`; ctx.fillRect(0, 0, VW, VH); }
-  drawChestArrow();
   drawMotes();
   if (!vignette) {
     vignette = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .35, VW / 2, VH / 2, Math.hypot(VW, VH) * .62);

@@ -526,6 +526,38 @@ button { font: inherit; color: inherit; }
 .night .cyc-ico { background: radial-gradient(circle at 70% 35%, #3b2f78 0 38%, #f2eaff 40%); }
 .pill.warm { background: #ff9a3d; font-size: 13px; padding-left: 6px; }
 .flame { width: 14px; height: 18px; flex: none; background: #ffcf3f; border: 2px solid var(--ink); border-radius: 50% 50% 45% 45% / 65% 65% 35% 35%; box-shadow: inset 0 -5px 0 #ff5d3b; }
+/* dark level-up and merchant screens */
+.overlay.dark { background: #0a0716e0; }
+.overlay.dark .modal { background: #231b3f; color: #f4efff; border-color: #0b0816; box-shadow: 0 10px 0 #0b0816, inset 0 -7px 0 #1a1430; }
+.overlay.dark .modal p, .overlay.dark .eyebrow { color: #c3b8e3; }
+.overlay.dark .purse { background: #2f2652; color: #fff; border-color: #0b0816; }
+.overlay.dark .note { color: var(--ink); }
+.rtxt.c { color: #d6d0e6; } .rtxt.r { color: #5fd2ff; } .rtxt.e { color: #d6a6ff; }
+.ogrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ocard { appearance: none; cursor: pointer; position: relative; min-width: 0; display: grid; justify-items: center; align-content: start; gap: 8px; padding: 22px 10px 12px; text-align: center; color: #f4efff; background: #2f2652; border: 3px solid var(--rc); border-radius: 18px; box-shadow: 0 5px 0 #0b0816; transition: transform .12s; }
+.ocard:hover { transform: translateY(-2px); }
+.ocard:active { transform: translateY(3px); box-shadow: 0 2px 0 #0b0816; }
+.ocard:focus-visible { outline: 4px solid var(--sun); outline-offset: 3px; }
+.ocard.enter { animation: cardIn .4s cubic-bezier(.2, 1.5, .4, 1) backwards; animation-delay: calc(var(--i, 0) * 70ms + 100ms); }
+.ocard.bought { animation: bump .35s cubic-bezier(.3, 1.8, .5, 1); }
+.ocard.rar-rare { background: linear-gradient(180deg, #24406b 0%, #2f2652 70%); }
+.ocard.rar-epic { background: linear-gradient(180deg, #4a2b7a 0%, #2f2652 70%); box-shadow: 0 5px 0 #0b0816, 0 0 18px #c77dff88; }
+.ocard.done { opacity: .5; cursor: default; }
+.ocard .otag { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font: 900 11px var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: #1a1230; background: var(--rc); border: 2px solid #0b0816; border-radius: 99px; padding: 3px 10px; white-space: nowrap; }
+.ocard .tile { grid-row: auto; width: 52px; height: 52px; border-color: #0b0816; }
+.ocard .otext { display: grid; gap: 4px; min-width: 0; }
+.ocard b { font: 900 17px/1.15 var(--font-body); color: #fff; }
+.ocard .od { font-size: 14px; line-height: 1.3; font-weight: 700; color: #ddd4f5; }
+.oprice { display: inline-flex; align-items: center; gap: 5px; font: 900 15px var(--font-body); color: var(--ink); background: var(--sun); border: 3px solid #0b0816; border-radius: 99px; padding: 4px 12px; white-space: nowrap; }
+.oprice .coin { width: 13px; height: 13px; }
+.oprice.poor { background: #4a3f6b; color: #c3b8e3; }
+.oprice.sold { background: #3a3157; color: #c3b8e3; }
+.oprice.lvl { background: var(--rc); }
+.ocard.wide { grid-template-columns: auto 1fr auto; justify-items: start; text-align: left; align-items: center; gap: 12px; padding: 16px 12px 12px; }
+.ocard.wide .otag { left: 16px; transform: none; }
+.btn.dbtn { width: 100%; background: #2f2652; color: #f4efff; border-color: #0b0816; box-shadow: 0 4px 0 #0b0816; }
+.btn.dbtn.poor { opacity: .55; }
+@media (max-width: 370px) { .ocard.wide { grid-template-columns: auto 1fr; } .ocard.wide .oprice { grid-column: 2; } }
 body.menu-mode #hint,
 body.menu-mode .leftbar, body.menu-mode #openBtn { visibility: hidden; }
 body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visibility: hidden; }
@@ -694,24 +726,27 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
 
 <div id="toast" hidden></div>
 
-<div class="overlay rays" id="levelup" hidden>
+<div class="overlay dark" id="levelup" hidden>
   <div class="modal">
     <div class="lvhead">
       <div class="lvbadge" id="luNum">2</div>
       <div><h2>Level up!</h2><p id="luSub">Pick one upgrade</p></div>
     </div>
     <div class="stack" id="luCards"></div>
+    <button class="btn ghost small dbtn" id="luReroll">Reroll choices</button>
   </div>
 </div>
 
-<div class="overlay" id="shop" hidden>
+<div class="overlay dark" id="shop" hidden>
   <div class="modal">
     <div class="shophead">
       <div><div class="eyebrow" id="shopEyebrow">Wave cleared</div><h2>Merchant's Cart</h2></div>
       <div class="purse" id="purseBox" aria-label="Your gold"><i class="coin big"></i><span id="purse">0</span></div>
     </div>
+    <p>Spend the gold you picked up. Every offer has a random rarity: <b class="rtxt c">Common</b>, <b class="rtxt r">Rare</b> or <b class="rtxt e">Epic</b>. Rarer offers are stronger.</p>
     <div class="note" id="shopNote" hidden></div>
-    <div class="grid2" id="shopCards"></div>
+    <div class="ogrid" id="shopCards"></div>
+    <button class="btn ghost small dbtn" id="shopReroll">Reroll offers</button>
     <button class="btn go" id="nextWaveBtn">Start next wave</button>
   </div>
 </div>
@@ -998,30 +1033,38 @@ const SPELLS = [
   { id: 'bolt', name: 'Chain Bolt', color: '#ffe45c', core: '#fffbe0', cd: .75, dmg: 14, speed: 860, r: 5, desc: 'Lightning that zaps 2 more monsters' },
   { id: 'arcane', name: 'Arcane Orbs', color: '#c77dff', core: '#f6e8ff', cd: .8, dmg: 8, speed: 250, r: 6, count: 3, desc: 'Three orbs that chase their target' },
 ];
+// Each offer rolls a rarity; vals = [common, rare, epic]
+const RARITIES = {
+  common: { name: 'Common', c: '#b3abc8', chance: .65, price: 1 },
+  rare: { name: 'Rare', c: '#38c6ff', chance: .27, price: 1.45 },
+  epic: { name: 'Epic', c: '#c77dff', chance: .08, price: 1.95 },
+};
+function rollRarity() { const r = Math.random(); return r < RARITIES.epic.chance ? 'epic' : r < RARITIES.epic.chance + RARITIES.rare.chance ? 'rare' : 'common'; }
+const rv = (it, rar) => it.vals[rar === 'epic' ? 2 : rar === 'rare' ? 1 : 0];
 const UPGRADES = [
-  { id: 'dmg', glyph: 'DMG', c: '#ff5d73', name: 'Sharper Spells', desc: '+20% spell damage', max: 10, apply: () => S.dmg *= 1.2 },
-  { id: 'rate', glyph: 'SPD', c: '#ffcf3f', name: 'Quick Casting', desc: '+15% cast speed', max: 8, apply: () => S.rate *= 1.15 },
-  { id: 'crit', glyph: 'CRT', c: '#ffcf3f', name: 'Lucky Star', desc: '+8% chance for double-damage crits', max: 5, apply: () => S.crit += .08 },
-  { id: 'move', glyph: 'MOV', c: '#3fd99a', name: 'Swift Boots', desc: '+10% move speed', max: 6, apply: () => S.move *= 1.1 },
-  { id: 'hp', glyph: 'HP', c: '#ff8fc8', name: 'Vital Robe', desc: '+25 max health and heal 25', max: 10, apply: () => { addMaxHp(25); } },
-  { id: 'multi', glyph: '+1', c: '#9b7bff', name: 'Split Cast', desc: '+1 projectile every cast', max: 4, apply: () => S.multi++ },
-  { id: 'pierce', glyph: 'PRC', c: '#38c6ff', name: 'Piercing Magic', desc: 'Spells pass through 1 more monster', max: 4, apply: () => S.pierce++ },
-  { id: 'pspeed', glyph: 'VEL', c: '#38c6ff', name: 'Swift Spells', desc: '+20% projectile speed', max: 5, apply: () => S.pspeed *= 1.2 },
-  { id: 'regen', glyph: 'REG', c: '#3fd99a', name: 'Regrowth', desc: 'Heal 1 health every second', max: 5, apply: () => S.regen += 1 },
-  { id: 'size', glyph: 'BIG', c: '#ff9a3d', name: 'Bigger Blasts', desc: '+25% spell size', max: 4, apply: () => S.size *= 1.25 },
-  { id: 'magnet', glyph: 'MAG', c: '#9b7bff', name: 'Gem Magnet', desc: '+60% pickup range', max: 4, apply: () => S.magnet *= 1.6 },
-  { id: 'armor', glyph: 'ARM', c: '#8a92a6', name: 'Stone Skin', desc: 'Take 3 less damage per hit', max: 5, apply: () => S.armor += 3 },
-  { id: 'heal', glyph: '+HP', c: '#ff5d73', name: 'Healing Draught', desc: 'Restore 60% of your health', max: 999, apply: () => { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .6); }, cond: () => P.hp < P.maxHp * .75 },
+  { id: 'dmg', glyph: 'DMG', c: '#ff5d73', name: 'Sharper Spells', vals: [20, 30, 45], fmt: v => `+${v}% spell damage`, max: 10, apply: v => { S.dmg *= 1 + v / 100; } },
+  { id: 'rate', glyph: 'SPD', c: '#ffcf3f', name: 'Quick Casting', vals: [15, 22, 32], fmt: v => `+${v}% cast speed`, max: 8, apply: v => { S.rate *= 1 + v / 100; } },
+  { id: 'crit', glyph: 'CRT', c: '#ffcf3f', name: 'Lucky Star', vals: [8, 12, 18], fmt: v => `+${v}% chance for double-damage crits`, max: 5, apply: v => { S.crit += v / 100; } },
+  { id: 'move', glyph: 'MOV', c: '#3fd99a', name: 'Swift Boots', vals: [10, 15, 22], fmt: v => `+${v}% move speed`, max: 6, apply: v => { S.move *= 1 + v / 100; } },
+  { id: 'hp', glyph: 'HP', c: '#ff8fc8', name: 'Vital Robe', vals: [25, 40, 60], fmt: v => `+${v} max health (and heal ${v})`, max: 10, apply: v => { addMaxHp(v); } },
+  { id: 'multi', glyph: '+1', c: '#9b7bff', name: 'Split Cast', vals: [1, 1, 2], fmt: v => `+${v} projectile${v > 1 ? 's' : ''} every cast`, max: 4, apply: v => { S.multi += v; } },
+  { id: 'pierce', glyph: 'PRC', c: '#38c6ff', name: 'Piercing Magic', vals: [1, 1, 2], fmt: v => `Spells pass through ${v} more monster${v > 1 ? 's' : ''}`, max: 4, apply: v => { S.pierce += v; } },
+  { id: 'pspeed', glyph: 'VEL', c: '#38c6ff', name: 'Swift Spells', vals: [20, 30, 45], fmt: v => `+${v}% projectile speed`, max: 5, apply: v => { S.pspeed *= 1 + v / 100; } },
+  { id: 'regen', glyph: 'REG', c: '#3fd99a', name: 'Regrowth', vals: [1, 1.5, 2.5], fmt: v => `Heal ${v} health every second`, max: 5, apply: v => { S.regen += v; } },
+  { id: 'size', glyph: 'BIG', c: '#ff9a3d', name: 'Bigger Blasts', vals: [25, 35, 50], fmt: v => `+${v}% spell size`, max: 4, apply: v => { S.size *= 1 + v / 100; } },
+  { id: 'magnet', glyph: 'MAG', c: '#9b7bff', name: 'Gem Magnet', vals: [60, 90, 140], fmt: v => `+${v}% pickup range`, max: 4, apply: v => { S.magnet *= 1 + v / 100; } },
+  { id: 'armor', glyph: 'ARM', c: '#8a92a6', name: 'Stone Skin', vals: [3, 5, 8], fmt: v => `Take ${v} less damage per hit`, max: 5, apply: v => { S.armor += v; } },
+  { id: 'heal', glyph: '+HP', c: '#ff5d73', name: 'Healing Draught', vals: [60, 80, 100], fmt: v => `Restore ${v}% of your health`, max: 999, apply: v => { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * v / 100); }, cond: () => P.hp < P.maxHp * .75 },
 ];
 const lockedSpells = () => SPELLS.map((_, i) => i).filter(i => !unlocked.has(i));
 const SHOP = [
-  { id: 'potion', glyph: 'POT', c: '#ff5d73', name: 'Health Potion', desc: 'Heal 40 health', base: 15, grow: 5, max: 999, ok: () => P.hp < P.maxHp, why: 'Full health', buy: () => { P.hp = Math.min(P.maxHp, P.hp + 40); } },
-  { id: 'shield', glyph: 'SHD', c: '#38c6ff', name: 'Mana Shield', desc: 'Blocks the next hit. Hold up to 3', base: 25, grow: 0, max: 999, ok: () => S.shield < 3, why: 'Full', buy: () => { S.shield++; } },
-  { id: 'heart', glyph: 'HP', c: '#ff8fc8', name: 'Heart Crystal', desc: '+20 max health', base: 35, mult: 1.5, max: 10, buy: () => { addMaxHp(20); } },
-  { id: 'power', glyph: 'DMG', c: '#ff9a3d', name: 'Power Rune', desc: '+15% spell damage', base: 40, mult: 1.5, max: 10, buy: () => { S.dmg *= 1.15; } },
-  { id: 'haste', glyph: 'SPD', c: '#ffcf3f', name: 'Haste Rune', desc: '+12% cast speed', base: 40, mult: 1.5, max: 8, buy: () => { S.rate *= 1.12; } },
-  { id: 'boots', glyph: 'MOV', c: '#3fd99a', name: 'Feather Boots', desc: '+8% move speed', base: 30, mult: 1.5, max: 5, buy: () => { S.move *= 1.08; } },
-  { id: 'spirit', glyph: 'FAM', c: '#9b7bff', name: 'Spirit Familiar', desc: 'A spirit circles you and bonks monsters', base: 70, mult: 1.7, max: 4, buy: () => { S.spirits++; } },
+  { id: 'potion', glyph: 'POT', c: '#ff5d73', name: 'Health Potion', vals: [40, 60, 90], fmt: v => `Heal ${v} health`, base: 15, grow: 5, max: 999, ok: () => P.hp < P.maxHp, why: 'Full health', buy: v => { P.hp = Math.min(P.maxHp, P.hp + v); } },
+  { id: 'shield', glyph: 'SHD', c: '#38c6ff', name: 'Mana Shield', vals: [1, 1, 2], fmt: v => `Blocks the next ${v > 1 ? v + ' hits' : 'hit'} (hold up to 3)`, base: 25, grow: 0, max: 999, ok: () => S.shield < 3, why: 'Shield full', buy: v => { S.shield = Math.min(3, S.shield + v); } },
+  { id: 'heart', glyph: 'HP', c: '#ff8fc8', name: 'Heart Crystal', vals: [20, 30, 45], fmt: v => `+${v} max health`, base: 35, mult: 1.5, max: 10, buy: v => { addMaxHp(v); } },
+  { id: 'power', glyph: 'DMG', c: '#ff9a3d', name: 'Power Rune', vals: [15, 22, 32], fmt: v => `+${v}% spell damage`, base: 40, mult: 1.5, max: 10, buy: v => { S.dmg *= 1 + v / 100; } },
+  { id: 'haste', glyph: 'SPD', c: '#ffcf3f', name: 'Haste Rune', vals: [12, 18, 26], fmt: v => `+${v}% cast speed`, base: 40, mult: 1.5, max: 8, buy: v => { S.rate *= 1 + v / 100; } },
+  { id: 'boots', glyph: 'MOV', c: '#3fd99a', name: 'Feather Boots', vals: [8, 12, 18], fmt: v => `+${v}% move speed`, base: 30, mult: 1.5, max: 5, buy: v => { S.move *= 1 + v / 100; } },
+  { id: 'spirit', glyph: 'FAM', c: '#9b7bff', name: 'Spirit Familiar', vals: [1, 1, 2], fmt: v => `${v > 1 ? v + ' spirits circle' : 'A spirit circles'} you and bonk monsters`, base: 70, mult: 1.7, max: 4, buy: v => { S.spirits = Math.min(4, S.spirits + v); } },
 ];
 function shopPrice(it) { const n = shopLv[it.id] || 0; return Math.round(it.mult ? it.base * Math.pow(it.mult, n) : it.base + it.grow * n); }
 
@@ -1529,7 +1572,7 @@ function boot() {
     'Tip: chain kills for combo gold',
     'Tip: Bomb Beetles flash right before they explode',
     'Tip: beat bosses to earn gems for the Shop',
-    'Tip: night comes every 2:30. Stand by the campfire to get 2x health, speed and damage',
+    'Tip: night comes every 2:30. Stand by the campfire for 2x health and damage',
     'Tip: special weapons can\'t be used at night, so save them for the day',
   ];
   let ti = 0;
@@ -1590,39 +1633,51 @@ function confetti(n) {
     setTimeout(() => el.remove(), 4300);
   }
 }
-let shopOffers = [];
-function openShop() {
-  mode = 'shop'; joy = null; shopNote = '';
+let shopOffers = [], rerollCost = 10;
+function rollShopOffers() {
   const pool = SHOP.map((it, k) => k).filter(k => (shopLv[SHOP[k].id] || 0) < SHOP[k].max);
   shopOffers = [];
-  while (shopOffers.length < 4 && pool.length) shopOffers.push(pool.splice(Math.random() * pool.length | 0, 1)[0]);
+  while (shopOffers.length < 4 && pool.length) shopOffers.push({ k: pool.splice(Math.random() * pool.length | 0, 1)[0], rar: rollRarity(), sold: false });
+}
+function openShop() {
+  mode = 'shop'; joy = null; shopNote = ''; rerollCost = 10 + wave * 2;
+  rollShopOffers();
   renderShop(true); $('shop').hidden = false;
   $('shop').scrollTop = 0;
 }
-function renderShop(enter, boughtK) {
+function offerCard(o, i, it, body, foot, extra = '') {
+  const R = RARITIES[o.rar];
+  return `<button class="ocard rar-${o.rar} ${extra}" data-i="${i}" style="--c:${it.c};--rc:${R.c};--i:${i}">
+    <span class="otag">${R.name}</span><span class="tile">${it.glyph}</span>
+    <div class="otext"><b>${it.name}</b><span class="od">${body}</span></div>${foot}</button>`;
+}
+function renderShop(enter, boughtI) {
   $('shopEyebrow').textContent = `Wave ${wave} cleared`;
   $('purse').textContent = gold;
   $('shopNote').textContent = shopNote;
   $('shopNote').hidden = !shopNote;
   const nw = wave + 1;
   $('nextWaveBtn').textContent = nw % 10 === 0 ? `Start wave ${nw}: Lich Lord!` : nw % 5 === 0 ? `Start wave ${nw}: Slime King!` : (nw - 1) % 10 === 0 ? `Start wave ${nw}: danger rises` : `Start wave ${nw}`;
-  $('shopCards').innerHTML = shopOffers.map(k => {
-    const it = SHOP[k];
-    const n = shopLv[it.id] || 0, cost = shopPrice(it);
-    const maxed = n >= it.max, blocked = it.ok && !it.ok();
-    const off = maxed || blocked || gold < cost;
-    const label = maxed ? 'Sold out' : blocked ? it.why : `<i class="coin"></i>${cost}`;
-    const owned = it.max < 999 && n ? `<em class="chip">OWNED ${n}</em>` : (it.id === 'shield' && S.shield ? `<em class="chip">HAVE ${S.shield}</em>` : '');
-    return `<button class="card shopitem ${enter ? 'enter' : ''} ${k === boughtK ? 'bought' : ''}" data-k="${k}" style="--c:${it.c};--i:${k}" ${off ? 'aria-disabled="true"' : ''} ${maxed || blocked ? 'disabled' : ''}>
-      <span class="tile">${it.glyph}</span><b>${it.name}</b><span>${it.desc}</span><div class="chips"><em class="price">${label}</em>${owned}</div></button>`;
+  $('shopReroll').textContent = `Reroll offers (${rerollCost} gold)`;
+  $('shopReroll').classList.toggle('poor', gold < rerollCost);
+  $('shopCards').innerHTML = shopOffers.map((o, i) => {
+    const it = SHOP[o.k], cost = Math.round(shopPrice(it) * RARITIES[o.rar].price), v = rv(it, o.rar);
+    const blocked = it.ok && !it.ok();
+    const foot = o.sold ? '<span class="oprice sold">Bought</span>' : blocked ? `<span class="oprice sold">${it.why}</span>` : `<span class="oprice ${gold < cost ? 'poor' : ''}"><i class="coin"></i>${cost}</span>`;
+    return offerCard(o, i, it, it.fmt(v), foot, `${enter ? 'enter' : ''} ${i === boughtI ? 'bought' : ''} ${o.sold || blocked ? 'done' : ''}`);
   }).join('');
-  $('shopCards').querySelectorAll('button').forEach(b => b.onclick = () => {
-    const k = +b.dataset.k, it = SHOP[k], cost = shopPrice(it);
+  $('shopCards').querySelectorAll('.ocard').forEach(b => b.onclick = () => {
+    const i = +b.dataset.i, o = shopOffers[i], it = SHOP[o.k], cost = Math.round(shopPrice(it) * RARITIES[o.rar].price);
+    if (o.sold || (it.ok && !it.ok())) return;
     if (gold < cost) { sfx('nope'); retrigger($('purseBox'), 'bump'); retrigger(b, 'nope'); return; }
-    gold -= cost; shopLv[it.id] = (shopLv[it.id] || 0) + 1; shopNote = '';
-    it.buy(); sfx('buy'); renderShop(false, k); retrigger($('purseBox'), 'bump');
+    gold -= cost; shopLv[it.id] = (shopLv[it.id] || 0) + 1; o.sold = true; shopNote = '';
+    it.buy(rv(it, o.rar)); sfx('buy'); renderShop(false, i); retrigger($('purseBox'), 'bump');
   });
 }
+$('shopReroll').onclick = () => {
+  if (gold < rerollCost) { sfx('nope'); retrigger($('purseBox'), 'bump'); return; }
+  gold -= rerollCost; rerollCost += 5; rollShopOffers(); sfx('click'); renderShop(true);
+};
 $('nextWaveBtn').onclick = () => { $('shop').hidden = true; mode = 'play'; startWave(wave + 1); };
 let wakeLock = null;
 async function keepAwake() { try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => wakeLock = null); } } catch (e) {} }
@@ -1654,27 +1709,36 @@ $('deadMenuBtn').onclick = () => { $('dead').hidden = true; toMenu('title'); };
 $('soundBtn').onclick = () => { const on = !(SET.sfx || SET.music); SET.sfx = SET.music = on; saveSet(); initAudio(); paintSound(); sfx('click'); };
 function toMenu(screen) { mode = 'menu'; resetRun(0); buildSpellbar(); go(screen); }
 
-function showLevelUp() {
-  mode = 'levelup'; joy = null;
+let luRerolls = 1, luChoices = [];
+function rollLevelChoices() {
   const pool = UPGRADES.filter(u => (ups[u.id] || 0) < u.max && (!u.cond || u.cond()));
-  const choices = [];
-  while (choices.length < 3 && pool.length) choices.push(pool.splice(Math.random() * pool.length | 0, 1)[0]);
+  luChoices = [];
+  while (luChoices.length < 3 && pool.length) luChoices.push({ u: pool.splice(Math.random() * pool.length | 0, 1)[0], rar: rollRarity() });
+}
+function showLevelUp(keep) {
+  mode = 'levelup'; joy = null;
+  if (!keep) { luRerolls = 1; rollLevelChoices(); }
   $('luNum').textContent = level - pendingLv + 1;
-  $('luSub').textContent = pendingLv > 1 ? `Pick one upgrade (${pendingLv} picks waiting)` : 'Pick one upgrade';
-  $('luCards').innerHTML = choices.map((u, k) => {
-    const lv = ups[u.id] || 0;
-    const tag = u.id === 'heal' ? 'INSTANT' : (lv ? `LV ${lv} → ${lv + 1}` : 'NEW!');
-    return `<button class="card up enter" data-k="${k}" style="--c:${u.c};--i:${k}"><span class="tile">${u.glyph}</span><b>${u.name}</b><span>${u.desc}</span><div class="chips"><em class="chip sun">${tag}</em></div></button>`;
+  $('luSub').textContent = pendingLv > 1 ? `Pick one upgrade (${pendingLv} picks waiting)` : 'Pick one upgrade. Rarer ones are stronger.';
+  $('luCards').innerHTML = luChoices.map((o, i) => {
+    const u = o.u, lv = ups[u.id] || 0;
+    const tag = u.id === 'heal' ? 'Instant' : (lv ? `Level ${lv} → ${lv + 1}` : 'New!');
+    return offerCard({ rar: o.rar }, i, u, u.fmt(rv(u, o.rar)), `<span class="oprice lvl">${tag}</span>`, 'enter wide');
   }).join('');
-  $('luCards').querySelectorAll('button').forEach(b => b.onclick = () => {
-    const u = choices[+b.dataset.k];
-    u.apply(); ups[u.id] = (ups[u.id] || 0) + 1; pendingLv--; sfx('buy');
-    for (let i = 0; i < 24; i++) { const a = i / 24 * 6.28; parts.push({ x: P.x, y: P.y, vx: Math.cos(a) * 220, vy: Math.sin(a) * 220, life: .6, max: .6, size: 6, color: u.c, kind: 'star', glow: true }); }
+  $('luReroll').hidden = luRerolls <= 0;
+  $('luReroll').textContent = `Reroll choices (${luRerolls} free)`;
+  $('luCards').querySelectorAll('.ocard').forEach(b => b.onclick = () => {
+    const o = luChoices[+b.dataset.i], u = o.u;
+    u.apply(rv(u, o.rar)); ups[u.id] = (ups[u.id] || 0) + 1; pendingLv--; sfx('buy');
+    const col = RARITIES[o.rar].c;
+    for (let i = 0; i < 24; i++) { const a = i / 24 * 6.28; parts.push({ x: P.x, y: P.y, vx: Math.cos(a) * 220, vy: Math.sin(a) * 220, life: .6, max: .6, size: 6, color: o.rar === 'common' ? u.c : col, kind: 'star', glow: true }); }
+    if (o.rar === 'epic') confetti(30);
     if (pendingLv > 0) showLevelUp();
     else { $('levelup').hidden = true; mode = 'play'; }
   });
   $('levelup').hidden = false;
 }
+$('luReroll').onclick = () => { if (luRerolls <= 0) return; luRerolls--; rollLevelChoices(); sfx('click'); showLevelUp(true); };
 function levelBurst() {
   sfx('level'); retrigger($('xpMeter'), 'lvl');
   ['#ffcf3f', '#38c6ff', '#ffffff'].forEach((c, i) => zaps.push({ ring: true, x1: P.x, y1: P.y, r: 120 + i * 40, life: .5 + i * .1, max: .5 + i * .1, color: c, w: 6 - i }));
@@ -1910,7 +1974,7 @@ const DAYNIGHT = {
   arrowWarning: 30,        // seconds before night when the campfire arrow appears
   enemy: { hpMul: 1.5, dmgMul: 1.5, speedMul: 1.3 },   // night monster boosts
   lockSpecialsAtNight: true,   // special weapons can't be used at night (shown with a red X)
-  campfire: { x: 0, y: -60, radius: 180, hpMul: 2, speedMul: 2, dmgMul: 2 },
+  campfire: { x: 0, y: -60, radius: 180, hpMul: 2, speedMul: 1.25, dmgMul: 2 },
 };
 function cycleInfo() {
   const L = DAYNIGHT.dayLength + DAYNIGHT.nightLength, t = cycT % L, night = t >= DAYNIGHT.dayLength;

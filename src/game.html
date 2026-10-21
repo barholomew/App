@@ -478,6 +478,31 @@ button { font: inherit; color: inherit; }
 .facts { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .sheet .btn { width: 100%; }
 .sheet .need { font-size: 15px; }
+/* special weapon button, chest prompt, backpack */
+.leftbar { position: fixed; left: 0; bottom: 0; z-index: 2; pointer-events: none; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 34px); }
+.sbtn { pointer-events: auto; appearance: none; cursor: pointer; position: relative; width: 72px; height: 72px; padding: 0; border-radius: 22px; display: grid; place-items: center; background: var(--c); border: 4px solid var(--ink); box-shadow: 0 5px 0 var(--ink), inset 0 -6px 0 #00000026, inset 0 5px 0 #ffffff66; touch-action: none; }
+.sbtn svg { width: 34px; height: 34px; }
+.sbtn .cnt { position: absolute; top: -10px; right: -10px; min-width: 28px; height: 28px; padding: 0 6px; display: grid; place-items: center; border-radius: 99px; background: var(--paper); border: 3px solid var(--ink); font: 900 14px var(--font-body); color: var(--ink); }
+.sbtn small { position: absolute; left: 50%; bottom: -22px; transform: translateX(-50%); white-space: nowrap; font: 900 12px var(--font-body); color: #fff; text-shadow: var(--outline-sm); }
+.sbtn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink); }
+#openBtn { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 130px); transform: translateX(-50%); z-index: 3; white-space: nowrap; font-size: 19px; padding: 13px 22px; }
+#openBtn:active { transform: translate(-50%, 4px); }
+.bagbadge { position: absolute; top: -6px; right: -6px; width: 14px; height: 14px; border-radius: 50%; background: var(--berry); border: 2px solid var(--ink); }
+#bagBtn { position: relative; }
+.resgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.rescell { display: grid; justify-items: center; gap: 4px; padding: 10px 4px; background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; text-align: center; }
+.rescell b { font: 900 22px/1 var(--font-body); }
+.rescell small { font: 800 12px var(--font-body); color: var(--ink-soft); }
+.resico { width: 34px; height: 34px; border-radius: 10px; display: inline-grid; place-items: center; background: var(--c); border: 3px solid var(--ink); flex: none; }
+.resico svg { width: 18px; height: 18px; }
+.resico.sm { width: 22px; height: 22px; border-radius: 7px; border-width: 2px; }
+.resico.sm svg { width: 12px; height: 12px; }
+.cost { display: inline-flex; align-items: center; gap: 4px; font: 900 13px var(--font-body); background: #ede6f4; border: 2px solid var(--ink); border-radius: 99px; padding: 2px 8px 2px 3px; }
+.cost.short { background: #ffd9de; }
+.spico { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: var(--c); border: 3px solid var(--ink); box-shadow: inset 0 -5px 0 #00000026, inset 0 4px 0 #ffffff55; flex: none; }
+.spico svg { width: 26px; height: 26px; }
+.row-item.dim { opacity: .55; }
+body.menu-mode .leftbar, body.menu-mode #openBtn { visibility: hidden; }
 body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visibility: hidden; }
 @media (max-width: 370px) { .grid2, .bestiary { grid-template-columns: 1fr; } .statgrid { grid-template-columns: repeat(2, 1fr); } }
 @media (prefers-reduced-motion: reduce) {
@@ -504,6 +529,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
       <button class="icon-btn" id="soundBtn" aria-label="Toggle sound">
         <svg viewBox="0 0 16 16" fill="currentColor" shape-rendering="crispEdges"><path d="M2 6h3l4-3v10L5 10H2z"/><path id="waves" d="M11 5h1v6h-1zM13 3h1v10h-1z"/></svg>
       </button>
+      <button class="icon-btn" id="bagBtn" aria-label="Backpack"><svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path fill="currentColor" d="M3 0h4v1H3zM2 1h1v2H2zM7 1h1v2H7zM1 3h8v7H1z"/><path fill="#f5ead2" d="M2 4h6v5H2z"/><path fill="currentColor" d="M4 5h2v2H4z"/></svg><i class="bagbadge" id="bagBadge" hidden></i></button>
       <button class="icon-btn" id="pauseBtn" aria-label="Pause">
         <svg viewBox="0 0 16 16" fill="currentColor" shape-rendering="crispEdges"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
       </button>
@@ -515,6 +541,8 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
 <div id="combo" hidden><b id="comboNum">x3</b><small>COMBO</small><i><u id="comboBar"></u></i></div>
 
 <div class="spellbar" id="spellbar"></div>
+<div class="leftbar"><button class="sbtn" id="specialBtn" hidden aria-label="Use special weapon"></button></div>
+<button class="btn go" id="openBtn" hidden>Open chest</button>
 <div id="banner"></div>
 
 <div class="overlay" id="loading">
@@ -562,6 +590,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
       <div><i style="--c: var(--aqua)"></i>Drag anywhere to move</div>
       <div><i style="--c: var(--sun)"></i>Your wand aims and fires by itself</div>
       <div><i style="--c: var(--pink)"></i>Tap the round buttons to use abilities (Space and E on a keyboard)</div>
+      <div><i style="--c: var(--berry)"></i>Explore to find buildings with chests full of loot</div>
       <div><i style="--c: var(--mint)"></i>Spend gold on 4 power-ups after every wave</div>
       <div><i style="--c: var(--grape)"></i>Every 10 waves night falls and monsters get stronger</div>
     </div>
@@ -657,6 +686,22 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <div class="note" id="shopNote" hidden></div>
     <div class="grid2" id="shopCards"></div>
     <button class="btn go" id="nextWaveBtn">Start next wave</button>
+  </div>
+</div>
+
+<div class="overlay" id="bag" hidden>
+  <div class="modal">
+    <h2>Backpack</h2>
+    <p>Everything you found this run. The game is paused while it is open.</p>
+    <h3 class="sub">Special weapons</h3>
+    <p>Pick one to hold. Use it with the square button in the bottom-left corner (R on a keyboard).</p>
+    <div class="stack" id="bagSpecials"></div>
+    <h3 class="sub">Resources</h3>
+    <div class="resgrid" id="bagRes"></div>
+    <h3 class="sub">Crafting</h3>
+    <p>Turn resources into useful supplies.</p>
+    <div class="stack" id="bagCraft"></div>
+    <button class="btn go" id="bagClose" style="width:100%">Back to the fight</button>
   </div>
 </div>
 
@@ -958,6 +1003,7 @@ let P, S, ups, enemies, shots, eshots, gems, items, parts, texts, zaps, deaths;
 let gold = 0, totalGold = 0, shopLv = {}, shopNote = '';
 let wave, queue, spawnT, waveState, clearT, kills, time, level, xp, xpNeed, pendingLv;
 let unlocked, cur, castT, aim, shake, flash, flashW, cam, kick;
+let runSeed = 1, structures = [], chunkSet = new Set(), res = {}, spec = {}, held = null, bombs = [], laserT = 0, laserTick = 0, nearChest = null, chestsRun = 0;
 let abCd = {}, frozenT = 0, meteors = [], strikes = [], dark = 0, bossKills = 0, runGems = 0, combo = 0, comboT = 0, bestCombo = 0, gemChain = 0, gemChainT = 0, freeze = 0, lvlFx = 0;
 let best = 0;
 try { best = +localStorage.getItem('wizardGroveBest') || 0; } catch (e) {}
@@ -971,6 +1017,7 @@ function resetRun(spellIdx) {
   kills = 0; time = 0; level = 1; xp = 0; xpNeed = 12; pendingLv = 0;
   unlocked = new Set([spellIdx]); cur = spellIdx; castT = .3; aim = 0; shake = 0; flash = 0; flashW = 0;
   cam = { x: 0, y: 0 }; kick = { x: 0, y: 0 };
+  runSeed = (Math.random() * 1e9) | 0; structures = []; chunkSet = new Set(); res = { wood: 0, stone: 0, crystal: 0, herb: 0 }; spec = { bomb: 0, bow: 0, hammer: 0, laser: 0 }; held = null; bombs = []; laserT = 0; laserTick = 0; nearChest = null; chestsRun = 0;
   abCd = {}; frozenT = 0; meteors = []; strikes = []; dark = 0; bossKills = 0; runGems = 0; combo = 0; comboT = 0; bestCombo = 0; gemChain = 0; gemChainT = 0; freeze = 0; lvlFx = 0;
 }
 resetRun(0);
@@ -983,7 +1030,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
 const SET = Object.assign({ music: true, sfx: true, shake: true, numbers: true, vibrate: true, fx: 'lots' }, store.get('wgSettings', {}));
-const META_DEFAULT = { gems: 0, gemsTotal: 0, wands: ['oak'], relics: [], wand: 'oak', equip: [], abilities: ['dash'], abEquip: ['dash'], runs: 0, kills: 0, bestCombo: 0, bosses: 0 };
+const META_DEFAULT = { gems: 0, gemsTotal: 0, wands: ['oak'], relics: [], wand: 'oak', equip: [], abilities: ['dash'], abEquip: ['dash'], chests: 0, runs: 0, kills: 0, bestCombo: 0, bosses: 0 };
 let META = Object.assign({}, META_DEFAULT, store.get('wgMeta', {}));
 delete META.stars; delete META.starsTotal;
 const GEMS_BY_BOSS = { boss: 5, lich: 8 };
@@ -1122,7 +1169,7 @@ function mnoteRaw(type, f, t, dur, vol, atk) {
 let musicStep = 0, musicNext = 0;
 function musicTick() {
   if (!AC || !musicBus || !SET.music) return;
-  const playing = mode === 'play' || mode === 'shop' || mode === 'levelup' || mode === 'menu';
+  const playing = mode === 'play' || mode === 'shop' || mode === 'levelup' || mode === 'menu' || mode === 'bag';
   if (!playing) { musicNext = 0; return; }
   const step = 60 / 76 / 2;
   if (musicNext < AC.currentTime) musicNext = AC.currentTime + .05;
@@ -1148,6 +1195,9 @@ addEventListener('keydown', e => {
   if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
   if (!e.repeat && (e.code === 'Space' || e.code === 'KeyQ')) useAbility(0);
   if (!e.repeat && (e.code === 'KeyE' || e.code === 'ShiftLeft' || e.code === 'ShiftRight')) useAbility(1);
+  if (!e.repeat && (e.code === 'KeyF' || e.code === 'Enter') && mode === 'play' && nearChest) openChest(nearChest);
+  if (!e.repeat && e.code === 'KeyR') useSpecial();
+  if (!e.repeat && (e.code === 'KeyB' || e.code === 'KeyI')) toggleBag();
   if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -1425,6 +1475,7 @@ function renderRecords() {
     ['Best combo', META.bestCombo, 'Most kills chained together', '#3fd99a'],
     ['Bosses beaten', META.bosses, 'Slime Kings and Lich Lords', '#9b7bff'],
     ['Gems earned', META.gemsTotal, 'All the gems bosses have dropped', '#ff9a3d'],
+    ['Chests opened', META.chests || 0, 'Loot found in buildings', '#a0632b'],
   ];
   $('recStats').innerHTML = rows.map(([k, v, d, c]) => `<div class="row-item" style="--c:${c}"><i class="dot"></i><div><b>${k}</b><span class="d">${d}</span></div><strong>${v}</strong></div>`).join('');
 }
@@ -1534,13 +1585,13 @@ async function keepAwake() { try { if ('wakeLock' in navigator && !wakeLock) { w
 function startGame(i) {
   initAudio(); keepAwake(); sfx('click');
   resetRun(i); applyLoadout();
-  [...SCREENS, 'dead', 'pause', 'levelup', 'shop'].forEach(id => $(id).hidden = true);
-  buildSpellbar();
+  [...SCREENS, 'dead', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
+  buildSpellbar(); buildSpecialBtn(); $('bagBadge').hidden = true;
   mode = 'play';
   startWave(1);
 }
 function togglePause() {
-  if (!$('settings').hidden) return;
+  if (!$('settings').hidden || mode === 'bag') return;
   if (mode === 'play') { mode = 'paused'; joy = null; $('pauseStats').innerHTML = statsHTML(); $('pause').hidden = false; sfx('click'); }
   else if (mode === 'paused') { mode = 'play'; $('pause').hidden = true; sfx('click'); }
 }
@@ -1769,7 +1820,7 @@ function die() {
   zaps.push({ ring: true, x1: P.x, y1: P.y, r: 120, life: .5, max: .5, color: '#ffffff', w: 6 });
   const isBest = wave > best;
   if (isBest) { best = wave; try { localStorage.setItem('wizardGroveBest', best); } catch (e) {} }
-  META.runs++; META.kills += kills;
+  META.runs++; META.kills += kills; META.chests = (META.chests || 0) + chestsRun;
   META.bestCombo = Math.max(META.bestCombo, bestCombo); META.bosses += bossKills; saveMeta();
   setTimeout(() => {
     if (mode !== 'dead') return;
@@ -1884,6 +1935,367 @@ function drawMeteors() {
   }
 }
 
+/* ---------- structures, chests, resources, special weapons ---------- */
+const CH = 900;
+const RES = {
+  wood: { name: 'Wood', c: '#c08a4a', svg: 'M0 3h9v4H0zM9 4h1v2H9z' },
+  stone: { name: 'Stone', c: '#aab0bf', svg: 'M2 2h6v1H2zM1 3h8v4H1zM2 7h6v1H2z' },
+  crystal: { name: 'Crystal', c: '#7fdcff', svg: 'M4 0h2v1H4zM3 1h4v3H3zM2 4h6v2H2zM3 6h4v2H3zM4 8h2v1H4z' },
+  herb: { name: 'Herb', c: '#5bd16a', svg: 'M5 0h2v1H5zM4 1h4v1H4zM3 2h4v2H3zM2 4h3v2H2zM1 6h2v2H1zM0 8h2v1H0z' },
+};
+const SPECIALS = {
+  bomb: { name: 'Bomb Bag', c: '#ff5d73', desc: 'Throw a bomb that blows up a group of monsters.', icon: 'M3 3h4v1H3zM2 4h6v4H2zM3 8h4v1H3zM6 1h1v2H6zM7 0h2v1H7z' },
+  bow: { name: 'Ice Bow', c: '#7fdcff', desc: 'Shoot 3 ice arrows that fly through every monster.', icon: 'M1 8h1v1H1zM2 7h1v1H2zM3 6h1v1H3zM4 5h1v1H4zM5 4h1v1H5zM6 3h1v1H6zM6 1h3v1H6zM8 2h1v2H8z' },
+  hammer: { name: 'Thunder Hammer', c: '#ffe45c', desc: 'Smash the ground to hurt and stun every monster around you.', icon: 'M1 1h7v3H1zM4 4h2v6H4z' },
+  laser: { name: 'Laser Crystal', c: '#c77dff', desc: 'Fire a huge beam for 2.5 seconds.', icon: 'M4 0h2v1H4zM3 1h4v2H3zM2 3h6v2H2zM3 5h4v2H3zM4 7h2v2H4z' },
+};
+const RECIPES = [
+  { id: 'potion', name: 'Health Potion', desc: 'Heal 40% of your health', cost: { herb: 3, wood: 1 }, c: '#ff5d73', glyph: 'POT', make() { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .4); } },
+  { id: 'shieldc', name: 'Mana Shield', desc: 'Block the next hit', cost: { crystal: 3 }, c: '#38c6ff', glyph: 'SHD', make() { S.shield = Math.min(3, S.shield + 1); }, ok: () => S.shield < 3 },
+  { id: 'bombs', name: '3 Bombs', desc: 'Adds 3 Bomb Bag charges', cost: { stone: 3, wood: 1 }, c: '#ff9a3d', glyph: 'BMB', make() { addSpecial('bomb', 3); } },
+  { id: 'arrows', name: '5 Ice Arrows', desc: 'Adds 5 Ice Bow charges', cost: { crystal: 2, wood: 2 }, c: '#7fdcff', glyph: 'ARW', make() { addSpecial('bow', 5); } },
+];
+const RARITY = {
+  common: { name: 'Common', body: '#a0632b', dark: '#6e3f17', trim: '#ffcf3f', glow: '#ffcf3f' },
+  rare: { name: 'Rare', body: '#3a7bd5', dark: '#22508f', trim: '#e8eef8', glow: '#7fdcff' },
+  epic: { name: 'Epic', body: '#8a4bd6', dark: '#5a2c96', trim: '#ffcf3f', glow: '#ff8fc8' },
+};
+const resIcon = (k, sm) => `<span class="resico ${sm ? 'sm' : ''}" style="--c:${RES[k].c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path fill="#2d1f4f" d="${RES[k].svg}"/></svg></span>`;
+const spIcon = k => `<span class="spico" style="--c:${SPECIALS[k].c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path fill="#2d1f4f" d="${SPECIALS[k].icon}"/></svg></span>`;
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function wpick(r, table) { let tot = 0; for (const k in table) tot += table[k]; let x = r() * tot; for (const k in table) { x -= table[k]; if (x <= 0) return k; } return Object.keys(table)[0]; }
+
+function genChunk(cx, cy) {
+  const key = cx + ',' + cy;
+  if (chunkSet.has(key)) return;
+  chunkSet.add(key);
+  if (cx === 0 && cy === 0) return;
+  const r = mulberry32((Math.imul(cx, 73856093) ^ Math.imul(cy, 19349663) ^ runSeed) >>> 0);
+  if (r() > .55) return;
+  const type = wpick(r, { ruins: 3, hut: 3, circle: 2, camp: 3, grove: 1.2 });
+  const x = cx * CH + 160 + r() * (CH - 320), y = cy * CH + 160 + r() * (CH - 320);
+  const st = { type, x, y, parts: [], crates: [], chest: null, floor: null };
+  const rarityW = { ruins: { common: 55, rare: 35, epic: 10 }, grove: { common: 30, rare: 50, epic: 20 } }[type] || { common: 66, rare: 27, epic: 7 };
+  const chest = (cx2, cy2) => { st.chest = { x: cx2, y: cy2, rarity: wpick(r, rarityW), opened: false, openT: 0, st }; };
+  const crate = (x2, y2) => st.crates.push({ x: x2, y: y2, broken: false });
+  if (type === 'ruins') {
+    st.floor = { w: 200, h: 140, missing: Array.from({ length: 35 }, () => r() < .18) };
+    const spots = [[-90, -60], [0, -68], [90, -60], [-95, 55], [95, 55]];
+    spots.forEach(([dx, dy]) => { if (r() < .85) st.parts.push({ kind: 'pillar', x: x + dx, y: y + dy, r: 13, solid: true, h: r() < .4 ? 22 + r() * 18 : 56 + r() * 18 }); });
+    chest(x, y + 8); if (r() < .7) crate(x - 50, y + 30); if (r() < .5) crate(x + 55, y - 15);
+  } else if (type === 'hut') {
+    st.parts.push({ kind: 'hut', x, y: y - 10, r: 46, solid: true, roof: pick(['#c2502c', '#3a7bd5', '#5a8f3c']) });
+    chest(x + 62, y + 40); crate(x - 62, y + 34); if (r() < .6) crate(x - 40, y + 50);
+  } else if (type === 'circle') {
+    const n = 7;
+    for (let i = 0; i < n; i++) { const a = i / n * 6.28 + r(); st.parts.push({ kind: 'stone', x: x + Math.cos(a) * 95, y: y + Math.sin(a) * 70, r: 13, solid: true, h: 30 + r() * 14 }); }
+    chest(x, y + 6);
+  } else if (type === 'camp') {
+    st.parts.push({ kind: 'tent', x: x - 60, y: y - 20, r: 34, solid: true, col: pick(['#e8d9b0', '#d9e8b0', '#b0d0e8']) });
+    st.parts.push({ kind: 'fire', x: x + 20, y: y + 20, r: 0, solid: false });
+    st.parts.push({ kind: 'log', x: x + 20, y: y + 58, r: 12, solid: true });
+    st.parts.push({ kind: 'log', x: x + 64, y: y + 18, r: 12, solid: true });
+    chest(x - 10, y + 62); crate(x + 75, y - 30); if (r() < .6) crate(x + 50, y - 50);
+  } else {
+    for (let i = 0; i < 5; i++) { const a = i / 5 * 6.28 + r(); st.parts.push({ kind: 'crystal', x: x + Math.cos(a) * 80, y: y + Math.sin(a) * 60, r: 12, solid: true, col: pick(['#7fdcff', '#ff8fc8', '#c77dff']) }); }
+    chest(x, y + 6);
+  }
+  structures.push(st);
+}
+function updateWorld(dt) {
+  const ccx = Math.floor(P.x / CH), ccy = Math.floor(P.y / CH);
+  for (let i = -2; i <= 2; i++) for (let j = -2; j <= 2; j++) genChunk(ccx + i, ccy + j);
+  nearChest = null; let nd = 70 * 70;
+  for (const st of structures) {
+    if (Math.abs(st.x - P.x) > 500 || Math.abs(st.y - P.y) > 500) continue;
+    for (const pt of st.parts) {
+      if (!pt.solid) continue;
+      const dx = P.x - pt.x, dy = P.y - pt.y, d = Math.hypot(dx, dy) || .01, min = pt.r + P.r;
+      if (d < min) { P.x = pt.x + dx / d * min; P.y = pt.y + dy / d * min; }
+    }
+    for (const c of st.crates) {
+      if (c.broken) continue;
+      if ((P.x - c.x) ** 2 + (P.y - c.y) ** 2 < 30 * 30) breakCrate(c);
+    }
+    const ch = st.chest;
+    if (ch && !ch.opened) { const d = (P.x - ch.x) ** 2 + (P.y - ch.y) ** 2; if (d < nd) { nd = d; nearChest = ch; } }
+    if (ch && ch.opened) ch.openT += dt;
+  }
+  for (const b of bombs) {
+    b.t += dt;
+    if (b.t >= b.max && !b.done) {
+      b.done = true;
+      const R = 115, d = 75 * abPower();
+      addShake(10); sfx('boom'); freeze = Math.max(freeze, .05);
+      zaps.push({ ring: true, x1: b.x1, y1: b.y1, r: R, life: .35, max: .35, color: '#ff9a3d', w: 10 });
+      for (let i = 0; i < 40; i++) { const a = Math.random() * 6.28, sp = rand(80, 340); parts.push({ x: b.x1, y: b.y1, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(.3, .6), max: .6, size: rand(4, 9), color: pick(['#ff3b3b', '#ff8a3d', '#ffd166']), kind: 'dot', glow: true }); }
+      for (let i = 0; i < 8; i++) parts.push({ x: b.x1 + rand(-20, 20), y: b.y1 + rand(-20, 20), vx: rand(-30, 30), vy: rand(-60, -20), life: rand(.6, 1), max: 1, size: rand(8, 14), color: '#5b5068', kind: 'smoke' });
+      for (const e of [...enemies]) if ((e.x - b.x1) ** 2 + (e.y - b.y1) ** 2 < (R + e.r) ** 2) hurt(e, d, '#ff9a3d');
+    }
+  }
+  bombs = bombs.filter(b => !b.done);
+  if (laserT > 0) {
+    laserT -= dt; laserTick -= dt;
+    if (laserTick <= 0) {
+      laserTick = .1;
+      const ca = Math.cos(aim), sa = Math.sin(aim), tip = wandTip();
+      for (const e of [...enemies]) {
+        const rx = e.x - tip.x, ry = e.y - tip.y, along = rx * ca + ry * sa, across = Math.abs(-rx * sa + ry * ca);
+        if (along > 0 && along < 650 && across < 22 + e.r) hurt(e, 11 * abPower(), '#e9c8ff');
+      }
+    }
+  }
+}
+function breakCrate(c) {
+  c.broken = true; sfx('hit'); addShake(2);
+  for (let i = 0; i < 14; i++) { const a = Math.random() * 6.28, sp = rand(60, 200); parts.push({ x: c.x, y: c.y - 10, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80, g: 500, fr: .3, life: rand(.4, .7), max: .7, size: rand(3, 6), color: pick(['#a0632b', '#c08a4a', '#6e3f17']) }); }
+  const n = 1 + (Math.random() * 2 | 0);
+  for (let i = 0; i < n; i++) dropRes(c.x, c.y, pick(['wood', 'wood', 'stone', 'herb']), 1 + (Math.random() * 2 | 0));
+  if (Math.random() < .35) gems.push({ gold: true, x: c.x, y: c.y, v: 5, vx: rand(-80, 80), vy: rand(-80, 80), delay: .35, pull: false, ph: Math.random() * 6 });
+}
+function dropRes(x, y, k, n) {
+  const a = Math.random() * 6.28, sp = rand(70, 170);
+  gems.push({ res: k, x, y: y - 10, v: n, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, delay: .45, pull: false, ph: Math.random() * 6 });
+}
+function addSpecial(k, n) { spec[k] += n; if (!held || spec[held] <= 0) held = k; buildSpecialBtn(); }
+function openChest(ch) {
+  if (!ch || ch.opened) return;
+  ch.opened = true; ch.openT = 0; chestsRun++;
+  const R = RARITY[ch.rarity], lines = [];
+  sfx(ch.rarity === 'common' ? 'buy' : 'tome'); freeze = Math.max(freeze, .06);
+  zaps.push({ ring: true, x1: ch.x, y1: ch.y - 12, r: 80, life: .45, max: .45, color: R.glow, w: 8 });
+  for (let i = 0; i < 30; i++) { const a = -Math.PI / 2 + rand(-1.1, 1.1), sp = rand(120, 360); parts.push({ x: ch.x, y: ch.y - 16, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: 320, life: rand(.6, 1.1), max: 1.1, size: rand(4, 8), color: pick([R.glow, '#ffffff', R.trim]), kind: 'star', glow: true }); }
+  const roll = {
+    common: { stacks: 2, amt: [2, 4], spChance: .4, spPool: { bomb: 1, bow: 1 }, gold: [8, 20] },
+    rare: { stacks: 3, amt: [3, 6], spChance: .75, spPool: { bomb: 3, bow: 3, hammer: 2, laser: 1 }, gold: [20, 40] },
+    epic: { stacks: 4, amt: [4, 8], spChance: 1, spPool: { hammer: 2, laser: 2, bomb: 1, bow: 1 }, gold: [50, 90] },
+  }[ch.rarity];
+  const got = {};
+  for (let i = 0; i < roll.stacks; i++) { const k = pick(Object.keys(RES)); const n = roll.amt[0] + (Math.random() * (roll.amt[1] - roll.amt[0] + 1) | 0); got[k] = (got[k] || 0) + n; dropRes(ch.x, ch.y, k, n); }
+  Object.entries(got).forEach(([k, n]) => lines.push(`${n} ${RES[k].name}`));
+  const gld = roll.gold[0] + (Math.random() * (roll.gold[1] - roll.gold[0]) | 0);
+  for (let i = 0; i < 4; i++) gems.push({ gold: true, x: ch.x, y: ch.y - 10, v: Math.ceil(gld / 4), vx: rand(-140, 140), vy: rand(-160, -40), delay: .45, pull: false, ph: Math.random() * 6 });
+  lines.push(`${gld} gold`);
+  const giveSpecial = () => {
+    const r = mulberry32((Math.random() * 1e9) | 0), k = wpick(r, roll.spPool);
+    const n = { bomb: 4 + (Math.random() * 3 | 0), bow: 6 + (Math.random() * 5 | 0), hammer: 2 + (Math.random() * 2 | 0), laser: 1 + (Math.random() < .3 ? 1 : 0) }[k];
+    addSpecial(k, n); lines.unshift(`${SPECIALS[k].name} x${n}`);
+    texts.push({ x: ch.x, y: ch.y - 60, text: SPECIALS[k].name.toUpperCase() + '!', life: 1.4, max: 1.4, color: SPECIALS[k].c, size: 18, vx: 0, vy: -40 });
+  };
+  if (Math.random() < roll.spChance) giveSpecial();
+  if (ch.rarity === 'epic') { giveSpecial(); pendingLv++; lines.push('a free level up'); }
+  banner(`${R.name} chest!`, lines.join(' · '), ch.rarity === 'epic' ? 'magic' : ch.rarity === 'rare' ? '' : 'good');
+  retrigger($('bagBtn'), 'bump'); $('bagBadge').hidden = false;
+}
+function useSpecial() {
+  if (mode !== 'play') return;
+  if (!held || spec[held] <= 0) { sfx('nope'); return; }
+  spec[held]--;
+  const k = held, tip = wandTip(), pw = abPower();
+  if (k === 'bomb') {
+    const t = nearest(P.x, P.y, 420);
+    const x1 = t ? t.x : P.x + Math.cos(aim) * 220, y1 = t ? t.y : P.y + Math.sin(aim) * 220;
+    bombs.push({ x0: tip.x, y0: tip.y, x1, y1, t: 0, max: .55 }); sfx('dash');
+  } else if (k === 'bow') {
+    const BOW = { id: 'ice', color: '#bdf0ff', core: '#ffffff', r: 6 };
+    for (let i = -1; i <= 1; i++) { const a = aim + i * .12; shots.push({ x: tip.x, y: tip.y, vx: Math.cos(a) * 900, vy: Math.sin(a) * 900, spd: 900, age: 0, r: 7, dmg: 30 * pw, sp: BOW, life: 1.1, pierce: 40, hit: new Set() }); }
+    sfx('cast'); kick.x -= Math.cos(aim) * 5; kick.y -= Math.sin(aim) * 5;
+  } else if (k === 'hammer') {
+    const R = 210; addShake(14); sfx('boom'); freeze = Math.max(freeze, .08);
+    zaps.push({ ring: true, x1: P.x, y1: P.y, r: R, life: .45, max: .45, color: '#ffe45c', w: 12 });
+    for (let i = 0; i < 8; i++) { const a = i / 8 * 6.28; zaps.push({ x1: P.x, y1: P.y, x2: P.x + Math.cos(a) * R, y2: P.y + Math.sin(a) * R, life: .25, max: .25 }); }
+    for (const e of [...enemies]) {
+      const dx = e.x - P.x, dy = e.y - P.y, dd = Math.hypot(dx, dy) || 1;
+      if (dd < R + e.r) { hurt(e, 60 * pw, '#ffe45c'); e.slow = 2.5; if (!e.T.boss) { e.kx += dx / dd * 380; e.ky += dy / dd * 380; } }
+    }
+    eshots = eshots.filter(b => (b.x - P.x) ** 2 + (b.y - P.y) ** 2 > R * R);
+  } else if (k === 'laser') { laserT = 2.5; laserTick = 0; sfx('tome'); }
+  if (spec[held] <= 0) { const next = Object.keys(spec).find(x => spec[x] > 0); held = next || null; }
+  buildSpecialBtn();
+}
+function buildSpecialBtn() {
+  const b = $('specialBtn');
+  if (!held || spec[held] <= 0) { b.hidden = true; return; }
+  const sp = SPECIALS[held];
+  b.hidden = false; b.style.setProperty('--c', sp.c);
+  b.innerHTML = `<svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path fill="#2d1f4f" d="${sp.icon}"/></svg><span class="cnt">${spec[held]}</span><small>${sp.name}</small>`;
+}
+$('specialBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); useSpecial(); };
+$('openBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); if (nearChest) openChest(nearChest); };
+$('bagBtn').onclick = () => toggleBag();
+$('bagClose').onclick = () => toggleBag();
+function toggleBag() {
+  if (mode === 'play') { mode = 'bag'; joy = null; $('bagBadge').hidden = true; renderBag(); $('bag').hidden = false; $('bag').scrollTop = 0; sfx('click'); }
+  else if (mode === 'bag') { mode = 'play'; $('bag').hidden = true; sfx('click'); }
+}
+function renderBag() {
+  const keys = Object.keys(SPECIALS);
+  $('bagSpecials').innerHTML = keys.map(k => {
+    const n = spec[k], on = held === k && n > 0;
+    const btn = n <= 0 ? '<button class="act plain" disabled>None yet</button>' : on ? '<button class="act mint" disabled>Holding</button>' : `<button class="act" data-hold="${k}">Hold</button>`;
+    return `<div class="row-item ${on ? 'on' : ''} ${n <= 0 ? 'dim' : ''}">${spIcon(k)}<div><b>${SPECIALS[k].name} <em class="chip">x${n}</em></b><span class="d">${SPECIALS[k].desc}</span></div>${btn}</div>`;
+  }).join('') + (keys.every(k => spec[k] <= 0) ? '<div class="empty-note">No special weapons yet. Open chests in buildings to find some!</div>' : '');
+  $('bagRes').innerHTML = Object.keys(RES).map(k => `<div class="rescell">${resIcon(k)}<b>${res[k]}</b><small>${RES[k].name}</small></div>`).join('');
+  $('bagCraft').innerHTML = RECIPES.map((rc, i) => {
+    const can = Object.entries(rc.cost).every(([k, n]) => res[k] >= n) && (!rc.ok || rc.ok());
+    const cost = Object.entries(rc.cost).map(([k, n]) => `<span class="cost ${res[k] < n ? 'short' : ''}">${resIcon(k, true)}${n} ${RES[k].name}</span>`).join(' ');
+    return `<div class="row-item"><span class="tile" style="--c:${rc.c}">${rc.glyph}</span><div><b>${rc.name}</b><span class="d">${rc.desc}</span><div class="meta">${cost}</div></div><button class="act ${can ? '' : 'poor'}" data-craft="${i}" ${can ? '' : 'aria-disabled="true"'}>Craft</button></div>`;
+  }).join('');
+  document.querySelectorAll('#bag [data-hold]').forEach(b => b.onclick = () => { held = b.dataset.hold; buildSpecialBtn(); sfx('click'); renderBag(); });
+  document.querySelectorAll('#bag [data-craft]').forEach(b => b.onclick = () => {
+    const rc = RECIPES[+b.dataset.craft];
+    const can = Object.entries(rc.cost).every(([k, n]) => res[k] >= n) && (!rc.ok || rc.ok());
+    if (!can) { sfx('nope'); retrigger(b, 'nope'); return; }
+    Object.entries(rc.cost).forEach(([k, n]) => { res[k] -= n; });
+    rc.make(); sfx('buy'); toast(`Crafted ${rc.name}!`); renderBag();
+  });
+}
+
+/* drawing */
+function drawStructGround() {
+  for (const st of structures) {
+    if (Math.abs(st.x - cam.x) > 900 || Math.abs(st.y - cam.y) > 1100) continue;
+    if (st.floor) {
+      const f = st.floor, x0 = st.x - f.w / 2, y0 = st.y - f.h / 2, ts = 28;
+      let i = 0;
+      for (let ty = 0; ty < f.h; ty += ts) for (let tx = 0; tx < f.w; tx += ts) {
+        if (f.missing[i++ % f.missing.length]) continue;
+        ctx.fillStyle = '#6b7184'; ctx.fillRect(x0 + tx, y0 + ty, ts - 2, ts - 2);
+        ctx.fillStyle = (i % 3) ? '#8d93a3' : '#9aa0b0'; ctx.fillRect(x0 + tx + 1, y0 + ty + 1, ts - 4, ts - 5);
+      }
+    }
+    for (const pt of st.parts) if (pt.kind === 'fire') {
+      glow(pt.x, pt.y - 6, 70, '#ff9a3d', .35 + Math.sin(T * 9) * .05);
+      ctx.fillStyle = '#6b7184'; for (let k = 0; k < 8; k++) { const a = k / 8 * 6.28; ctx.fillRect(pt.x + Math.cos(a) * 16 - 3, pt.y + Math.sin(a) * 9 - 2, 6, 5); }
+      ctx.fillStyle = '#6e3f17'; ctx.fillRect(pt.x - 12, pt.y - 3, 24, 5); ctx.fillRect(pt.x - 3, pt.y - 8, 6, 12);
+      const fl = Math.sin(T * 14) * 2;
+      ctx.fillStyle = '#ff5d3b'; ctx.fillRect(pt.x - 7, pt.y - 16 + fl, 14, 12);
+      ctx.fillStyle = '#ffb347'; ctx.fillRect(pt.x - 4, pt.y - 22 - fl, 8, 14);
+      ctx.fillStyle = '#fff1a8'; ctx.fillRect(pt.x - 2, pt.y - 14, 4, 7);
+      if (mode === 'play' && Math.random() < .3) parts.push({ x: pt.x + rand(-5, 5), y: pt.y - 18, vx: rand(-10, 10), vy: rand(-60, -30), life: .6, max: .6, size: 2, color: '#ffb347', glow: true });
+    }
+  }
+}
+function pushStructActors(actors) {
+  for (const st of structures) {
+    if (Math.abs(st.x - cam.x) > 900 || Math.abs(st.y - cam.y) > 1100) continue;
+    for (const pt of st.parts) if (pt.kind !== 'fire') actors.push({ y: pt.y, f: () => drawPart(pt) });
+    for (const c of st.crates) if (!c.broken) actors.push({ y: c.y, f: () => drawCrate(c) });
+    if (st.chest) actors.push({ y: st.chest.y, f: () => drawChest(st.chest) });
+  }
+}
+function box(x, y, w, h, fill, line = '#2d1f4f') { ctx.fillStyle = line; ctx.fillRect(x - 2, y - 2, w + 4, h + 4); ctx.fillStyle = fill; ctx.fillRect(x, y, w, h); }
+function drawPart(pt) {
+  const x = Math.round(pt.x), y = Math.round(pt.y);
+  if (pt.kind === 'pillar') {
+    shadow(x, y + 2, 16);
+    const h = pt.h;
+    box(x - 10, y - h, 20, h, '#c9ccd6');
+    ctx.fillStyle = '#9aa0b0'; ctx.fillRect(x + 4, y - h, 6, h);
+    ctx.fillStyle = '#e4e6ee'; ctx.fillRect(x - 8, y - h, 3, h);
+    if (h > 45) { box(x - 14, y - h - 8, 28, 8, '#d7dae2'); }
+    else { ctx.fillStyle = '#2d1f4f'; ctx.fillRect(x - 10, y - h - 2, 6, 3); ctx.fillRect(x + 2, y - h - 4, 8, 3); }
+    box(x - 13, y - 6, 26, 6, '#b3b8c6');
+    ctx.fillStyle = '#5bd16a'; ctx.fillRect(x - 10, y - h + 6, 5, 3); ctx.fillRect(x + 3, y - 14, 4, 3);
+  } else if (pt.kind === 'stone') {
+    shadow(x, y + 2, 15);
+    box(x - 11, y - pt.h, 22, pt.h, '#8c93a3');
+    ctx.fillStyle = '#6b7184'; ctx.fillRect(x + 4, y - pt.h, 7, pt.h);
+    ctx.fillStyle = '#5bd16a'; ctx.fillRect(x - 11, y - pt.h, 22, 5);
+    ctx.fillStyle = '#c9ccd6'; ctx.fillRect(x - 6, y - pt.h + 12, 6, 3);
+  } else if (pt.kind === 'hut') {
+    shadow(x, y + 30, 58);
+    box(x - 44, y - 30, 88, 58, '#b07a3c');
+    ctx.fillStyle = '#8a5a2b'; for (let k = 0; k < 5; k++) ctx.fillRect(x - 44, y - 22 + k * 11, 88, 2);
+    box(x - 10, y, 20, 28, '#4a2a12');
+    ctx.fillStyle = '#ffcf3f'; ctx.fillRect(x + 6, y + 12, 3, 3);
+    box(x - 34, y - 18, 16, 14, '#ffe27a'); ctx.fillStyle = '#2d1f4f'; ctx.fillRect(x - 27, y - 18, 2, 14); ctx.fillRect(x - 34, y - 12, 16, 2);
+    for (let k = 0; k < 5; k++) { const w = 104 - k * 22; box(x - w / 2, y - 40 - k * 10, w, 10, pt.roof); }
+    ctx.fillStyle = '#ffffff33'; ctx.fillRect(x - 50, y - 40, 100, 3);
+    box(x + 18, y - 74, 10, 20, '#7a7f8f');
+  } else if (pt.kind === 'tent') {
+    shadow(x, y + 16, 44);
+    for (let k = 0; k < 6; k++) { const w = 80 - k * 13; box(x - w / 2, y - 6 - k * 9, w, 10, pt.col); }
+    ctx.fillStyle = '#c2502c'; ctx.fillRect(x - 40, y - 2, 80, 3);
+    ctx.fillStyle = '#2d1f4f'; for (let k = 0; k < 4; k++) { const w = 22 - k * 5; ctx.fillRect(x - w / 2, y - k * 9 - 4, w, 10); }
+    ctx.fillStyle = '#8a5a2b'; ctx.fillRect(x - 1, y - 62, 3, 10);
+  } else if (pt.kind === 'log') {
+    shadow(x, y + 4, 18);
+    box(x - 16, y - 10, 32, 12, '#8a5a2b');
+    ctx.fillStyle = '#c08a4a'; ctx.fillRect(x + 10, y - 8, 6, 8);
+    ctx.fillStyle = '#6e3f17'; ctx.fillRect(x - 12, y - 6, 18, 2);
+  } else if (pt.kind === 'crystal') {
+    glow(x, y - 20, 40, pt.col, .3 + Math.sin(T * 3 + x) * .1);
+    shadow(x, y + 2, 14);
+    [[-8, 22, 8], [6, 30, 10], [0, 40, 9]].forEach(([dx, h, w]) => {
+      ctx.fillStyle = '#2d1f4f'; ctx.fillRect(x + dx - w / 2 - 2, y - h - 2, w + 4, h + 2);
+      ctx.fillStyle = pt.col; ctx.fillRect(x + dx - w / 2, y - h, w, h);
+      ctx.fillStyle = '#ffffffaa'; ctx.fillRect(x + dx - w / 2 + 1, y - h + 2, 2, h - 6);
+    });
+  }
+}
+function drawCrate(c) {
+  const x = Math.round(c.x), y = Math.round(c.y);
+  shadow(x, y + 2, 14);
+  box(x - 12, y - 22, 24, 22, '#b07a3c');
+  ctx.fillStyle = '#6e3f17'; ctx.fillRect(x - 12, y - 12, 24, 2); ctx.fillRect(x - 1, y - 22, 2, 22);
+  ctx.fillStyle = '#d9a35e'; ctx.fillRect(x - 10, y - 20, 6, 2);
+}
+function drawChest(ch) {
+  const R = RARITY[ch.rarity], x = Math.round(ch.x), y = Math.round(ch.y);
+  if (!ch.opened && ch.rarity !== 'common') glow(x, y - 12, 46 + Math.sin(T * 4) * 4, R.glow, .4);
+  if (!ch.opened && ch.rarity === 'epic' && Math.random() < .15 && mode === 'play') parts.push({ x: x + rand(-18, 18), y: y - rand(10, 30), vx: 0, vy: -30, life: .6, max: .6, size: 5, color: '#ffcf3f', kind: 'star', glow: true });
+  shadow(x, y + 2, 20);
+  box(x - 16, y - 14, 32, 14, R.body);
+  ctx.fillStyle = R.dark; ctx.fillRect(x - 16, y - 4, 32, 4);
+  ctx.fillStyle = R.trim; ctx.fillRect(x - 16, y - 14, 3, 14); ctx.fillRect(x + 13, y - 14, 3, 14);
+  if (!ch.opened) {
+    box(x - 17, y - 26, 34, 11, R.body);
+    ctx.fillStyle = R.trim; ctx.fillRect(x - 17, y - 26, 34, 3); ctx.fillRect(x - 17, y - 26, 3, 11); ctx.fillRect(x + 14, y - 26, 3, 11);
+    box(x - 3, y - 18, 6, 7, R.trim);
+    if (nearChest === ch) { ctx.globalAlpha = .6 + Math.sin(T * 8) * .3; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.strokeRect(x - 22, y - 32, 44, 36); ctx.globalAlpha = 1; }
+  } else {
+    box(x - 17, y - 38, 34, 8, R.dark);
+    ctx.fillStyle = R.trim; ctx.fillRect(x - 17, y - 38, 34, 2);
+    ctx.fillStyle = '#2d1f4f'; ctx.fillRect(x - 13, y - 14, 26, 4);
+    const k = Math.max(0, 1 - ch.openT / 1.2);
+    if (k > 0) { glow(x, y - 30, 60, R.glow, .6 * k); ctx.globalAlpha = .5 * k; ctx.fillStyle = R.glow; ctx.fillRect(x - 10, y - 90, 20, 76); ctx.globalAlpha = 1; }
+  }
+}
+function drawSpecialFx() {
+  for (const b of bombs) {
+    const k = Math.min(1, b.t / b.max), bx = b.x0 + (b.x1 - b.x0) * k, by = b.y0 + (b.y1 - b.y0) * k - Math.sin(k * Math.PI) * 90;
+    ctx.globalAlpha = .35; ctx.fillStyle = '#2d1f4f'; ctx.beginPath(); ctx.ellipse(b.x1, b.y1, 30 * k + 8, (30 * k + 8) * .4, 0, 0, 6.28); ctx.fill(); ctx.globalAlpha = 1;
+    ctx.fillStyle = '#2d1f4f'; ctx.beginPath(); ctx.arc(bx, by, 10, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#5b5068'; ctx.beginPath(); ctx.arc(bx - 3, by - 3, 4, 0, 6.28); ctx.fill();
+    glow(bx + 6, by - 10, 10, '#ffcf3f', .9);
+  }
+  if (laserT > 0) {
+    const tip = wandTip(), L = 650, ex = tip.x + Math.cos(aim) * L, ey = tip.y + Math.sin(aim) * L;
+    const w = 18 + Math.sin(T * 40) * 3;
+    ctx.lineCap = 'round';
+    [['#c77dff', w * 2.2, .35], ['#e9c8ff', w, .9], ['#ffffff', w * .4, 1]].forEach(([c, lw, a]) => { ctx.globalAlpha = a; ctx.strokeStyle = c; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.lineTo(ex, ey); ctx.stroke(); });
+    ctx.globalAlpha = 1; ctx.lineCap = 'butt';
+    glow(tip.x, tip.y, 40, '#c77dff', .8);
+    if (Math.random() < .8) parts.push({ x: tip.x + Math.cos(aim) * rand(0, L), y: tip.y + Math.sin(aim) * rand(0, L), vx: rand(-60, 60), vy: rand(-60, 60), life: .3, max: .3, size: 4, color: '#e9c8ff', kind: 'star', glow: true });
+  }
+}
+function drawChestArrow() {
+  if (mode !== 'play') return;
+  let best = null, bd = 1600 * 1600;
+  for (const st of structures) { const c = st.chest; if (!c || c.opened) continue; const d = (c.x - P.x) ** 2 + (c.y - P.y) ** 2; if (d < bd) { bd = d; best = c; } }
+  if (!best) return;
+  const sx = VW / 2 + (best.x - cam.x) * ZOOM, sy = VH / 2 + (best.y - cam.y) * ZOOM;
+  if (sx > 30 && sx < VW - 30 && sy > 120 && sy < VH - 130) return;
+  const a = Math.atan2(sy - VH / 2, sx - VW / 2);
+  const ex = Math.max(26, Math.min(VW - 26, VW / 2 + Math.cos(a) * VW)), ey = Math.max(120, Math.min(VH - 140, VH / 2 + Math.sin(a) * VH));
+  const R = RARITY[best.rarity];
+  ctx.save(); ctx.translate(ex, ey); ctx.rotate(a);
+  ctx.fillStyle = '#2d1f4f'; ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(-9, -12); ctx.lineTo(-9, 12); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = R.glow; ctx.beginPath(); ctx.moveTo(11, 0); ctx.lineTo(-5, -7); ctx.lineTo(-5, 7); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
 /* ---------- update ---------- */
 function update(dt) {
   time += dt;
@@ -1898,6 +2310,7 @@ function update(dt) {
   P.x += mx * 150 * S.move * dt; P.y += my * 150 * S.move * dt;
   P.moving = ml > .05; if (P.moving) { P.walk += dt; P.mdx = mx / ml; P.mdy = my / ml; }
   updateAbilities(dt);
+  updateWorld(dt);
   P.inv -= dt;
   if (S.regen) P.hp = Math.min(P.maxHp, P.hp + S.regen * dt);
   P.dustT -= dt;
@@ -2071,7 +2484,8 @@ function update(dt) {
     g.x += g.vx * dt; g.y += g.vy * dt;
     if (d < P.r + 8) {
       g.got = true;
-      if (g.gold) { const v = g.v * (Math.random() < S.coinLuck ? 2 : 1); gold += v; totalGold += v; sfx('coin'); }
+      if (g.res) { res[g.res] += g.v; sfx('coin'); texts.push({ x: P.x, y: P.y - 34, text: `+${g.v} ${RES[g.res].name}`, life: .9, max: .9, color: RES[g.res].c, size: 13, vx: 0, vy: -50 }); }
+      else if (g.gold) { const v = g.v * (Math.random() < S.coinLuck ? 2 : 1); gold += v; totalGold += v; sfx('coin'); }
       else { xp += g.v; sfx('gem', gemChain); gemChain++; gemChainT = .6; }
       parts.push({ x: g.x, y: g.y, vx: 0, vy: -30, life: .3, max: .3, size: 7, color: g.gold ? '#ffcf3f' : '#9fe6ff', kind: 'star', glow: true });
     }
@@ -2331,9 +2745,18 @@ function render() {
   const hw = VW / 2 / ZOOM + 30, hh = VH / 2 / ZOOM + 30;
   drawGround(cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh);
   drawCloudShadows();
+  drawStructGround();
 
   for (const g of gems) {
     const y = g.y + Math.sin(T * 4 + g.ph) * 2;
+    if (g.res) {
+      const c = RES[g.res].c;
+      glow(g.x, y, 14, c, .4);
+      ctx.fillStyle = '#2d1f4f'; ctx.fillRect(g.x - 7, y - 7, 14, 14);
+      ctx.fillStyle = c; ctx.fillRect(g.x - 5, y - 5, 10, 10);
+      ctx.fillStyle = '#ffffff99'; ctx.fillRect(g.x - 4, y - 4, 3, 3);
+      continue;
+    }
     if (g.gold) {
       glow(g.x, y, 14, '#ffcf3f', .45);
       const cw = Math.max(1.5, Math.abs(Math.cos(T * 4 + g.ph)) * 6);
@@ -2355,6 +2778,7 @@ function render() {
 
   const actors = enemies.map(e => ({ y: e.y, f: () => drawEnemy(e) }));
   actors.push({ y: P.y + 10, f: drawPlayer });
+  pushStructActors(actors);
   actors.sort((a, b) => a.y - b.y).forEach(a => a.f());
   for (const d of deaths) {
     const k = d.life / d.max, s = 1 + (1 - k) * .5;
@@ -2363,6 +2787,7 @@ function render() {
   }
 
   drawMeteors();
+  drawSpecialFx();
   for (let i = 0; i < S.spirits; i++) {
     const a = time * 2.6 + i * Math.PI * 2 / S.spirits, fx = P.x + Math.cos(a) * 58, fy = P.y + Math.sin(a) * 58 + Math.sin(T * 6 + i) * 3;
     glow(fx, fy, 22, '#bfefff', .55);
@@ -2415,6 +2840,7 @@ function render() {
     ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
   }
   if (frozenT > 0) { ctx.fillStyle = `rgba(160,225,255,${Math.min(.22, frozenT * .12)})`; ctx.fillRect(0, 0, VW, VH); }
+  drawChestArrow();
   drawMotes();
   if (!vignette) {
     vignette = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .35, VW / 2, VH / 2, Math.hypot(VW, VH) * .62);
@@ -2442,8 +2868,14 @@ function render() {
 
 /* ---------- HUD ---------- */
 let lastHud = '', lastGold = 0, lastCombo = 0, lastWave = 0;
-let abLast = [0, 0];
+let abLast = [0, 0], lastNear = null;
 function hud() {
+  const showOpen = !!(mode === 'play' && nearChest);
+  if (showOpen !== !$('openBtn').hidden || nearChest !== lastNear) {
+    $('openBtn').hidden = !showOpen;
+    if (showOpen) $('openBtn').textContent = `Open ${RARITY[nearChest.rarity].name.toLowerCase()} chest`;
+    lastNear = nearChest;
+  }
   if (mode === 'play') $('spellbar').querySelectorAll('.abtn').forEach((b, i) => {
     const A = ABILITIES.find(a => a.id === META.abEquip[i]); if (!A) return;
     const rem = abCd[A.id] || 0;

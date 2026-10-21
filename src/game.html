@@ -567,7 +567,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <h1 class="logo" id="loadLogo" aria-label="Wizard Grove"></h1>
     <div class="loadbar"><i id="loadFill"></i></div>
     <div class="loadpct" id="loadPct">LOADING 0%</div>
-    <p class="tip" id="loadTip">Waking up the slimes...</p>
+    <p class="tip" id="loadTip">Tip: drag anywhere on the screen to move</p>
     <button class="btn go big pulse" id="tapStart" hidden>Tap to start</button>
   </div>
 </div>
@@ -1502,12 +1502,20 @@ function boot() {
   mode = 'loading'; showScreen('loading');
   $('loadWiz').src = WIZ.src; buildLogo($('loadLogo'));
   const tips = [
-    'Waking up the slimes...', 'Polishing wands...', 'Planting flowers...', 'Counting gold coins...',
-    'Tip: walk in big circles so monsters line up', 'Tip: chain kills for combo gold',
-    'Tip: Bomb Beetles flash right before they explode', 'Tip: beat bosses to earn gems for the Shop',
+    'Tip: drag anywhere on the screen to move',
+    'Tip: your wand aims and fires by itself',
+    'Tip: tap the round buttons in the corner to use your abilities',
+    'Tip: explore to find buildings with treasure chests',
+    'Tip: open your Backpack to pick a special weapon and craft supplies',
+    'Tip: walk in big circles so monsters line up',
+    'Tip: chain kills for combo gold',
+    'Tip: Bomb Beetles flash right before they explode',
+    'Tip: beat bosses to earn gems for the Shop',
+    'Tip: every 10 waves night falls and monsters get stronger',
   ];
   let ti = 0;
-  const tipTimer = setInterval(() => { ti = (ti + 1) % tips.length; $('loadTip').textContent = tips[ti]; }, 1300);
+  $('loadTip').textContent = tips[0];
+  const tipTimer = setInterval(() => { ti = (ti + 1) % tips.length; $('loadTip').textContent = tips[ti]; }, 2800);
   let ready = false;
   const dec = img => (img.decode ? img.decode().catch(() => {}) : null);
   Promise.all([dec(WIZ), dec(GRASS), document.fonts ? document.fonts.ready : null]).then(() => { ready = true; });
@@ -1607,7 +1615,7 @@ function startGame(i) {
   buildSpellbar(); buildSpecialBtn(); $('bagBadge').hidden = true;
   $('hint').hidden = true; tipStep = -1; movedT = 0;
   let seen = false; try { seen = localStorage.getItem('wgTips') === '1'; } catch (e) {}
-  if (!seen) setTimeout(() => { if (mode === 'play') showTip(0); }, 2600);
+
   mode = 'play';
   startWave(1);
 }

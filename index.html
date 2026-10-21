@@ -442,7 +442,7 @@ button { font: inherit; color: inherit; }
 .mtile img { width: 46px; height: 46px; object-fit: contain; image-rendering: pixelated; }
 .chip.hurt { background: var(--berry); color: #fff; border: 2px solid var(--ink); padding: 3px 8px; }
 .chip.soft { background: #ede6f4; color: var(--ink); border: 2px solid var(--ink); padding: 3px 8px; }
-#toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); transform: translateX(-50%); z-index: 12; width: max-content; max-width: calc(100vw - 32px); text-align: center; background: var(--ink); color: #fff; font: 800 15px/1.3 var(--font-body); padding: 10px 16px; border-radius: 16px; box-shadow: 0 4px 0 #0004; }
+#toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 128px); transform: translateX(-50%); z-index: 12; width: max-content; max-width: calc(100vw - 32px); text-align: center; background: var(--ink); color: #fff; font: 800 15px/1.3 var(--font-body); padding: 10px 16px; border-radius: 16px; box-shadow: 0 4px 0 #0004; }
 #toast.show { animation: toastIn .3s cubic-bezier(.2, 1.5, .4, 1); }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 20px); } }
 /* ability buttons */
@@ -518,6 +518,9 @@ button { font: inherit; color: inherit; }
 .resico.sm svg { width: 12px; height: 12px; }
 .cost { display: inline-flex; align-items: center; gap: 4px; font: 900 13px var(--font-body); background: #ede6f4; border: 2px solid var(--ink); border-radius: 99px; padding: 2px 8px 2px 3px; }
 .cost.short { background: #ffd9de; }
+.sbtn.blocked svg, .spico.blocked svg { opacity: .35; }
+.sbtn.blocked, .spico.blocked { position: relative; background: #b9b2c6; }
+.sbtn.blocked::after, .spico.blocked::after { content: ""; position: absolute; inset: 4px; background: linear-gradient(45deg, transparent 42%, #ff5d73 42% 58%, transparent 58%), linear-gradient(-45deg, transparent 42%, #ff5d73 42% 58%, transparent 58%), linear-gradient(45deg, transparent 37%, #2d1f4f 37% 63%, transparent 63%), linear-gradient(-45deg, transparent 37%, #2d1f4f 37% 63%, transparent 63%); pointer-events: none; }
 .spico { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: var(--c); border: 3px solid var(--ink); box-shadow: inset 0 -5px 0 #00000026, inset 0 4px 0 #ffffff55; flex: none; }
 .spico svg { width: 26px; height: 26px; }
 .row-item.dim { opacity: .55; }
@@ -1535,7 +1538,7 @@ function boot() {
     'Tip: Bomb Beetles flash right before they explode',
     'Tip: beat bosses to earn gems for the Shop',
     'Tip: night comes every 2:30. Stand by the campfire to get 2x health, speed and damage',
-    'Tip: at night monsters are immune to special weapons, so use your wand',
+    'Tip: special weapons can\'t be used at night, so save them for the day',
   ];
   let ti = 0;
   $('loadTip').textContent = tips[0];
@@ -1914,7 +1917,7 @@ const DAYNIGHT = {
   fadeSeconds: 5,          // how long the sky takes to change
   arrowWarning: 30,        // seconds before night when the campfire arrow appears
   enemy: { hpMul: 2, dmgMul: 2, speedMul: 2 },
-  immuneSpecials: ['bomb', 'bow', 'hammer', 'laser'],   // special weapons that can't hurt night monsters
+  lockSpecialsAtNight: true,   // special weapons can't be used at night (shown with a red X)
   campfire: { x: 0, y: -60, radius: 180, hpMul: 2, speedMul: 2, dmgMul: 2 },
 };
 function cycleInfo() {
@@ -1951,7 +1954,8 @@ function addMaxHp(n) {
 }
 const playerSpeedMul = () => P.warm ? DAYNIGHT.campfire.speedMul : 1;
 const playerDmgMul = () => P.warm ? DAYNIGHT.campfire.dmgMul : 1;
-const isImmune = (e, k) => e.nightBuff && DAYNIGHT.immuneSpecials.includes(k);
+const isImmune = () => false;
+const specialsLocked = () => DAYNIGHT.lockSpecialsAtNight && isNight;
 function immunePopup(e) {
   if ((e.immT || 0) > T) return;
   e.immT = T + .6;
@@ -1968,11 +1972,11 @@ function updateCycle(dt) {
   if (c.night !== isNight) {
     isNight = c.night;
     if (isNight) {
-      fireLit = true; enemies.forEach(e => setEnemyNight(e, true));
-      banner('Night has fallen...', 'Enemies grow stronger! Get to the campfire.', 'boss'); sfx('nightfall');
+      fireLit = true; enemies.forEach(e => setEnemyNight(e, true)); laserT = 0; buildSpecialBtn();
+      banner('Night has fallen...', 'Enemies grow stronger and special weapons are locked! Get to the campfire.', 'boss'); sfx('nightfall');
       for (let i = 0; i < 40; i++) { const a = Math.random() * 6.28, sp = rand(60, 220); parts.push({ x: DAYNIGHT.campfire.x, y: DAYNIGHT.campfire.y - 10, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80, life: .8, max: .8, size: rand(4, 8), color: pick(['#ff9a3d', '#ffcf3f', '#ff5d3b']), kind: 'dot', glow: true }); }
     } else {
-      fireLit = false; enemies.forEach(e => setEnemyNight(e, false)); setPlayerWarm(false);
+      fireLit = false; enemies.forEach(e => setEnemyNight(e, false)); setPlayerWarm(false); buildSpecialBtn();
       banner('The sun rises', 'Enemies are back to normal.', 'good'); sfx('sunrise');
       for (let i = 0; i < 16; i++) parts.push({ x: DAYNIGHT.campfire.x + rand(-14, 14), y: DAYNIGHT.campfire.y - 10, vx: rand(-15, 15), vy: rand(-70, -30), life: rand(1, 1.8), max: 1.8, size: rand(8, 14), color: '#8a8598', kind: 'smoke' });
       warnedNight = false;
@@ -2290,6 +2294,7 @@ function openChest(ch) {
 function useSpecial() {
   if (mode !== 'play') return;
   if (!held || spec[held] <= 0) { sfx('nope'); return; }
+  if (specialsLocked()) { sfx('nope'); retrigger($('specialBtn'), 'nope'); toast('Special weapons can\'t be used at night!'); return; }
   spec[held]--;
   const k = held, tip = wandTip(), pw = abPower();
   if (k === 'bomb') {
@@ -2318,6 +2323,7 @@ function buildSpecialBtn() {
   if (!held || spec[held] <= 0) { b.hidden = true; return; }
   const sp = SPECIALS[held];
   b.hidden = false; b.style.setProperty('--c', sp.c);
+  b.classList.toggle('blocked', specialsLocked());
   b.innerHTML = `<svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path fill="#2d1f4f" d="${sp.icon}"/></svg><span class="cnt">${spec[held]}</span><small>${({ bomb: 'Bombs', bow: 'Ice Bow', hammer: 'Hammer', laser: 'Laser' })[held]}</small>`;
 }
 $('specialBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); useSpecial(); };
@@ -2332,11 +2338,13 @@ function toggleBag() {
 function renderBag() {
   const keys = Object.keys(SPECIALS);
   const anySp = keys.some(k => spec[k] > 0);
+  const nightNote = specialsLocked() && anySp ? '<div class="note" style="background:#ffd9de">It is night: special weapons are locked until the sun rises.</div>' : '';
   $('bagSpecials').innerHTML = !anySp ? `<div class="empty-note">No special weapons yet. Open chests in buildings to find a Bomb Bag, Ice Bow, Thunder Hammer or Laser Crystal!<div class="chips" style="justify-content:center">${keys.map(spIcon).join('')}</div></div>` : keys.filter(k => spec[k] > 0).map(k => {
     const n = spec[k], on = held === k && n > 0;
-    const btn = n <= 0 ? '<button class="act plain" disabled>None yet</button>' : on ? '<button class="act mint" disabled>Holding</button>' : `<button class="act" data-hold="${k}">Hold</button>`;
-    return `<div class="row-item ${on ? 'on' : ''} ${n <= 0 ? 'dim' : ''}">${spIcon(k)}<div><b>${SPECIALS[k].name} <em class="chip">x${n}</em></b><span class="d">${SPECIALS[k].desc}</span></div>${btn}</div>`;
+    const btn = specialsLocked() ? '<button class="act plain" disabled>Night</button>' : n <= 0 ? '<button class="act plain" disabled>None yet</button>' : on ? '<button class="act mint" disabled>Holding</button>' : `<button class="act" data-hold="${k}">Hold</button>`;
+    return `<div class="row-item ${on ? 'on' : ''} ${n <= 0 ? 'dim' : ''}">${specialsLocked() ? spIcon(k).replace('class="spico"', 'class="spico blocked"') : spIcon(k)}<div><b>${SPECIALS[k].name} <em class="chip">x${n}</em></b><span class="d">${SPECIALS[k].desc}</span></div>${btn}</div>`;
   }).join('');
+  if (nightNote) $('bagSpecials').insertAdjacentHTML('afterbegin', nightNote);
   $('bagRes').innerHTML = Object.keys(RES).map(k => `<div class="rescell">${resIcon(k)}<b>${res[k]}</b><small>${RES[k].name}</small></div>`).join('');
   $('bagCraft').innerHTML = RECIPES.map((rc, i) => {
     const can = Object.entries(rc.cost).every(([k, n]) => res[k] >= n) && (!rc.ok || rc.ok());

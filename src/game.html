@@ -634,11 +634,21 @@ window.__wgErr = function (msg) {
   try {
     var b = document.getElementById('errbox');
     if (!b) { b = document.createElement('div'); b.id = 'errbox'; document.body.appendChild(b); }
-    b.textContent = 'Oops, something broke: ' + msg + ' (send this message to Claude)';
+    b.innerHTML = '';
+    var t = document.createElement('span'); t.textContent = 'Oops, something broke: ' + msg + ' (send this message to Claude) ';
+    var x = document.createElement('button'); x.textContent = 'Close';
+    x.style.cssText = 'margin-left:8px;font:inherit;border:2px solid #2d1f4f;border-radius:99px;background:#ffcf3f;padding:2px 10px;cursor:pointer';
+    x.onclick = function () { b.remove(); };
+    b.appendChild(t); b.appendChild(x);
+    clearTimeout(window.__wgErrT); window.__wgErrT = setTimeout(function () { if (b.parentNode) b.remove(); }, 9000);
   } catch (e) {}
 };
-window.addEventListener('error', function (e) { window.__wgErr((e && e.message) || 'unknown error'); });
-window.addEventListener('unhandledrejection', function (e) { window.__wgErr(String(e && e.reason)); });
+// Only report errors from the game itself; ignore cross-origin "Script error." noise from the viewer.
+window.addEventListener('error', function (e) {
+  if (!e || !e.error || /^Script error/i.test(e.message || '')) return;
+  window.__wgErr(e.message || 'unknown error');
+});
+window.addEventListener('unhandledrejection', function (e) { try { e.preventDefault(); } catch (_) {} });
 </script>
 <script>
 (() => {
@@ -961,7 +971,7 @@ function initAudio() {
       const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     } catch (e) { AC = null; }
   }
-  if (AC && AC.state === 'suspended') AC.resume();
+  if (AC && AC.state === 'suspended') { try { const r = AC.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
 }
 function tone(type, f1, f2, dur, vol, delay = 0) {
   const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();

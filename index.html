@@ -12,10 +12,10 @@
 <style>
 /* Layout: full-bleed sunny grove; HUD as chunky cream pills; menus are bubbly candy panels floating over the world */
 :root {
-  --sky: #8fdcff;
-  --cream: #fff8e6;
-  --cream-deep: #f1dfb6;
-  --paper: #ffffff;
+  --sky: #4a6aa8;
+  --cream: #f5ead2;
+  --cream-deep: #dcc797;
+  --paper: #fffaf1;
   --ink: #2d1f4f;
   --ink-soft: #6e5f91;
   --sun: #ffcf3f;
@@ -185,7 +185,7 @@ button { font: inherit; color: inherit; }
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.overlay.sunny { background: linear-gradient(180deg, #8fdcfff0 0%, #b8eaffc0 38%, #fff1b866 100%); }
+.overlay.sunny { background: linear-gradient(180deg, #2f3f78f2 0%, #4a64a3d0 42%, #5b4f8a99 100%); }
 .overlay.rays::before {
   content: ""; position: fixed; left: 50%; top: 40%; width: 220vmax; height: 220vmax; margin: -110vmax 0 0 -110vmax; z-index: -1;
   background: repeating-conic-gradient(from 0deg, #ffffff38 0 8deg, #ffffff00 8deg 16deg);
@@ -195,7 +195,7 @@ button { font: inherit; color: inherit; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .clouds { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
 .clouds i {
-  position: absolute; width: 120px; height: 36px; border-radius: 99px; background: #fff; opacity: .9;
+  position: absolute; width: 120px; height: 36px; border-radius: 99px; background: #fff; opacity: .35;
   box-shadow: 30px -18px 0 4px #fff, 64px -8px 0 2px #fff;
   animation: drift 38s linear infinite;
 }
@@ -262,6 +262,9 @@ button { font: inherit; color: inherit; }
 .chip.sun { background: var(--sun); color: var(--ink); border: 2px solid var(--ink); padding: 2px 7px; }
 .card.spell { background: var(--paper); background: color-mix(in srgb, var(--c) 20%, white); }
 .card.spell .orb { width: 34px; height: 34px; margin-bottom: 4px; }
+.card.spell .wandico { grid-row: auto; margin-bottom: 4px; }
+.card.lockedw { background: #ece6f2; }
+.card.lockedw .wandico { filter: grayscale(.85); opacity: .7; }
 @keyframes orbPulse { 50% { box-shadow: 0 0 22px var(--c); transform: scale(1.08); } }
 .tile {
   grid-row: span 3; align-self: center; width: 46px; height: 46px; border-radius: 14px;
@@ -341,14 +344,14 @@ button { font: inherit; color: inherit; }
 .center { text-align: center; justify-items: center; }
 
 /* loading */
-#loading { background: linear-gradient(180deg, #8fdcff 0%, #c9f0ff 58%, #7fdc8a 58.2%, #4fc36a 100%); z-index: 9; }
+#loading { background: linear-gradient(180deg, #2c3a70 0%, #5a77b8 58%, #3e9a5a 58.2%, #2a6e40 100%); z-index: 9; }
 .load { margin: 6vh auto auto; width: min(360px, 100%); display: grid; justify-items: center; gap: 14px; text-align: center; }
 .load img { width: 124px; height: auto; image-rendering: pixelated; animation: hop 1.4s ease-in-out infinite; filter: drop-shadow(0 6px 0 #2d1f4f33); }
 .loadbar { width: 100%; height: 28px; background: var(--paper); border: 4px solid var(--ink); border-radius: 99px; overflow: hidden; box-shadow: 0 5px 0 var(--ink); }
 .loadbar i { display: block; height: 100%; width: 0; border-radius: 99px; background: repeating-linear-gradient(-45deg, var(--sun) 0 10px, #ffe27a 10px 20px); background-size: 28px 28px; animation: stripes .5s linear infinite; }
 @keyframes stripes { to { background-position: 28px 0; } }
 .loadpct { font: 900 13px var(--font-ui); letter-spacing: .06em; color: var(--ink); background: var(--paper); border: 3px solid var(--ink); border-radius: 99px; padding: 4px 12px; }
-.tip { margin: 0; min-height: 2.7em; font-size: 16px; font-weight: 800; color: var(--ink); text-wrap: balance; background: #ffffffb3; border-radius: 14px; padding: 6px 12px; }
+.tip { margin: 0; min-height: 2.7em; background: #fffaf1e6 !important; font-size: 16px; font-weight: 800; color: var(--ink); text-wrap: balance; background: #ffffffb3; border-radius: 14px; padding: 6px 12px; }
 .btn.big { width: 100%; font-size: 28px; padding: 17px; }
 .btn.small { font-size: 16px; padding: 11px 16px; box-shadow: 0 4px 0 var(--ink), inset 0 -4px 0 #e7def2; }
 /* main menu */
@@ -518,12 +521,14 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
   <div class="clouds" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="modal">
     <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button></div>
-    <h2>Choose your spell</h2>
+    <h2>Pick your wand</h2>
+    <p>You use one wand for the whole run. Buy more wands in the Shop with gems from bosses.</p>
     <div class="grid2" id="spellPick"></div>
     <div class="howto">
       <div><i style="--c: var(--aqua)"></i>Drag anywhere to move</div>
       <div><i style="--c: var(--sun)"></i>Your wand aims and fires by itself</div>
-      <div><i style="--c: var(--mint)"></i>Chain kills for combo gold, then shop between waves</div>
+      <div><i style="--c: var(--mint)"></i>Spend gold on 4 power-ups after every wave</div>
+      <div><i style="--c: var(--grape)"></i>Every 10 waves night falls and monsters get stronger</div>
     </div>
   </div>
 </div>
@@ -545,7 +550,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <h2>Shop</h2>
     <div class="info"><img id="infoKing" alt=""><div><b>How to get gems</b><span>Beat the Slime King (wave 5) for 5 gems and the Lich Lord (wave 10) for 8 gems. A boss comes back every 5 waves.</span></div></div>
     <h3 class="sub">Wands</h3>
-    <p>You hold one wand at a time. It changes how your wand looks and gives a bonus.</p>
+    <p>Each wand shoots a different spell. You pick one wand before every run.</p>
     <div class="stack" id="storeWands"></div>
     <h3 class="sub">Relics</h3>
     <p>Relics give a bonus in every run. You can equip 2 at once.</p>
@@ -558,9 +563,10 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
   <div class="modal">
     <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button></div>
     <h2>Inventory</h2>
-    <p>What you equip here is used in every run.</p>
+    <p>Equip up to 2 relics. They help you in every run.</p>
     <div class="loadout" id="loadout"></div>
     <h3 class="sub">Your wands</h3>
+    <p>You pick one of these each time you press Play.</p>
     <div class="stack" id="invWands"></div>
     <h3 class="sub">Your relics</h3>
     <div class="stack" id="invRelics"></div>
@@ -572,7 +578,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
   <div class="modal">
     <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button></div>
     <h2>Monsters</h2>
-    <p>Every monster you can meet, how much health it takes when it touches you, and the wave where it first shows up.</p>
+    <p>Every monster you can meet, how much health it takes when it touches you, and the wave where it first shows up. Every 10 waves night falls: the arena gets darker and monsters get tougher and glow red.</p>
     <div class="stack" id="bestiary"></div>
   </div>
 </div>
@@ -900,7 +906,6 @@ const SHOP = [
   { id: 'haste', glyph: 'SPD', c: '#ffcf3f', name: 'Haste Rune', desc: '+12% cast speed', base: 40, mult: 1.5, max: 8, buy: () => { S.rate *= 1.12; } },
   { id: 'boots', glyph: 'MOV', c: '#3fd99a', name: 'Feather Boots', desc: '+8% move speed', base: 30, mult: 1.5, max: 5, buy: () => { S.move *= 1.08; } },
   { id: 'spirit', glyph: 'FAM', c: '#9b7bff', name: 'Spirit Familiar', desc: 'A spirit circles you and bonks monsters', base: 70, mult: 1.7, max: 4, buy: () => { S.spirits++; } },
-  { id: 'tome', glyph: 'NEW', c: '#ff8fc8', name: 'Spell Tome', desc: 'Learn a random new spell', base: 90, grow: 60, max: 3, ok: () => lockedSpells().length > 0, why: 'All learned', buy: () => { const i = pick(lockedSpells()); unlocked.add(i); buildSpellbar(); shopNote = `You learned ${SPELLS[i].name}! Switch to it from the spell bar.`; } },
 ];
 function shopPrice(it) { const n = shopLv[it.id] || 0; return Math.round(it.mult ? it.base * Math.pow(it.mult, n) : it.base + it.grow * n); }
 
@@ -910,7 +915,7 @@ let P, S, ups, enemies, shots, eshots, gems, items, parts, texts, zaps, deaths;
 let gold = 0, totalGold = 0, shopLv = {}, shopNote = '';
 let wave, queue, spawnT, waveState, clearT, kills, time, level, xp, xpNeed, pendingLv;
 let unlocked, cur, castT, aim, shake, flash, flashW, cam, kick;
-let bossKills = 0, runGems = 0, combo = 0, comboT = 0, bestCombo = 0, gemChain = 0, gemChainT = 0, freeze = 0, lvlFx = 0;
+let dark = 0, bossKills = 0, runGems = 0, combo = 0, comboT = 0, bestCombo = 0, gemChain = 0, gemChainT = 0, freeze = 0, lvlFx = 0;
 let best = 0;
 try { best = +localStorage.getItem('wizardGroveBest') || 0; } catch (e) {}
 
@@ -923,7 +928,7 @@ function resetRun(spellIdx) {
   kills = 0; time = 0; level = 1; xp = 0; xpNeed = 12; pendingLv = 0;
   unlocked = new Set([spellIdx]); cur = spellIdx; castT = .3; aim = 0; shake = 0; flash = 0; flashW = 0;
   cam = { x: 0, y: 0 }; kick = { x: 0, y: 0 };
-  bossKills = 0; runGems = 0; combo = 0; comboT = 0; bestCombo = 0; gemChain = 0; gemChainT = 0; freeze = 0; lvlFx = 0;
+  dark = 0; bossKills = 0; runGems = 0; combo = 0; comboT = 0; bestCombo = 0; gemChain = 0; gemChainT = 0; freeze = 0; lvlFx = 0;
 }
 resetRun(0);
 const addShake = n => { if (!reduceMotion && SET.shake) shake = Math.min(18, shake + n); };
@@ -941,12 +946,20 @@ delete META.stars; delete META.starsTotal;
 const GEMS_BY_BOSS = { boss: 5, lich: 8 };
 const saveSet = () => store.set('wgSettings', SET), saveMeta = () => store.set('wgMeta', META);
 const WANDS = [
-  { id: 'oak', name: 'Oak Wand', desc: 'Your trusty first wand', price: 0, shaft: '#8a5a2b', hi: '#c08a4a', band: '#ffcf3f', tip: '#ffcf3f', apply() {} },
-  { id: 'ember', name: 'Ember Wand', desc: '+8% spell damage', price: 5, shaft: '#7a2a1a', hi: '#c2502c', band: '#ff8a3d', tip: '#ff8a3d', apply() { S.dmg *= 1.08; } },
-  { id: 'crystal', name: 'Crystal Wand', desc: '+10% cast speed', price: 10, shaft: '#4aa3c6', hi: '#bdf0ff', band: '#ffffff', tip: '#7fdcff', apply() { S.rate *= 1.1; } },
-  { id: 'golden', name: 'Golden Wand', desc: 'Coins have a 30% chance to count double', price: 15, shaft: '#c98f16', hi: '#ffe27a', band: '#fff6c2', tip: '#ffcf3f', apply() { S.coinLuck = .3; } },
-  { id: 'rainbow', name: 'Rainbow Wand', desc: '+6% crit chance and sparkly casts', price: 25, shaft: '#9b7bff', hi: '#ff8fc8', band: '#3fd99a', tip: 'conic-gradient(#ff5d73, #ffcf3f, #3fd99a, #38c6ff, #9b7bff, #ff5d73)', glow: '#ff8fc8', apply() { S.crit += .06; S.rainbow = true; } },
+  { id: 'oak', spell: 0, name: 'Fire Wand', desc: 'Shoots Fireballs that set monsters on fire', price: 0, shaft: '#8a5a2b', hi: '#c08a4a', band: '#ffcf3f', tip: '#ff8a3d' },
+  { id: 'frost', spell: 1, name: 'Frost Wand', desc: 'Fires rapid Frost Shards that slow monsters', price: 5, shaft: '#4aa3c6', hi: '#bdf0ff', band: '#ffffff', tip: '#7fdcff' },
+  { id: 'storm', spell: 2, name: 'Storm Wand', desc: 'Chain Bolts that zap 2 more monsters', price: 10, shaft: '#c98f16', hi: '#ffe27a', band: '#fff6c2', tip: '#ffe45c' },
+  { id: 'arcane', spell: 3, name: 'Arcane Wand', desc: 'Three magic orbs that chase their target', price: 15, shaft: '#6a4bc4', hi: '#c77dff', band: '#ff8fc8', tip: '#c77dff' },
 ];
+// Old cosmetic wands from earlier versions are refunded as gems.
+const OLD_WANDS = { ember: 5, crystal: 10, golden: 15, rainbow: 25 };
+(() => {
+  let refund = 0;
+  META.wands = (META.wands || ['oak']).filter(id => { if (OLD_WANDS[id]) { refund += OLD_WANDS[id]; return false; } return true; });
+  if (!META.wands.includes('oak')) META.wands.unshift('oak');
+  if (refund) { META.gems += refund; META.refunded = refund; saveMeta(); }
+  if (!WANDS.some(w => w.id === META.wand)) META.wand = 'oak';
+})();
 const RELICS = [
   { id: 'clover', glyph: 'LCK', c: '#3fd99a', name: 'Lucky Clover', desc: '+5% crit chance', price: 5, apply() { S.crit += .05; } },
   { id: 'pouch', glyph: 'GLD', c: '#ffcf3f', name: 'Coin Pouch', desc: 'Start every run with 30 gold', price: 5, apply() { gold = 30; } },
@@ -957,7 +970,6 @@ const RELICS = [
 ];
 const curWand = () => WANDS.find(w => w.id === META.wand) || WANDS[0];
 function applyLoadout() {
-  curWand().apply();
   META.equip.forEach(id => { const r = RELICS.find(x => x.id === id); if (r) r.apply(); });
 }
 
@@ -1098,12 +1110,20 @@ function buildLogo(el) {
   el.innerHTML = ['Wizard', 'Grove'].map(w => [...w].map(ch => `<span style="--i:${k};color:${HAPPY[k++ % HAPPY.length]}">${ch}</span>`).join('')).join('<br>');
 }
 function buildMenu() {
-  $('spellPick').innerHTML = SPELLS.map((sp, i) => `
-    <button class="card spell enter" data-i="${i}" style="${orbStyle(sp)};--i:${i}">
-      <i class="orb"></i><b>${sp.name}</b><span>${sp.desc}</span>
-      <div class="chips"><em class="chip">${sp.dmg}${sp.count ? ' x' + sp.count : ''} DMG</em><em class="chip">${(1 / sp.cd).toFixed(1)}/SEC</em></div>
-    </button>`).join('');
-  $('spellPick').querySelectorAll('button').forEach(b => b.onclick = () => startGame(+b.dataset.i));
+  $('spellPick').innerHTML = WANDS.map((w, i) => {
+    const sp = SPELLS[w.spell], owned = META.wands.includes(w.id);
+    return `<button class="card spell enter ${owned ? '' : 'lockedw'}" data-w="${w.id}" style="${orbStyle(sp)};--i:${i}" ${owned ? '' : 'aria-disabled="true"'}>
+      ${wandIcon(w)}<b>${w.name}</b><span>${w.desc}</span>
+      <div class="chips">${owned
+        ? `<em class="chip">${sp.dmg}${sp.count ? ' x' + sp.count : ''} DMG</em><em class="chip">${(1 / sp.cd).toFixed(1)}/SEC</em>`
+        : `<em class="chip cost">Buy in Shop: ${w.price} gems</em>`}</div>
+    </button>`;
+  }).join('');
+  $('spellPick').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const w = WANDS.find(x => x.id === b.dataset.w);
+    if (!META.wands.includes(w.id)) { sfx('nope'); retrigger(b, 'nope'); toast(`Buy the ${w.name} in the Shop first (${w.price} gems)`); return; }
+    META.wand = w.id; saveMeta(); startGame(w.spell);
+  });
 }
 const SCREENS = ['loading', 'title', 'menu', 'settings', 'store', 'inventory', 'guide', 'records'];
 function showScreen(id) {
@@ -1223,7 +1243,7 @@ function renderStore(flash) {
 }
 function renderInventory() {
   const w = curWand();
-  const slots = [`<div class="slotbox"><small>Wand</small>${wandIcon(w)}<b>${w.name}</b></div>`];
+  const slots = [`<div class="slotbox"><small>Last wand</small>${wandIcon(w)}<b>${w.name}</b></div>`];
   for (let i = 0; i < 2; i++) {
     const r = RELICS.find(x => x.id === META.equip[i]);
     slots.push(r ? `<div class="slotbox"><small>Relic ${i + 1}</small>${relicIcon(r)}<b>${r.name}</b></div>`
@@ -1231,8 +1251,7 @@ function renderInventory() {
   }
   $('loadout').innerHTML = slots.join('');
   $('invWands').innerHTML = WANDS.filter(x => META.wands.includes(x.id)).map(x => {
-    const on = META.wand === x.id;
-    return `<div class="row-item ${on ? 'on' : ''}">${wandIcon(x)}<div><b>${x.name}</b><span class="d">${x.desc}</span></div>${on ? '<button class="act mint" disabled>Equipped</button>' : `<button class="act plain" data-eqw="${x.id}">Equip</button>`}</div>`;
+    return `<div class="row-item two">${wandIcon(x)}<div><b>${x.name}</b><span class="d">${x.desc}</span></div></div>`;
   }).join('') + (META.wands.length < WANDS.length ? '<div class="empty-note">Get more wands in the Shop with gems from bosses.<button class="act" data-goto="store">Open the Shop</button></div>' : '');
   const ownedR = RELICS.filter(r => META.relics.includes(r.id));
   $('invRelics').innerHTML = ownedR.length ? ownedR.map(r => {
@@ -1314,26 +1333,12 @@ function boot() {
   $('tapStart').onclick = () => {
     initAudio(); clearInterval(tipTimer); sfx('wave');
     mode = 'menu'; renderTitle(); showScreen('title');
+    if (META.refunded) { toast(`Wands changed! You got ${META.refunded} gems back for your old wands.`); delete META.refunded; saveMeta(); }
   };
 }
 
-function buildSpellbar() {
-  $('spellbar').innerHTML = SPELLS.map((sp, i) => {
-    const has = unlocked.has(i);
-    return `<button class="slot ${has ? '' : 'locked'} ${i === cur ? 'on' : ''}" data-i="${i}" style="${orbStyle(sp)}" aria-label="${has ? sp.name : 'Locked spell'}">
-      <i class="orb">${has ? '' : '?'}</i>${has ? sp.name.split(' ')[0] : 'Locked'}<kbd>${i + 1}</kbd></button>`;
-  }).join('');
-  $('spellbar').querySelectorAll('button').forEach(b => {
-    b.onpointerdown = e => e.stopPropagation();
-    b.onclick = () => selectSpell(+b.dataset.i);
-  });
-}
-function selectSpell(i) {
-  if (mode !== 'play' || !unlocked.has(i) || i === cur) return;
-  cur = i; castT = Math.min(castT, .1); buildSpellbar(); sfx('click');
-  const tip = wandTip();
-  zaps.push({ ring: true, x1: tip.x, y1: tip.y, r: 30, life: .3, max: .3, color: SPELLS[i].color, w: 4 });
-}
+function buildSpellbar() { $('spellbar').innerHTML = ''; }
+function selectSpell() {}
 function banner(text, sub, kind) {
   const b = $('banner');
   b.className = kind || '';
@@ -1359,8 +1364,12 @@ function confetti(n) {
     setTimeout(() => el.remove(), 4300);
   }
 }
+let shopOffers = [];
 function openShop() {
   mode = 'shop'; joy = null; shopNote = '';
+  const pool = SHOP.map((it, k) => k).filter(k => (shopLv[SHOP[k].id] || 0) < SHOP[k].max);
+  shopOffers = [];
+  while (shopOffers.length < 4 && pool.length) shopOffers.push(pool.splice(Math.random() * pool.length | 0, 1)[0]);
   renderShop(true); $('shop').hidden = false;
   $('shop').scrollTop = 0;
 }
@@ -1370,7 +1379,8 @@ function renderShop(enter, boughtK) {
   $('shopNote').textContent = shopNote;
   $('shopNote').hidden = !shopNote;
   $('nextWaveBtn').textContent = `Start wave ${wave + 1}`;
-  $('shopCards').innerHTML = SHOP.map((it, k) => {
+  $('shopCards').innerHTML = shopOffers.map(k => {
+    const it = SHOP[k];
     const n = shopLv[it.id] || 0, cost = shopPrice(it);
     const maxed = n >= it.max, blocked = it.ok && !it.ok();
     const off = maxed || blocked || gold < cost;
@@ -1441,6 +1451,7 @@ function levelBurst() {
 }
 
 /* ---------- waves ---------- */
+const nightOf = w => Math.floor((Math.max(1, w) - 1) / 10);
 function startWave(n) {
   wave = n; waveState = 'fighting';
   if (S.waveShield && S.shield < 1) S.shield = 1;
@@ -1451,7 +1462,8 @@ function startWave(n) {
   if (boss) { queue.length = Math.ceil(queue.length * .5); queue.unshift(boss); }
   spawnT = 1.2;
   const fresh = POOL.filter(p => p[1] === n && n > 1).map(p => TYPES[p[0]]);
-  if (boss) banner(`Wave ${n}`, `The ${TYPES[boss].name} approaches!`, 'boss');
+  if (n > 1 && (n - 1) % 10 === 0) banner(`Wave ${n}`, `Night ${nightOf(n)} falls... monsters are stronger now!`, 'boss');
+  else if (boss) banner(`Wave ${n}`, `The ${TYPES[boss].name} approaches!`, 'boss');
   else if (fresh.length) banner(`Wave ${n}`, 'New: ' + fresh.map(t => t.name + (t.note ? ` (${t.note})` : '')).join(', '));
   else banner(`Wave ${n}`);
   sfx('wave');
@@ -1463,11 +1475,12 @@ function spawnEnemy(type, x, y) {
     const dist = Math.hypot(VW, VH) / 2 / ZOOM + 50;
     x = P.x + Math.cos(a) * dist; y = P.y + Math.sin(a) * dist;
   }
-  const hpMul = T.boss ? 1 + (wave / 5 - 1) * .9 : 1 + (wave - 1) * .16;
-  const dmgMul = 1 + (wave - 1) * .04;
+  const night = nightOf(wave);
+  const hpMul = (T.boss ? 1 + (wave / 5 - 1) * .9 : 1 + (wave - 1) * .16) * (1 + night * .6);
+  const dmgMul = (1 + (wave - 1) * .04) * (1 + night * .3);
   const e = {
     type, T, x, y, age: 0, sq: 0,
-    hp: T.hp * hpMul, maxHp: T.hp * hpMul, r: T.r, speed: T.speed * rand(.9, 1.1),
+    hp: T.hp * hpMul, maxHp: T.hp * hpMul, r: T.r, speed: T.speed * rand(.9, 1.1) * (1 + night * .08), night,
     dmg: Math.round(T.dmg * dmgMul), dmgMul,
     kx: 0, ky: 0, flash: 0, slow: 0, burn: 0, burnDps: 0, burnTick: 0, ph: Math.random() * 6, face: 1,
     shotT: type === 'mush' ? rand(1, 2) : 2.5, dashT: 4, summonT: 5, st: 'walk', stT: 0, cx: 0, cy: 0, fuse: 0, spCd: 0,
@@ -1483,12 +1496,7 @@ function waveCleared() {
   texts.push({ x: P.x, y: P.y - 46, text: `+${bonus} GOLD`, life: 1.6, max: 1.6, color: '#ffcf3f', size: 18, vx: 0, vy: -30 });
   sfx('clear');
   for (let i = 0; i < 40; i++) { const a = Math.random() * 6.28, s = rand(100, 360); parts.push({ x: P.x, y: P.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120, g: 300, life: rand(.7, 1.2), max: 1.2, size: rand(4, 7), color: pick(HAPPY), kind: 'confetti', rot: rand(0, 6), glow: false }); }
-  const locked = lockedSpells();
-  if (locked.length && (wave % 3 === 2 || wave % 5 === 0)) {
-    const a = Math.random() * Math.PI * 2;
-    items.push({ x: P.x + Math.cos(a) * 90, y: P.y + Math.sin(a) * 90, spell: pick(locked), t: 0 });
-    banner('Wave cleared!', 'A spell tome dropped! The shop opens next', 'good');
-  } else banner('Wave cleared!', 'The shop opens next', 'good');
+  banner('Wave cleared!', 'The shop opens next', 'good');
 }
 function explode(e) {
   e.dead = true; addShake(10); sfx('boom'); freeze = Math.max(freeze, .06);
@@ -1876,6 +1884,7 @@ function updateFx(dt) {
   deaths = deaths.filter(d => d.life > 0);
   shake = Math.max(0, shake - dt * 40); flash = Math.max(0, flash - dt); flashW = Math.max(0, flashW - dt);
   const kd = Math.pow(.0005, dt); kick.x *= kd; kick.y *= kd;
+  dark += ((nightOf(wave) ? Math.min(.72, .32 + nightOf(wave) * .14) : 0) - dark) * Math.min(1, dt * .8);
   cam.x += (P.x - cam.x) * Math.min(1, dt * 8); cam.y += (P.y - cam.y) * Math.min(1, dt * 8);
 }
 
@@ -1962,6 +1971,7 @@ function drawEnemy(e) {
   shadow(e.x, e.y + e.r * .8, e.r * (floaty ? .7 : 1) * born);
   if (e.fuse > 0) glow(e.x, e.y, 50, '#ff3b3b', .35 + Math.sin(T * 30) * .2);
   if (e.T.boss) glow(e.x, e.y - e.r * .4, e.r * 2.6, e.T.color, .25);
+  if (e.night) glow(e.x, e.y - e.r * .3, e.r * 2.2, '#ff3b5c', Math.min(.6, .3 + .12 * e.night));
   ctx.save();
   const shakeX = e.st === 'wind' ? rand(-2, 2) : 0;
   ctx.translate(e.x + shakeX, e.y + e.r * .8 - fly);
@@ -2163,13 +2173,20 @@ function render() {
 
   // screen space
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (dark > .01) {
+    const px = VW / 2 + (P.x - cam.x) * ZOOM, py = VH / 2 + (P.y - cam.y) * ZOOM;
+    const g = ctx.createRadialGradient(px, py, 70 * ZOOM, px, py, Math.max(VW, VH) * .6);
+    g.addColorStop(0, 'rgba(8,10,35,0)'); g.addColorStop(1, `rgba(8,10,35,${dark})`);
+    ctx.fillStyle = `rgba(8,10,35,${dark * .6})`; ctx.fillRect(0, 0, VW, VH);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
+  }
   drawMotes();
   if (!vignette) {
     vignette = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .35, VW / 2, VH / 2, Math.hypot(VW, VH) * .62);
-    vignette.addColorStop(0, 'rgba(20,60,40,0)'); vignette.addColorStop(1, 'rgba(20,60,40,.32)');
+    vignette.addColorStop(0, 'rgba(15,30,45,0)'); vignette.addColorStop(1, 'rgba(15,30,45,.45)');
   }
   const sun = ctx.createLinearGradient(0, 0, 0, VH * .45);
-  sun.addColorStop(0, 'rgba(255,244,200,.22)'); sun.addColorStop(1, 'rgba(255,244,200,0)');
+  sun.addColorStop(0, 'rgba(255,230,190,.1)'); sun.addColorStop(1, 'rgba(255,244,200,0)');
   ctx.fillStyle = sun; ctx.fillRect(0, 0, VW, VH * .45);
   ctx.fillStyle = vignette; ctx.fillRect(0, 0, VW, VH);
   if (flash > 0) { ctx.fillStyle = `rgba(255,93,115,${flash * .45})`; ctx.fillRect(0, 0, VW, VH); }

@@ -356,6 +356,12 @@ button { font: inherit; color: inherit; }
 .realm.locked .rboss img { filter: brightness(0); opacity: .6; }
 .realm.nope { animation: nope .3s; }
 .starico { width: 18px; height: 18px; background: #ffd23a; clip-path: polygon(50% 0, 62% 35%, 100% 38%, 70% 60%, 80% 100%, 50% 78%, 20% 100%, 30% 60%, 0 38%, 38% 35%); display: inline-block; }
+.newweapon { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; text-align: left; padding: 10px 12px; border: 3px solid var(--ink); border-radius: 16px; background: linear-gradient(135deg, #2a1846, #4a2a6a); color: #fff; box-shadow: 0 4px 0 var(--ink), 0 0 24px rgba(255,207,63,.45); animation: badge .6s cubic-bezier(.2, 1.8, .4, 1) backwards .9s; }
+.newweapon small { display: block; font: 900 12px var(--font-body); color: #ffd23a; text-transform: uppercase; letter-spacing: .05em; }
+.newweapon b { display: block; font: 700 22px/1.1 var(--font-display); }
+.newweapon span { display: block; font: 700 12px var(--font-body); opacity: .8; }
+.realm .rreward { display: inline-flex; align-items: center; gap: 4px; font: 800 11px var(--font-body); color: #ffd23a; margin-top: 3px; }
+.realm .rreward img { width: 18px; height: 18px; }
 .wstars { display: flex; justify-content: center; gap: 14px; margin: 4px 0; }
 .wstar { display: grid; justify-items: center; gap: 6px; width: 88px; }
 .wstar i { width: 54px; height: 54px; background: #3a3350; clip-path: polygon(50% 0, 62% 35%, 100% 38%, 70% 60%, 80% 100%, 50% 78%, 20% 100%, 30% 60%, 0 38%, 38% 35%); }
@@ -748,7 +754,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <div class="awning" aria-hidden="true"></div>
     <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button><span class="wallet"><span class="stars" aria-label="Gems"><i class="gem"></i><span id="storeGems">0</span></span><span class="stars" aria-label="Gold"><i class="coin"></i><span id="storeGold">0</span></span></span></div>
     <div class="shophello"><h2>Shop</h2></div>
-    <p>Spend gems from bosses or gold from your runs on new weapons and abilities. Tap an item to see more.</p>
+    <p>Spend gems from bosses or gold from your runs on new abilities. Unlock weapons by beating realms. Tap an item to see more.</p>
     <div class="tabs" role="tablist">
       <button role="tab" data-stab="weapons">Weapons<small id="cntWeapons"></small></button>
       <button role="tab" data-stab="abilities">Abilities<small id="cntAbilities"></small></button>
@@ -860,6 +866,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <h2>Realm cleared!</h2>
     <p id="wonRealm"></p>
     <div class="wstars" id="wonStars"></div>
+    <div class="newweapon" id="wonWeapon" hidden></div>
     <div class="ribbon" id="wonUnlock" hidden></div>
     <div class="ribbon" id="wonEndless" hidden>Endless mode unlocked!</div>
     <div class="statgrid" id="wonStats"></div>
@@ -1334,19 +1341,19 @@ if (!Array.isArray(META.abilities)) META.abilities = ['dash'];
 if (!Array.isArray(META.abEquip)) META.abEquip = ['dash'];
 const curWand = () => WANDS.find(w => w.id === META.wand) || WANDS[0];
 const WEAPONS = [
-  // Giant Sword is free for testing; set price back to 30 later
-  { id: 'sword', name: 'Giant Sword', price: 0, c: '#ff9a5c', desc: 'A hellfire blade as big as you. Start every run with it: tap Slash for a heavy burning swing, hold it to charge a wave of fire.',
+  { id: 'sword', name: 'Giant Sword', realm: 0, price: 0, c: '#ff9a5c', desc: 'A hellfire blade as big as you. Start every run with it: tap Slash for a heavy burning swing, hold it to charge a wave of fire.',
     facts: ['Ready at the start of every run', 'Tap: burning swing', 'Hold: charged fire wave'] },
-  // Hexfire Dagger is free for testing; give it a price later
-  { id: 'knife', name: 'Hexfire Dagger', price: 0, c: '#b357ff', desc: 'A violet dagger wreathed in purple flame. Throw it lightning fast: it sticks in monsters with a juicy splat and sets them alight.',
+  { id: 'knife', name: 'Hexfire Dagger', realm: 1, price: 0, c: '#b357ff', desc: 'A violet dagger wreathed in purple flame. Throw it lightning fast: it sticks in monsters with a juicy splat and sets them alight.',
     facts: ['Ready at the start of every run', 'Tap: throw a dagger', 'Hold: keep throwing'] },
-  // Last Prism is free for testing; give it a price later
-  { id: 'prism', name: 'Last Prism', price: 0, c: '#9fe6ff', desc: 'A floating crystal that splits light. Hold Fire: six rainbow beams spin out, close in and fuse into one enormous laser. Needs time to recharge.',
+  { id: 'prism', name: 'Last Prism', realm: 3, price: 0, c: '#9fe6ff', desc: 'A floating crystal that splits light. Hold Fire: six rainbow beams spin out, close in and fuse into one enormous laser. Needs time to recharge.',
     facts: ['Hold: rainbow beams fuse into one laser', 'Pierces every monster in the line', `Recharges for a few seconds after use`] },
-  // Chaos Gauntlets are free for testing; give them a price later
-  { id: 'gaunt', name: 'Chaos Gauntlets', price: 0, c: '#ff2d55', desc: 'Two iron gauntlets crackling with chaos. Rebound punches the space in front of you, knocking monsters back and sending their bullets flying back at them. Grab dashes to a monster, seizes it and launches it with a devastating punch.',
+  { id: 'gaunt', name: 'Chaos Gauntlets', realm: 2, price: 0, c: '#ff2d55', desc: 'Two iron gauntlets crackling with chaos. Rebound punches the space in front of you, knocking monsters back and sending their bullets flying back at them. Grab dashes to a monster, seizes it and launches it with a devastating punch.',
     facts: ['Rebound: close punch that reflects bullets', 'Grab: dash, seize and launch a monster', 'Grab recharges in 5 seconds'] },
 ];
+// weapons come from beating realms: you own exactly the ones whose realm you've cleared
+const weaponForRealm = r => WEAPONS.find(w => w.realm === r);
+const weaponEarned = w => (META.realm || 0) > w.realm;
+META.weapons = WEAPONS.filter(weaponEarned).map(w => w.id);
 const weaponIcon = w => w.id === 'sword' ? `<span class="tile" style="--c:#3b1a22">${swordImg(40)}</span>` : w.id === 'knife' ? `<span class="tile" style="--c:#2a1240">${knifeImg(40)}</span>` : w.id === 'prism' ? `<span class="tile" style="--c:#1b2140">${prismImg(40)}</span>` : w.id === 'gaunt' ? `<span class="tile" style="--c:#2a0a16">${gauntImg(40)}</span>` : `<span class="abico" style="--c:${w.c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg></span>`;
 if (!Array.isArray(META.weapons)) META.weapons = [];
 function applyLoadout() {
@@ -1754,7 +1761,7 @@ function storeList(tab) {
 }
 const STORE_NOTES = {
   abilities: 'Abilities are buttons you tap during a run. They recharge after each use.',
-  weapons: 'Weapons you keep forever. In a run, tap Switch to swap between the ones you own.',
+  weapons: 'Beat a realm\'s boss to unlock a new weapon. In a run, tap Switch to swap between the ones you own.',
 };
 function renderStore(enter = true) {
   $('storeGems').textContent = META.gems; $('storeGold').textContent = META.gold || 0;
@@ -1766,8 +1773,8 @@ function renderStore(enter = true) {
   $('storeTabNote').textContent = STORE_NOTES[storeTab];
   const list = storeList(storeTab);
   $('storeGrid').innerHTML = list.map((x, k) => {
-    const poor = !x.owned && META.gems < x.it.price && (META.gold || 0) < goldPrice(x.it);
-    const price = x.owned ? 'Owned' : x.it.price === 0 ? 'Free' : `<i class="gem sm"></i>${x.it.price}<span class="or">or</span><i class="coin"></i>${goldPrice(x.it)}`;
+    const poor = !x.owned && (x.kind === 'g' || (META.gems < x.it.price && (META.gold || 0) < goldPrice(x.it)));
+    const price = x.owned ? 'Owned' : x.kind === 'g' ? `Beat realm ${x.it.realm + 1}` : `<i class="gem sm"></i>${x.it.price}<span class="or">or</span><i class="coin"></i>${goldPrice(x.it)}`;
     return `<button class="scard ${enter ? 'enter' : ''} ${x.owned ? 'owned' : ''} ${poor ? 'poor' : ''}" data-k="${k}" style="--c:${x.color};--i:${k}">
       <span class="sicon">${x.icon}</span><b>${x.it.name}</b><span class="sdesc">${x.it.desc}</span><span class="sprice">${price}</span></button>`;
   }).join('');
@@ -1786,6 +1793,7 @@ function openSheet(x) {
   const it = x.it, miss = it.price - META.gems, gp = goldPrice(it), gmiss = gp - (META.gold || 0);
   let action;
   if (x.owned) action = `<p class="sd" style="color:var(--ink)"><b>${equippedText(x)}</b></p>`;
+  else if (x.kind === 'g') action = `<button class="btn ghost" disabled style="opacity:.7">Locked</button><span class="need">Defeat ${TYPES[REALMS[it.realm].boss].name} in ${REALMS[it.realm].name} (realm ${it.realm + 1}) to unlock it.</span>`;
   else if (it.price === 0) action = `<button class="btn go" id="sheetBuy" data-cur="gems">Get it free</button>`;
   else {
     const gemBtn = miss <= 0 ? `<button class="btn go" id="sheetBuy" data-cur="gems"><i class="gem sm"></i> Buy for ${it.price} gems</button>` : `<button class="btn ghost" disabled style="opacity:.7"><i class="gem sm"></i> ${it.price} gems</button>`;
@@ -1881,7 +1889,7 @@ function renderRealms() {
     return `<button class="realm ${locked ? 'locked' : ''} ${done ? 'done' : ''} ${i === META.realm ? 'current' : ''}" data-r="${i}" style="--a:${R.a};--b:${R.b};--i:${i}" ${locked ? 'aria-disabled="true"' : ''}>
       <span class="rboss"><img src="${sprURL(boss.spr)}" alt=""></span>
       <span class="rtext"><small>Realm ${i + 1} · ${R.waves} waves</small><b>${R.name}</b><em>${locked ? `Beat ${REALMS[i - 1].name} to unlock` : R.sub}</em>
-        <span class="rfoes">${foes}<span class="rvs">Boss: ${boss.name}</span></span></span>
+        <span class="rfoes">${foes}<span class="rvs">Boss: ${boss.name}</span></span>${(() => { const w = weaponForRealm(i); return w ? `<span class="rreward">${w.id === 'sword' ? swordImg(18) : w.id === 'knife' ? knifeImg(18) : w.id === 'prism' ? prismImg(18) : gauntImg(18)}${done ? `${w.name} unlocked` : `Reward: ${w.name}`}</span>` : ''; })()}</span>
       <span class="rstars">${[0, 1, 2].map(k => `<i class="${k < st ? 'on' : ''}"></i>`).join('')}<small>${done ? 'Cleared' + best : locked ? 'Locked' : 'Next'}</small></span>
     </button>`;
   });
@@ -2414,7 +2422,8 @@ function winRealm() {
   const got = [true, P.hp >= P.maxHp * .5, time <= R.par];
   const n = got.filter(Boolean).length, prev = META.realmStars[id] || 0, first = RUN.realm >= META.realm;
   let gems = 0;
-  if (first) { gems += R.gems; META.realm = RUN.realm + 1; }
+  let newWeapon = null;
+  if (first) { gems += R.gems; META.realm = RUN.realm + 1; const w = weaponForRealm(RUN.realm); if (w && !META.weapons.includes(w.id)) { META.weapons.push(w.id); newWeapon = w; } }
   if (n > prev) { gems += (n - prev) * 2; META.realmStars[id] = n; }
   META.bestTime[id] = Math.min(META.bestTime[id] || 1e9, Math.round(time));
   META.gems += gems; META.gemsTotal += gems;
@@ -2431,6 +2440,8 @@ function winRealm() {
     const next = REALMS[RUN.realm + 1];
     $('wonUnlock').hidden = !(first && next);
     if (next) $('wonUnlock').textContent = `Unlocked: ${next.name}`;
+    $('wonWeapon').hidden = !newWeapon;
+    if (newWeapon) $('wonWeapon').innerHTML = `${weaponIcon(newWeapon)}<div><small>New weapon unlocked!</small><b>${newWeapon.name}</b><span>It's ready in your next run. Tap Switch to use it.</span></div>`;
     $('wonEndless').hidden = !(first && !next);
     $('wonNext').textContent = next ? `Next: ${next.name}` : 'Back to the map';
     $('won').hidden = false;

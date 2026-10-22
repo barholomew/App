@@ -2886,7 +2886,17 @@ let swordCharge = null, swordReady = false;
 function updateSword(dt) {
   if (!S.sword) return;
   swordT = Math.max(0, swordT - dt);
-  SW.fire = Math.max(0, SW.fire - dt);
+  SW.ign = Math.max(0, SW.ign - dt * 3.2);
+  if (SW.fire > 0) {
+    SW.fire = Math.max(0, SW.fire - dt);
+    if (SW.fire === 0 && SW.out) {
+      // snuffed out: smoke puffs along the blade and a sizzle
+      SW.out = false; swordSfx.bladeOut();
+      const ux = Math.cos(SW.ang), uy = Math.sin(SW.ang), hx = P.x + SW.side * 19, hy = P.y + 8;
+      for (let i = 0; i < 7; i++) { const d = 20 + i * 11; parts.push({ x: hx + ux * d + rand(-3, 3), y: hy + uy * d, vx: rand(-15, 15), vy: rand(-55, -30), life: rand(.6, .9), max: .9, size: rand(6, 10), color: '#7a6f86', kind: 'smoke' }); }
+      for (let i = 0; i < 6; i++) { const d = rand(20, 85); parts.push({ x: hx + ux * d, y: hy + uy * d, vx: rand(-30, 30), vy: rand(-90, -40), life: .5, max: .5, size: rand(1.5, 2.5), color: '#ff8a2a', kind: 'dot', glow: true, fr: .3 }); }
+    }
+  }
   if (swing) { swing.t += dt; updateSwingHits(); if (swing && swing.t >= SWORD.swingTime + .2) swing = null; }
   if (swordCharge !== null) {
     swordCharge += dt;
@@ -3048,9 +3058,14 @@ function landSwordHit(e, w) {
   if (killed) swordSfx.slice(w.landed);
   // a big hit (charged, or a kill) sets the blade on fire for a few seconds
   if (first && (w.charged || killed)) {
-    const dur = w.charged ? 3.2 : 1.8;
-    if (SW.fire <= .2) sfx('ignite');
-    SW.fire = Math.max(SW.fire, dur); SW.fireMax = Math.max(SW.fire, 1);
+    const lit = SW.fire > .05;
+    SW.fire = lit ? Math.min(BLADE_FIRE.max, Math.max(SW.fire + BLADE_FIRE.killAdd, w.charged ? BLADE_FIRE.charged : 0)) : (w.charged ? BLADE_FIRE.charged : BLADE_FIRE.kill);
+    SW.fireMax = SW.fire; SW.out = true;
+    SW.ign = lit ? Math.max(SW.ign, .5) : 1;   // the flare: full on a fresh light, smaller when it's already burning
+    swordSfx.bladeIgnite(!lit);
+    // sparks burst off the whole blade
+    const ux = Math.cos(SW.ang), uy = Math.sin(SW.ang), hx = P.x + SW.side * 19, hy = P.y + 8;
+    for (let i = 0; i < (lit ? 8 : 20); i++) { const d = rand(15, 90), a = rand(0, 6.28), v = rand(120, 320); parts.push({ x: hx + ux * d, y: hy + uy * d, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, life: rand(.25, .45), max: .45, size: rand(2, 3.5), color: pick(['#fff3c4', '#ffd44a', '#ff8a2a']), kind: 'spark', glow: true, fr: .02 }); }
   }
 }
 
@@ -4196,6 +4211,20 @@ const swordSfx = (() => {
       if (P_.roar) { const r = P_.roar; r.g.gain.cancelScheduledValues(t); r.g.gain.setValueAtTime(r.g.gain.value, t); r.g.gain.exponentialRampToValueAtTime(.0001, t + rel + .1); r.saws.forEach(o => { o.frequency.setTargetAtTime(40, t, .1); o.stop(t + rel + .15); }); r.sub.stop(t + rel + .15); r.lfo.stop(t + rel + .15); }
       if (!quick && ok()) { osc('sine', fused ? 900 : 600, 120, .35, .05, { send: .5 }); if (fused) nz(.4, .1, 'lowpass', 2000, 200, .7, { send: .4 }); }
     },
+    bladeIgnite(fresh) {
+      if (!ok()) return; const p = vary(), v = fresh ? 1 : .55;
+      // the blade bursting into flame: a deep whoomp, a rushing roar and crackles
+      osc('sine', 90 * p, 45, .3, .32 * v, { glide: .2 });
+      nz(.45, .34 * v, 'bandpass', 220, 2600, 1, { attack: .015, sweep: .18, send: .3 });
+      nz(.3, .12 * v, 'highpass', 3800, 0, .7, { attack: .02 });
+      for (let i = 0; i < (fresh ? 6 : 3); i++) nz(.02, .16 * v, 'bandpass', rand(2500, 6000), 0, 6, { delay: rand(.04, .35) });
+    },
+    bladeOut() {
+      if (!ok()) return;
+      // a soft hiss as the fire dies
+      nz(.5, .09, 'highpass', 5200, 2600, .8, { attack: .04, sweep: .4 });
+      nz(.25, .05, 'lowpass', 500, 150, .7);
+    },
     gauntSwing() {
       if (!ok()) return; const p = vary();
       nz(.1, .5, 'bandpass', 480 * p, 2300 * p, 1.4, { attack: .008, sweep: .07 });  // air
@@ -4300,7 +4329,9 @@ function swordImg(size = 40) {
   return `<img src="${swordIconURL}" alt="" style="width:${size}px;height:${size}px;display:block">`;
 }
 // Sword pose: a spring keeps every move smooth (idle sway, wind-up, swing, settle back)
-const SW = { ang: -Math.PI / 2, vel: 0, side: 1, reach: 0, draw: 0, trail: [], lastDir: -1, fire: 0, fireMax: 1 };
+const SW = { ang: -Math.PI / 2, vel: 0, side: 1, reach: 0, draw: 0, trail: [], lastDir: -1, fire: 0, fireMax: 1, ign: 0, out: false };
+// blade fire: short and punchy. A big flare when it catches, then it burns down and snuffs out with a puff.
+const BLADE_FIRE = { charged: 1.4, kill: .8, killAdd: .3, max: 1.6 };
 const angDiff = (a, b) => ((a - b + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
 let drawDt = 0; // time since the last drawn frame (0 while paused or frozen)
 function swordPose(dt, bob) {
@@ -4402,11 +4433,11 @@ function flameTongue(x, y, h, w, seed, a) {
   });
   ctx.globalAlpha = 1;
 }
-function swordFlames(hx, hy, burn, stretch) {
+function swordFlames(hx, hy, burn, stretch, ign = 0) {
   const ux = Math.cos(SW.ang), uy = Math.sin(SW.ang);
   for (let i = 0; i < 7; i++) {
     const d = (20 + i * 10.5) * stretch, x = hx + ux * d, y = hy + uy * d;
-    const tip = i / 6, h = (19 + tip * 10) * (.5 + burn * .5), w = 6.5 + (1 - Math.abs(tip - .5)) * 2.5;
+    const tip = i / 6, boost = 1 + ign * 1.1, h = (19 + tip * 10) * (.5 + burn * .5) * boost, w = (6.5 + (1 - Math.abs(tip - .5)) * 2.5) * (1 + ign * .35);
     flameTongue(x, y, h, w, i * 1.7, .85 * burn);
   }
   if (Math.random() < .7 * burn) { const d = rand(20, 86) * stretch; parts.push({ x: hx + ux * d + rand(-4, 4), y: hy + uy * d + rand(-4, 4), vx: rand(-20, 20), vy: rand(-110, -50), life: rand(.35, .6), max: .6, size: rand(1.5, 3), color: pick(['#ffd44a', '#ff8a2a', '#ff3b1f']), kind: 'dot', glow: true, fr: .4 }); }
@@ -4438,11 +4469,12 @@ function drawSword(bob = 0) {
   ctx.save(); ctx.translate(hx, hy); ctx.rotate(SW.ang + Math.PI / 2);
   const pop = SW.draw < 1 ? 1 - Math.pow(1 - SW.draw, 3) : 1;
   ctx.scale(pop, stretch * pop); ctx.translate(0, -3);
-  const burn = Math.min(1, SW.fire / .6); // flames fade out over the last moments
+  const left = SW.fire / Math.max(.01, SW.fireMax), burn = SW.fire > 0 ? Math.min(1, SW.fire / .35) * (.55 + .45 * left) : 0; // burns down, fades at the end
   glow(0, -46, 40 + heat * 30 + burn * 26, '#ff5d3b', .2 + Math.max(heat, burn * .8) * .45);
   paintSword(ctx, Math.max(heat, burn));
   ctx.restore();
-  if (burn > 0) swordFlames(hx, hy, burn, stretch);
+  if (burn > 0 || SW.ign > 0) swordFlames(hx, hy, Math.max(burn, SW.ign * .9), stretch, SW.ign);
+  if (SW.ign > .3) { const f = (SW.ign - .3) / .7; glow(hx + Math.cos(SW.ang) * 50, hy + Math.sin(SW.ang) * 50, 44 + f * 34, '#ffcf3f', .45 * f); }
   if (swing && Math.random() < .8) parts.push({ x: hx + Math.cos(SW.ang) * 70, y: hy + Math.sin(SW.ang) * 70, vx: rand(-40, 40), vy: rand(-80, -20), life: .4, max: .4, size: rand(2, 5), color: pick(['#ff7a2a', '#ffcf3f']), glow: true });
 }
 

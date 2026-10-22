@@ -360,6 +360,8 @@ button { font: inherit; color: inherit; }
 .back { appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; background: var(--paper); color: var(--ink); border: 3px solid var(--ink); border-radius: 99px; padding: 6px 14px 6px 10px; font: 900 16px var(--font-body); box-shadow: 0 3px 0 var(--ink); }
 .back svg { width: 14px; height: 14px; }
 .back:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.wallet { display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.stars .coin { width: 16px; height: 16px; }
 .stars { display: inline-flex; align-items: center; gap: 6px; background: var(--paper); border: 3px solid var(--ink); border-radius: 99px; padding: 4px 12px 4px 8px; font: 900 18px/1.1 var(--font-body); box-shadow: 0 3px 0 var(--ink); font-variant-numeric: tabular-nums; }
 .bstar { flex: none; width: 22px; height: 22px; display: grid; place-items: center; background: var(--ink); clip-path: polygon(50% 0, 63% 35%, 100% 38%, 71% 60%, 81% 100%, 50% 77%, 19% 100%, 29% 60%, 0 38%, 37% 35%); }
 .bstar::after { content: ""; width: 14px; height: 14px; margin-top: 2px; background: var(--sun); clip-path: inherit; }
@@ -401,6 +403,10 @@ button { font: inherit; color: inherit; }
 .wandico::after { content: ""; position: absolute; left: 25px; top: 2px; width: 13px; height: 13px; border-radius: 50%; background: var(--tip); border: 2px solid var(--ink); box-shadow: 0 0 10px var(--glow, var(--sun)); }
 .chip.mint { background: var(--mint); color: var(--ink); border: 2px solid var(--ink); padding: 2px 7px; }
 .chip.cost { white-space: nowrap; background: var(--sun); color: var(--ink); border: 2px solid var(--ink); padding: 2px 8px; font-size: 11px; }
+.buyrow { display: grid; gap: 10px; width: 100%; }
+.buyrow .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn.go.gold { background: #ffcf3f; color: var(--ink); }
+.sprice .or { font-size: .8em; opacity: .7; margin: 0 4px; }
 .earn { justify-self: center; display: inline-flex; align-items: center; gap: 8px; font: 900 18px var(--font-body); background: var(--paper); border: 3px solid var(--ink); border-radius: 99px; padding: 5px 16px 5px 10px; box-shadow: 0 4px 0 var(--ink); animation: badge .6s cubic-bezier(.2, 1.8, .4, 1) backwards .6s; }
 .beast.big { padding: 6px 8px; font-size: 10px; }
 .beast.big img { width: 34px; height: 34px; }
@@ -640,7 +646,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
 <div class="overlay sunny" id="title" hidden>
   <div class="clouds" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="modal">
-    <div class="topline"><span class="stars" aria-label="Gems"><i class="gem"></i><span id="titleGems">0</span></span><span class="bestpill" id="titleBest" hidden></span><button class="icon-btn" id="setBtn" aria-label="Settings"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M4 0h2v2H4zM4 8h2v2H4zM0 4h2v2H0zM8 4h2v2H8zM1 1h2v2H1zM7 1h2v2H7zM1 7h2v2H1zM7 7h2v2H7zM2 2h6v6H2z"/><path fill="#fff8e6" d="M4 4h2v2H4z"/></svg></button></div>
+    <div class="topline"><span class="stars" aria-label="Gems"><i class="gem"></i><span id="titleGems">0</span></span><span class="stars" aria-label="Gold"><i class="coin"></i><span id="titleGold">0</span></span><span class="bestpill" id="titleBest" hidden></span><button class="icon-btn" id="setBtn" aria-label="Settings"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M4 0h2v2H4zM4 8h2v2H4zM0 4h2v2H0zM8 4h2v2H8zM1 1h2v2H1zM7 1h2v2H7zM1 7h2v2H1zM7 7h2v2H7zM2 2h6v6H2z"/><path fill="#fff8e6" d="M4 4h2v2H4z"/></svg></button></div>
     <div class="hero">
       <span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span>
       <img id="heroWiz" alt="The wizard">
@@ -654,7 +660,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
       <button class="mbtn" id="guideBtn" style="--c: var(--mint)"><svg viewBox="0 0 10 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="M3 0h4v1H3zM1 1h8v1H1zM0 2h10v7H0z"/><path fill="#fff8e6" d="M2 2h2v1H2z"/><path fill="#fff8e6" d="M3 4h1v2H3zM6 4h1v2H6z"/></svg>Monsters</button>
       <button class="mbtn" id="recBtn" style="--c: var(--sun)"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="M1 0h8v1H1zM0 1h2v3H0zM8 1h2v3H8zM2 1h6v4H2zM3 5h4v1H3zM4 6h2v2H4zM2 8h6v2H2z"/><path fill="#fff8e6" d="M3 2h1v2H3z"/></svg>Records</button>
     </div>
-    <div class="foot">Beat bosses to earn gems. Spend them in the Shop on wands and relics.</div>
+    <div class="foot">Beat bosses for gems and grab gold in your runs. Spend both in the Shop.</div>
   </div>
 </div>
 
@@ -691,9 +697,9 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
   <div class="clouds" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="modal">
     <div class="awning" aria-hidden="true"></div>
-    <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button><span class="stars" aria-label="Gems"><i class="gem"></i><span id="storeGems">0</span></span></div>
+    <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button><span class="wallet"><span class="stars" aria-label="Gems"><i class="gem"></i><span id="storeGems">0</span></span><span class="stars" aria-label="Gold"><i class="coin"></i><span id="storeGold">0</span></span></span></div>
     <div class="shophello"><h2>Shop</h2></div>
-    <p>Spend gems from bosses on new wands, abilities, relics and weapons. Tap an item to see more.</p>
+    <p>Spend gems from bosses or gold from your runs on new wands, abilities, relics and weapons. Tap an item to see more.</p>
     <div class="tabs" role="tablist">
       <button role="tab" data-stab="wands">Wands<small id="cntWands"></small></button>
       <button role="tab" data-stab="abilities">Abilities<small id="cntAbilities"></small></button>
@@ -702,7 +708,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     </div>
     <p id="storeTabNote"></p>
     <div class="sgrid" id="storeGrid"></div>
-    <div class="info"><img id="infoKing" alt=""><div><b>How to get gems</b><span>A boss comes every 5 waves: Slime King (5 gems), Lich Lord (8), Stone Titan (10) and Spider Queen (12), then they repeat.</span></div></div>
+    <div class="info"><img id="infoKing" alt=""><div><b>How to get gems</b><span>A boss comes every 5 waves: Slime King (5 gems), Lich Lord (8), Stone Titan (10) and Spider Queen (12), then they repeat. Gold you pick up is saved when a run ends: 40 gold buys what 1 gem does.</span></div></div>
   </div>
 </div>
 
@@ -811,6 +817,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <div class="ribbon" id="deadBest" hidden>New best run!</div>
     <div class="statgrid" id="deadStats"></div>
     <div class="earn"><i class="gem"></i><span id="deadGems"></span></div>
+    <div class="earn"><i class="coin"></i><span id="deadGold"></span></div>
     <p id="deadBestLine"></p>
     <button class="btn go" id="againBtn" style="width:100%">Play again</button>
     <button class="btn ghost small" id="deadMenuBtn" style="width:100%">Main menu</button>
@@ -1158,7 +1165,7 @@ function shopPrice(it) { const n = shopLv[it.id] || 0; return Math.round(it.mult
 /* ---------- state ---------- */
 let mode = 'menu';
 let P, S, ups, enemies, shots, eshots, gems, items, parts, texts, zaps, deaths;
-let gold = 0, totalGold = 0, shopLv = {}, shopNote = '';
+let bankedGold = 0, gold = 0, totalGold = 0, shopLv = {}, shopNote = '';
 let wave, queue, spawnT, waveState, clearT, kills, time, level, xp, xpNeed, pendingLv;
 let unlocked, cur, castT, aim, shake, flash, flashW, cam, kick;
 let cycT = 0, isNight = false, nightAmt = 0, fireLit = false, warnedNight = false, immT = 0, crackleT = 0;
@@ -1174,7 +1181,7 @@ function xpForLevel(lv) { return Math.round(LEVELING.base * Math.pow(LEVELING.gr
 function resetRun(spellIdx) {
   P = { x: 0, y: 0, r: 15, hp: 100, maxHp: 100, baseMaxHp: 100, warm: false, inv: 0, face: 1, moving: false, walk: 0, dustT: 0, dashT: 0, dvx: 0, dvy: 0, mdx: 1, mdy: 0 };
   S = { dmg: 1, rate: 1, move: 1, multi: 0, pierce: 0, pspeed: 1, regen: 0, size: 1, magnet: 1, armor: 0, shield: 0, spirits: 0, crit: .1, coinLuck: 0, rainbow: false, waveShield: false };
-  ups = {}; gold = 0; totalGold = 0; shopLv = {}; shopNote = '';
+  ups = {}; gold = 0; totalGold = 0; bankedGold = 0; shopLv = {}; shopNote = '';
   enemies = []; shots = []; eshots = []; gems = []; items = []; parts = []; texts = []; zaps = []; deaths = [];
   wave = 0; queue = []; spawnT = 0; waveState = 'fighting'; clearT = 0;
   kills = 0; time = 0; level = 1; xp = 0; xpNeed = xpForLevel(1); pendingLv = 0;
@@ -1194,8 +1201,10 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
 const SET = Object.assign({ autoAim: true, music: true, sfx: true, shake: true, numbers: true, vibrate: true, fx: 'lots' }, store.get('wgSettings', {}));
-const META_DEFAULT = { gems: 0, gemsTotal: 0, wands: ['oak'], relics: [], wand: 'oak', equip: [], abilities: ['dash'], abEquip: ['dash'], weapons: [], chests: 0, runs: 0, kills: 0, bestCombo: 0, bosses: 0 };
+const META_DEFAULT = { gems: 0, gemsTotal: 0, gold: 0, wands: ['oak'], relics: [], wand: 'oak', equip: [], abilities: ['dash'], abEquip: ['dash'], weapons: [], chests: 0, runs: 0, kills: 0, bestCombo: 0, bosses: 0 };
 let META = Object.assign({}, META_DEFAULT, store.get('wgMeta', {}));
+const GOLD_PER_GEM = 40; // Shop gold price = gem price x this
+const goldPrice = it => it.price * GOLD_PER_GEM;
 delete META.stars; delete META.starsTotal;
 const GEMS_BY_BOSS = { boss: 5, lich: 8, titan: 10, queen: 12 };
 const saveSet = () => store.set('wgSettings', SET), saveMeta = () => store.set('wgMeta', META);
@@ -1216,7 +1225,7 @@ const OLD_WANDS = { ember: 5, crystal: 10, golden: 15, rainbow: 25 };
 })();
 const RELICS = [
   { id: 'clover', glyph: 'LCK', c: '#3fd99a', name: 'Lucky Clover', desc: '+5% crit chance', price: 5, apply() { S.crit += .05; } },
-  { id: 'pouch', glyph: 'GLD', c: '#ffcf3f', name: 'Coin Pouch', desc: 'Start every run with 30 gold', price: 5, apply() { gold = 30; } },
+  { id: 'pouch', glyph: 'GLD', c: '#ffcf3f', name: 'Coin Pouch', desc: 'Coins have a 30% chance to count double', price: 5, apply() { S.coinLuck += .3; } },
   { id: 'feather', glyph: 'MOV', c: '#38c6ff', name: 'Wind Feather', desc: '+8% move speed', price: 8, apply() { S.move *= 1.08; } },
   { id: 'moon', glyph: 'MAG', c: '#9b7bff', name: 'Moon Magnet', desc: '+50% gem and coin pickup range', price: 8, apply() { S.magnet *= 1.5; } },
   { id: 'heart', glyph: 'HP', c: '#ff8fc8', name: 'Iron Heart', desc: '+25 max health', price: 10, apply() { addMaxHp(25); } },
@@ -1455,7 +1464,7 @@ $('recBtn').onclick = () => go('records');
 function renderTitle() {
   $('heroWiz').src = WIZ.src;
   buildLogo($('logo'));
-  $('titleGems').textContent = META.gems;
+  $('titleGems').textContent = META.gems; $('titleGold').textContent = META.gold || 0;
   $('titleBest').hidden = !best;
   $('titleBest').textContent = `Best: wave ${best}`;
 }
@@ -1535,7 +1544,7 @@ const STORE_NOTES = {
   weapons: 'Big weapons you keep forever. You start every run with them.',
 };
 function renderStore(enter = true) {
-  $('storeGems').textContent = META.gems;
+  $('storeGems').textContent = META.gems; $('storeGold').textContent = META.gold || 0;
   $('infoKing').src = SPR.boss.n.toDataURL();
   const count = (list) => `${list.filter(x => x.owned).length} of ${list.length} owned`;
   $('cntWands').textContent = count(storeList('wands'));
@@ -1546,8 +1555,8 @@ function renderStore(enter = true) {
   $('storeTabNote').textContent = STORE_NOTES[storeTab];
   const list = storeList(storeTab);
   $('storeGrid').innerHTML = list.map((x, k) => {
-    const poor = !x.owned && META.gems < x.it.price;
-    const price = x.owned ? 'Owned' : x.it.price === 0 ? 'Free' : `<i class="gem sm"></i>${x.it.price}`;
+    const poor = !x.owned && META.gems < x.it.price && (META.gold || 0) < goldPrice(x.it);
+    const price = x.owned ? 'Owned' : x.it.price === 0 ? 'Free' : `<i class="gem sm"></i>${x.it.price}<span class="or">or</span><i class="coin"></i>${goldPrice(x.it)}`;
     return `<button class="scard ${enter ? 'enter' : ''} ${x.owned ? 'owned' : ''} ${poor ? 'poor' : ''}" data-k="${k}" style="--c:${x.color};--i:${k}">
       <span class="sicon">${x.icon}</span><b>${x.it.name}</b><span class="sdesc">${x.it.desc}</span><span class="sprice">${price}</span></button>`;
   }).join('');
@@ -1563,11 +1572,16 @@ function equippedText(x) {
   return eq.includes(x.it.id) ? 'Equipped. It is ready for your next run.' : 'Owned. Equip it in your Inventory.';
 }
 function openSheet(x) {
-  const it = x.it, miss = it.price - META.gems;
+  const it = x.it, miss = it.price - META.gems, gp = goldPrice(it), gmiss = gp - (META.gold || 0);
   let action;
   if (x.owned) action = `<p class="sd" style="color:var(--ink)"><b>${equippedText(x)}</b></p>`;
-  else if (miss <= 0) action = `<button class="btn go" id="sheetBuy">${it.price === 0 ? 'Get it free' : `Buy for ${it.price} gems`}</button>`;
-  else action = `<button class="btn ghost" disabled style="opacity:.7">Buy for ${it.price} gems</button><span class="need">You need ${miss} more gem${miss > 1 ? 's' : ''}. Beat a boss to earn some!</span>`;
+  else if (it.price === 0) action = `<button class="btn go" id="sheetBuy" data-cur="gems">Get it free</button>`;
+  else {
+    const gemBtn = miss <= 0 ? `<button class="btn go" id="sheetBuy" data-cur="gems"><i class="gem sm"></i> Buy for ${it.price} gems</button>` : `<button class="btn ghost" disabled style="opacity:.7"><i class="gem sm"></i> ${it.price} gems</button>`;
+    const goldBtn = gmiss <= 0 ? `<button class="btn go gold" id="sheetBuyGold" data-cur="gold"><i class="coin"></i> Buy for ${gp} gold</button>` : `<button class="btn ghost" disabled style="opacity:.7"><i class="coin"></i> ${gp} gold</button>`;
+    const need = miss > 0 && gmiss > 0 ? `<span class="need">You need ${miss} more gem${miss > 1 ? 's' : ''} or ${gmiss} more gold. Beat bosses for gems and grab coins in your runs!</span>` : '';
+    action = `<div class="buyrow">${gemBtn}${goldBtn}</div>${need}`;
+  }
   $('sheetBody').innerHTML = `
     <em class="chip soft">${x.cat}</em>
     <span class="bigicon" style="--c:${x.color}">${x.icon}</span>
@@ -1578,10 +1592,9 @@ function openSheet(x) {
     <button class="btn ghost small" id="sheetClose">Close</button>`;
   $('sheet').hidden = false;
   $('sheetClose').onclick = () => { sfx('click'); closeSheet(); };
-  const buy = $('sheetBuy');
-  if (buy) buy.onclick = () => {
-    if (META.gems < it.price) return;
-    META.gems -= it.price;
+  const doBuy = cur => {
+    if (cur === 'gold') { if ((META.gold || 0) < gp) return; META.gold -= gp; }
+    else { if (META.gems < it.price) return; META.gems -= it.price; }
     let msg = `${it.name} bought!`;
     if (x.kind === 'w') { META.wands.push(it.id); msg += ' Pick it when you press Play.'; }
     else if (x.kind === 'a') { META.abilities.push(it.id); if (META.abEquip.length < 2) { META.abEquip.push(it.id); msg = `${it.name} bought and equipped!`; } else msg += ' Swap it in from your Inventory.'; }
@@ -1590,6 +1603,7 @@ function openSheet(x) {
     saveMeta(); sfx('buy'); confetti(30); toast(msg);
     x.owned = true; openSheet(x); renderStore(false);
   };
+  ['sheetBuy', 'sheetBuyGold'].forEach(id => { const b = $(id); if (b) b.onclick = () => doBuy(b.dataset.cur); });
 }
 function renderInventory() {
   const w = curWand();
@@ -1824,7 +1838,7 @@ function togglePause() {
 $('pauseBtn').onclick = () => togglePause();
 $('resumeBtn').onclick = () => togglePause();
 $('pauseSetBtn').onclick = () => { sfx('click'); settingsFrom = 'pause'; renderSettings(); $('pause').hidden = true; $('settings').hidden = false; $('settings').scrollTop = 0; };
-$('quitBtn').onclick = () => { $('pause').hidden = true; toMenu('title'); };
+$('quitBtn').onclick = () => { $('pause').hidden = true; const g = bankGold(); toMenu('title'); if (g > 0) toast(`+${g} gold saved for the Shop`); };
 $('againBtn').onclick = () => { $('dead').hidden = true; toMenu('menu'); };
 $('deadMenuBtn').onclick = () => { $('dead').hidden = true; toMenu('title'); };
 $('soundBtn').onclick = () => { const on = !(SET.sfx || SET.music); SET.sfx = SET.music = on; saveSet(); initAudio(); paintSound(); sfx('click'); };
@@ -2064,12 +2078,18 @@ function damagePlayer(d) {
   sfx('hurt');
   if (P.hp <= 0) { P.hp = 0; die(); }
 }
+function bankGold() {
+  const add = totalGold - bankedGold;
+  if (add > 0) { META.gold = (META.gold || 0) + add; bankedGold = totalGold; saveMeta(); }
+  return add;
+}
 function die() {
   mode = 'dead'; joy = null; freeze = 0; sfx('die');
   for (let i = 0; i < 50; i++) { const a = Math.random() * 6.28, s = rand(60, 300); parts.push({ x: P.x, y: P.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.6, 1.2), max: 1.2, size: rand(4, 8), color: pick(['#5a7fd6', '#a7c7ff', '#ffcf3f']), kind: 'star', glow: true }); }
   zaps.push({ ring: true, x1: P.x, y1: P.y, r: 120, life: .5, max: .5, color: '#ffffff', w: 6 });
   const isBest = wave > best;
   if (isBest) { best = wave; try { localStorage.setItem('wizardGroveBest', best); } catch (e) {} }
+  const goldWon = bankGold();
   META.runs++; META.kills += kills; META.chests = (META.chests || 0) + chestsRun;
   META.bestCombo = Math.max(META.bestCombo, bestCombo); META.bosses += bossKills; saveMeta();
   setTimeout(() => {
@@ -2077,6 +2097,7 @@ function die() {
     $('deadSub').textContent = `The monsters got you on wave ${wave}.`;
     $('deadStats').innerHTML = statsHTML();
     $('deadGems').textContent = runGems ? `+${runGems} gems earned` : 'Beat a boss to earn gems';
+    $('deadGold').textContent = `+${goldWon} gold for the Shop`;
     $('deadBest').hidden = !isBest;
     $('deadBestLine').textContent = isBest ? '' : `Your best is wave ${best}. You can beat it!`;
     $('deadBestLine').hidden = isBest;
@@ -2704,7 +2725,7 @@ function drawChestArrow() {
 
 /* ---------- Giant Sword (inspired by a hellfire greatsword) ---------- */
 const SWORD = {
-  range: 155, arc: 1.7, swingTime: .26, dmg: 85,
+  range: 115, arc: 1.7, swingTime: .26, dmg: 85,
   cooldown: 1.1,            // seconds between normal slashes
   chargedCooldown: 2.2,     // seconds after a charged slash
   chargeTime: 1.4,          // hold this long for a charged slash

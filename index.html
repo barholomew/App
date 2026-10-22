@@ -2463,6 +2463,8 @@ function makeElite(e, mod = pick(Object.keys(ELITES))) {
   if (Math.hypot(e.x - P.x, e.y - P.y) < 700) swordSfx.eliteSting();
   return e;
 }
+// Out-of-combat healing: wait this many seconds after a hit, then heal this much per second
+const REGEN = { delay: 5, perSec: 2 };
 // Monster strength per player level above 1 (6% more health, 4% more damage each level)
 const LEVEL_SCALE = { hp: .06, dmg: .04 };
 function spawnEnemy(type, x, y) {
@@ -2654,7 +2656,7 @@ function damagePlayer(d) {
     return;
   }
   const taken = Math.max(Math.ceil(d * .3), Math.round(d - S.armor));
-  P.hp -= taken; P.inv = .75; addShake(10); flash = .35; freeze = Math.max(freeze, .08);
+  P.hp -= taken; P.inv = .75; P.calm = 0; addShake(10); flash = .35; freeze = Math.max(freeze, .08);
   combo = 0;
   texts.push({ x: P.x, y: P.y - 30, text: '-' + taken, life: 1, max: 1, color: '#ff5d73', size: 22, vx: 0, vy: -60 });
   retrigger($('hpMeter'), 'hurt');
@@ -5204,6 +5206,12 @@ function update(dt) {
   updateTips(dt);
   P.inv -= dt;
   if (S.regen) P.hp = Math.min(P.maxHp, P.hp + S.regen * dt);
+  // out of combat healing: after a few seconds without getting hit, health slowly comes back
+  P.calm = (P.calm || 0) + dt;
+  if (P.calm >= REGEN.delay && P.hp < P.maxHp && P.hp > 0) {
+    P.hp = Math.min(P.maxHp, P.hp + REGEN.perSec * dt);
+    if (Math.random() < dt * 3) parts.push({ x: P.x + rand(-14, 14), y: P.y + rand(-6, 14), vx: rand(-6, 6), vy: rand(-45, -25), life: .7, max: .7, size: rand(3, 4.5), color: '#5dff8f', kind: 'star', glow: true });
+  }
   P.beat = (P.beat || 0) - dt;
   if (P.hp / P.maxHp < .25 && P.beat <= 0) { P.beat = .85; sfx('beat'); }
   P.dustT -= dt;

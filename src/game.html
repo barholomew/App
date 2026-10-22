@@ -559,7 +559,10 @@ button { font: inherit; color: inherit; }
 .btn.dbtn.poor { opacity: .55; }
 @media (max-width: 370px) { .ocard.wide { grid-template-columns: auto 1fr; } .ocard.wide .oprice { grid-column: 2; } }
 body.menu-mode #hint,
-.swordbtn { position: fixed; z-index: 2; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 136px); width: 78px; height: 78px; --c: #e8eef8; }
+.swordbtn { position: fixed; z-index: 2; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 136px); width: 78px; height: 78px; --c: #ff9a5c; }
+.swordbtn .chg { position: absolute; inset: -9px; border-radius: 50%; z-index: 0; pointer-events: none; background: conic-gradient(#ffcf3f calc(var(--q, 0) * 360deg), transparent 0); -webkit-mask: radial-gradient(circle, transparent 0 60%, #000 61%); mask: radial-gradient(circle, transparent 0 60%, #000 61%); }
+.swordbtn.ready { box-shadow: 0 5px 0 var(--ink), 0 0 22px #ffcf3f, 0 0 40px #ff5d3b; }
+.swordbtn .cdt { font-size: 20px; }
 .swordbtn svg { width: 38px; height: 38px; }
 body.menu-mode .swordbtn,
 body.menu-mode .leftbar, body.menu-mode #openBtn { visibility: hidden; }
@@ -602,7 +605,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
 <div id="combo" hidden><b id="comboNum">x3</b><small>COMBO</small><i><u id="comboBar"></u></i></div>
 
 <div class="spellbar" id="spellbar"></div>
-<button class="abtn swordbtn" id="swordBtn" hidden aria-label="Slash with the Giant Sword"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ffcf3f" d="M2 5h1v1H2z"/></svg><i class="cdm"></i><span class="cdt"></span><small>Slash</small></button>
+<button class="abtn swordbtn" id="swordBtn" hidden aria-label="Slash with the Giant Sword"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg><i class="cdm"></i><i class="chg"></i><span class="cdt"></span><small>Tap or hold</small></button>
 <div class="leftbar"><button class="sbtn" id="specialBtn" hidden aria-label="Use special weapon"></button><button class="bagbtn" id="bagBtn" aria-label="Open backpack"><svg viewBox="0 0 12 13" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="M4 0h4v1H4zM3 1h1v2H3zM8 1h1v2H8zM1 2h10v11H1z"/><path fill="#c08a4a" d="M2 3h8v9H2z"/><path fill="#a0632b" d="M2 3h8v3H2z"/><path fill="#2d1f4f" d="M2 6h8v1H2z"/><path fill="#ffcf3f" d="M5 5h2v2H5z"/><path fill="#2d1f4f" d="M3 8h6v4H3z"/><path fill="#d9a35e" d="M4 9h4v2H4z"/></svg><small>Backpack</small><i class="bagbadge" id="bagBadge" hidden></i></button></div>
 <button class="btn go" id="openBtn" hidden>Open chest</button>
 <div id="banner"></div>
@@ -1347,11 +1350,11 @@ addEventListener('keydown', e => {
   if (!e.repeat && (e.code === 'KeyE' || e.code === 'ShiftLeft' || e.code === 'ShiftRight')) useAbility(1);
   if (!e.repeat && (e.code === 'KeyF' || e.code === 'Enter') && mode === 'play' && nearChest) openChest(nearChest);
   if (!e.repeat && e.code === 'KeyR') useSpecial();
-  if (!e.repeat && e.code === 'KeyX') swordSlash();
+  if (!e.repeat && e.code === 'KeyX') swordPress();
   if (!e.repeat && (e.code === 'KeyB' || e.code === 'KeyI')) toggleBag();
   if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
 });
-addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'KeyX') swordRelease(); });
 let joy = null, aimJoy = null, mouseAim = null, mouseT = 0;
 const JR = 56;
 cv.addEventListener('pointerdown', e => {
@@ -1773,7 +1776,7 @@ function startGame(i) {
   initAudio(); keepAwake(); sfx('click');
   resetRun(i); applyLoadout();
   [...SCREENS, 'dead', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
-  $('warmPill').hidden = true; lastCyc = ''; $('swordBtn').hidden = true; joy = null; aimJoy = null;
+  $('warmPill').hidden = true; lastCyc = ''; $('swordBtn').hidden = true; swordCharge = null; swordReady = false; joy = null; aimJoy = null;
   buildSpellbar(); buildSpecialBtn(); $('bagBadge').hidden = true;
   $('hint').hidden = true; tipStep = -1; movedT = 0;
   let seen = false; try { seen = localStorage.getItem('wgTips') === '1'; } catch (e) {}
@@ -2001,6 +2004,7 @@ function onHit(s, e) {
   for (let i = 0; i < (crit ? 12 : 7); i++) { const a = Math.atan2(-s.vy, -s.vx) + rand(-1.3, 1.3), sp2 = rand(90, crit ? 340 : 220); parts.push({ x: s.x, y: s.y, vx: Math.cos(a) * sp2, vy: Math.sin(a) * sp2, life: .25, max: .25, size: crit ? 3 : 2, color: crit ? '#ffcf3f' : sp.color, kind: 'spark', glow: true }); }
   zaps.push({ ring: true, x1: s.x, y1: s.y, r: (crit ? 26 : 14) * S.size, life: .15, max: .15, color: crit ? '#ffcf3f' : sp.color, w: crit ? 4 : 3 });
   if (crit) { addShake(2.5); sfx('crit'); } else sfx('hit');
+  if (sp.id === 'wave') { e.burn = SWORD.burnTime; e.burnDps = SWORD.burnDps * 2 * S.dmg; }
   if (sp.id === 'fire') {
     e.burn = 2; e.burnDps = 5 * S.dmg;
     for (let i = 0; i < 5; i++) parts.push({ x: s.x, y: s.y, vx: rand(-80, 80), vy: rand(-80, 80), life: .35, max: .35, size: rand(5, 9), color: '#ff8a3d', kind: 'dot', glow: true });
@@ -2304,7 +2308,7 @@ const RECIPES = [
   { id: 'potion', name: 'Health Potion', desc: 'Heal 40% of your health', cost: { herb: 6, wood: 3 }, c: '#ff5d73', glyph: 'POT', make() { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .4); } },
   { id: 'shieldc', name: 'Mana Shield', desc: 'Block the next hit', cost: { crystal: 6, stone: 2 }, c: '#38c6ff', glyph: 'SHD', make() { S.shield = Math.min(3, S.shield + 1); }, ok: () => S.shield < 3 },
   { id: 'bombs', name: '3 Bombs', desc: 'Adds 3 Bomb Bag charges', cost: { stone: 6, wood: 3, crystal: 1 }, c: '#ff9a3d', glyph: 'BMB', make() { addSpecial('bomb', 3); } },
-  { id: 'sword', name: 'Giant Sword', desc: 'A sword as big as you. Tap Slash to swing it where you aim for huge damage, all run long.', cost: { xp: 250, soul: 3, stone: 8, crystal: 5 }, c: '#e8eef8', glyph: 'SWD', make() { S.sword = true; $('swordBtn').hidden = false; banner('Giant Sword crafted!', 'Tap the Slash button (or X) to swing it where you aim', 'magic'); }, ok: () => !S.sword, done: 'Crafted' },
+  { id: 'sword', name: 'Giant Sword', desc: 'A sword as big as you. A hellfire blade as big as you. Tap Slash for a heavy burning swing, or hold it to charge a huge swing that sends out a wave of fire.', cost: { xp: 250, soul: 3, stone: 8, crystal: 5 }, c: '#e8eef8', glyph: 'SWD', make() { S.sword = true; $('swordBtn').hidden = false; banner('Giant Sword crafted!', 'Tap Slash to swing, hold it to charge a fire wave (X on a keyboard)', 'magic'); }, ok: () => !S.sword, done: 'Crafted' },
   { id: 'arrows', name: '5 Ice Arrows', desc: 'Adds 5 Ice Bow charges', cost: { crystal: 5, wood: 4 }, c: '#7fdcff', glyph: 'ARW', make() { addSpecial('bow', 5); } },
 ];
 const RARITY = {
@@ -2475,7 +2479,8 @@ function buildSpecialBtn() {
   b.classList.toggle('blocked', specialsLocked());
   b.innerHTML = `<svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path fill="#2d1f4f" d="${sp.icon}"/></svg><span class="cnt">${spec[held]}</span><small>${({ bomb: 'Bombs', bow: 'Ice Bow', hammer: 'Hammer', laser: 'Laser' })[held]}</small>`;
 }
-$('swordBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); swordSlash(); };
+$('swordBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); try { $('swordBtn').setPointerCapture(e.pointerId); } catch (_) {} swordPress(); };
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => $('swordBtn').addEventListener(ev, () => swordRelease()));
 $('specialBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); useSpecial(); };
 $('openBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); if (nearChest) openChest(nearChest); };
 $('bagBtn').onclick = () => toggleBag();
@@ -2658,63 +2663,109 @@ function drawChestArrow() {
   ctx.restore();
 }
 
-/* ---------- Giant Sword ---------- */
-const SWORD = { range: 150, arc: 1.5, cooldown: .55, swingTime: .2, dmg: 75 };
+/* ---------- Giant Sword (inspired by a hellfire greatsword) ---------- */
+const SWORD = {
+  range: 155, arc: 1.7, swingTime: .26, dmg: 85,
+  cooldown: 1.1,            // seconds between normal slashes
+  chargedCooldown: 2.2,     // seconds after a charged slash
+  chargeTime: 1.4,          // hold this long for a charged slash
+  chargedMul: 2.5,          // charged slash damage (always a critical hit)
+  burnTime: 3, burnDps: 9,  // hellfire burn on every hit
+  knockback: 620,
+};
+let swordCharge = null, swordReady = false;
 function updateSword(dt) {
   if (!S.sword) return;
   swordT = Math.max(0, swordT - dt);
-  if (swing) { swing.t += dt; if (swing.t >= SWORD.swingTime + .15) swing = null; }
+  if (swing) { swing.t += dt; if (swing.t >= SWORD.swingTime + .2) swing = null; }
+  if (swordCharge !== null) {
+    swordCharge += dt;
+    if (!swordReady && swordCharge >= SWORD.chargeTime) {
+      swordReady = true; sfx('ignite'); addShake(3);
+      texts.push({ x: P.x, y: P.y - 50, text: 'CHARGED!', life: .9, max: .9, color: '#ff7a2a', size: 17, vx: 0, vy: -40 });
+    }
+    if (Math.random() < .3 + Math.min(1, swordCharge / SWORD.chargeTime) * .6) parts.push({ x: P.x + rand(-30, 30), y: P.y + rand(-50, 10), vx: rand(-20, 20), vy: rand(-90, -40), life: .5, max: .5, size: rand(2, 5), color: pick(['#ff7a2a', '#ffcf3f', '#ff3b3b']), glow: true });
+  }
 }
-function swordSlash() {
-  if (mode !== 'play' || !S.sword) return;
-  if (swordT > 0) return;
-  swordT = SWORD.cooldown;
+function swordPress() {
+  if (mode !== 'play' || !S.sword || swordCharge !== null) return;
+  if (swordT > 0) { sfx('nope'); return; }
+  swordCharge = 0; swordReady = false;
+}
+function swordRelease() {
+  if (swordCharge === null) return;
+  const charged = swordCharge >= SWORD.chargeTime;
+  swordCharge = null; swordReady = false;
+  if (mode === 'play') swordSlash(charged);
+}
+function swordSlash(charged) {
+  if (!S.sword || swordT > 0) return;
+  swordT = charged ? SWORD.chargedCooldown : SWORD.cooldown;
   let a0 = aim;
-  if (!P.manual && SET.autoAim) { const t = nearest(P.x, P.y, SWORD.range + 60); if (t) a0 = Math.atan2(t.y - P.y, t.x - P.x); }
+  if (!P.manual && SET.autoAim) { const t = nearest(P.x, P.y, SWORD.range + 80); if (t) a0 = Math.atan2(t.y - P.y, t.x - P.x); }
   P.face = Math.cos(a0) < 0 ? -1 : 1;
   const dir = swing && swing.dir > 0 ? -1 : 1;
-  swing = { a0, dir, t: 0 };
-  const power = SWORD.dmg * S.dmg * playerDmgMul() * (1 + (wave - 1) * .12);
+  const arc = charged ? SWORD.arc * 1.45 : SWORD.arc, range = charged ? SWORD.range * 1.3 : SWORD.range;
+  swing = { a0, dir, t: 0, arc, charged };
+  const power = SWORD.dmg * S.dmg * playerDmgMul() * (1 + (wave - 1) * .12) * (charged ? SWORD.chargedMul : 1);
   let hits = 0;
   for (const e of [...enemies]) {
     const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1;
-    if (d > SWORD.range + e.r) continue;
+    if (d > range + e.r) continue;
     const da = Math.abs(((Math.atan2(dy, dx) - a0 + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
-    if (da > SWORD.arc * .5 + .2) continue;
-    const crit = Math.random() < S.crit;
-    hurt(e, power * (crit ? 2 : 1), '#e8eef8', crit); hits++;
-    if (!e.T.boss) { e.kx += dx / d * 520; e.ky += dy / d * 520; }
-    for (let i = 0; i < 6; i++) { const a = Math.atan2(dy, dx) + rand(-.6, .6), sp = rand(150, 340); parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .25, max: .25, size: 3, color: pick(['#ffffff', '#cfe6ff', '#ff5d73']), kind: 'spark', glow: true }); }
+    if (da > arc * .5 + .2) continue;
+    const crit = charged || Math.random() < S.crit;
+    hurt(e, power * (crit ? 2 : 1), '#ff9a3d', crit); hits++;
+    e.burn = SWORD.burnTime; e.burnDps = SWORD.burnDps * S.dmg * (charged ? 2 : 1);
+    if (!e.T.boss) { const kb = SWORD.knockback * (charged ? 1.6 : 1); e.kx += dx / d * kb; e.ky += dy / d * kb; }
+    for (let i = 0; i < 9; i++) { const a = Math.atan2(dy, dx) + rand(-.7, .7), sp = rand(160, 380); parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .3, max: .3, size: rand(2, 4), color: pick(['#ffcf3f', '#ff7a2a', '#ff3b3b']), kind: 'spark', glow: true }); }
   }
-  sfx('slash'); addShake(hits ? 5 : 2); if (hits) freeze = Math.max(freeze, .04);
+  if (charged) {
+    const W = { id: 'wave', color: '#ff5d3b', core: '#ffcf3f', r: 26 };
+    shots.push({ x: P.x + Math.cos(a0) * 40, y: P.y + Math.sin(a0) * 40, vx: Math.cos(a0) * 620, vy: Math.sin(a0) * 620, spd: 620, age: 0, r: 26, dmg: power * .8, sp: W, life: .55, pierce: 60, hit: new Set() });
+    flashW = .15; addShake(12); freeze = Math.max(freeze, .09); sfx('boom');
+  }
+  sfx('slash'); addShake(hits ? 6 : 2); if (hits) freeze = Math.max(freeze, .05);
 }
 function drawSword() {
   if (!S.sword || mode === 'dead') return;
   const hx = P.x - P.face * 14, hy = P.y + 8;
-  let ang;
+  let ang, heat = 0;
   if (swing) {
     const k = Math.min(1, swing.t / SWORD.swingTime), e = 1 - Math.pow(1 - k, 3);
-    ang = swing.a0 - swing.dir * SWORD.arc * .5 + swing.dir * SWORD.arc * e;
-    // slash trail
-    const fade = swing.t > SWORD.swingTime ? 1 - (swing.t - SWORD.swingTime) / .15 : 1;
-    const a1 = swing.a0 - swing.dir * SWORD.arc * .5, a2 = ang;
-    ctx.save(); ctx.globalAlpha = .55 * fade; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 26; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.arc(hx, hy, 74, Math.min(a1, a2), Math.max(a1, a2)); ctx.stroke();
-    ctx.globalAlpha = .35 * fade; ctx.strokeStyle = '#9fe6ff'; ctx.lineWidth = 46;
-    ctx.beginPath(); ctx.arc(hx, hy, 70, Math.min(a1, a2), Math.max(a1, a2)); ctx.stroke(); ctx.restore();
+    ang = swing.a0 - swing.dir * swing.arc * .5 + swing.dir * swing.arc * e;
+    const fade = swing.t > SWORD.swingTime ? 1 - (swing.t - SWORD.swingTime) / .2 : 1;
+    const a1 = swing.a0 - swing.dir * swing.arc * .5, a2 = ang, R = swing.charged ? 96 : 78;
+    ctx.save(); ctx.lineCap = 'round';
+    [['#ff3b3b', 50, .3], ['#ff7a2a', 30, .55], ['#ffcf3f', 12, .8]].forEach(([c, w, al]) => {
+      ctx.globalAlpha = al * fade; ctx.strokeStyle = c; ctx.lineWidth = w * (swing.charged ? 1.4 : 1);
+      ctx.beginPath(); ctx.arc(hx, hy, R, Math.min(a1, a2), Math.max(a1, a2)); ctx.stroke();
+    });
+    ctx.restore();
+    heat = fade;
+  } else if (swordCharge !== null) {
+    const k = Math.min(1, swordCharge / SWORD.chargeTime);
+    ang = aim + Math.PI - P.face * .3 + (swordReady ? Math.sin(T * 50) * .04 : 0);
+    heat = k;
   } else ang = -Math.PI / 2 - P.face * .5 + Math.sin(T * 2) * .05;
   ctx.save(); ctx.translate(hx, hy); ctx.rotate(ang + Math.PI / 2);
-  glow(0, -40, 34, '#cfe6ff', .25);
-  ctx.fillStyle = '#2d1f4f'; ctx.fillRect(-6, -66, 12, 58); ctx.fillRect(-3, -70, 6, 6);
-  ctx.fillStyle = '#d7dde8'; ctx.fillRect(-4, -66, 8, 56); ctx.fillRect(-2, -69, 4, 4);
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(-3, -64, 2, 50);
-  ctx.fillStyle = '#9aa3b5'; ctx.fillRect(2, -64, 2, 52);
-  ctx.fillStyle = '#2d1f4f'; ctx.fillRect(-15, -12, 30, 8);
-  ctx.fillStyle = '#ffcf3f'; ctx.fillRect(-13, -11, 26, 5);
-  ctx.fillStyle = '#2d1f4f'; ctx.fillRect(-4, -5, 8, 16);
-  ctx.fillStyle = '#8a5a2b'; ctx.fillRect(-2, -4, 4, 13);
-  ctx.fillStyle = '#ff5d73'; ctx.fillRect(-3, 10, 6, 5);
+  glow(0, -46, 40 + heat * 30, '#ff5d3b', .25 + heat * .45);
+  // blade: dark crimson with a molten edge
+  ctx.fillStyle = '#1a0a0e'; ctx.fillRect(-8, -76, 16, 66); ctx.fillRect(-5, -82, 10, 8); ctx.fillRect(-2, -86, 4, 5);
+  ctx.fillStyle = '#5a0f14'; ctx.fillRect(-6, -76, 12, 64); ctx.fillRect(-3, -81, 6, 6);
+  ctx.fillStyle = heat > .5 ? '#ffcf3f' : '#ff7a2a'; ctx.fillRect(-6, -76, 3, 62); ctx.fillRect(-3, -81, 2, 5);
+  ctx.fillStyle = '#ff3b3b'; ctx.fillRect(3, -74, 2, 60);
+  ctx.fillStyle = '#ffcf3f'; ctx.globalAlpha = .6 + heat * .4; ctx.fillRect(-1, -70, 2, 52); ctx.globalAlpha = 1;
+  // winged guard with a fire gem
+  ctx.fillStyle = '#1a0a0e'; ctx.fillRect(-22, -14, 44, 9); ctx.fillRect(-26, -20, 8, 8); ctx.fillRect(18, -20, 8, 8);
+  ctx.fillStyle = '#3b1a22'; ctx.fillRect(-20, -12, 40, 5); ctx.fillRect(-24, -18, 4, 5); ctx.fillRect(20, -18, 4, 5);
+  ctx.fillStyle = '#ff3b3b'; ctx.fillRect(-3, -13, 6, 6); ctx.fillStyle = '#ffcf3f'; ctx.fillRect(-1, -12, 2, 2);
+  // grip and pommel
+  ctx.fillStyle = '#1a0a0e'; ctx.fillRect(-4, -6, 8, 18);
+  ctx.fillStyle = '#5a2c1a'; ctx.fillRect(-2, -5, 4, 15);
+  ctx.fillStyle = '#ff7a2a'; ctx.fillRect(-4, 11, 8, 6);
   ctx.restore();
+  if (swing && Math.random() < .8) parts.push({ x: hx + Math.cos(ang) * 70, y: hy + Math.sin(ang) * 70, vx: rand(-40, 40), vy: rand(-80, -20), life: .4, max: .4, size: rand(2, 5), color: pick(['#ff7a2a', '#ffcf3f']), glow: true });
 }
 
 /* ---------- update ---------- */
@@ -3156,7 +3207,12 @@ function drawShot(s) {
   const sp = s.sp, a = Math.atan2(s.vy, s.vx), pop = Math.min(1, s.age * 12);
   glow(s.x, s.y, s.r * 3.6, sp.color, .6);
   ctx.save(); ctx.translate(s.x, s.y); ctx.scale(pop, pop);
-  if (sp.id === 'ice') {
+  if (sp.id === 'wave') {
+    ctx.rotate(a); ctx.lineCap = 'round';
+    [['#ff3b3b', 22, .45], ['#ff7a2a', 13, .8], ['#ffcf3f', 5, 1]].forEach(([c, w, al]) => { ctx.globalAlpha = al; ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(-20, 0, 46, -1, 1); ctx.stroke(); });
+    ctx.globalAlpha = 1;
+    if (Math.random() < .9) parts.push({ x: s.x + rand(-10, 10), y: s.y + rand(-30, 30), vx: -s.vx * .1, vy: -s.vy * .1, life: .3, max: .3, size: rand(3, 6), color: pick(['#ff7a2a', '#ffcf3f']), kind: 'dot', glow: true });
+  } else if (sp.id === 'ice') {
     ctx.rotate(a);
     ctx.fillStyle = sp.color; ctx.beginPath(); ctx.moveTo(s.r * 2.8, 0); ctx.lineTo(0, -s.r * 1.1); ctx.lineTo(-s.r * 2.2, 0); ctx.lineTo(0, s.r * 1.1); ctx.closePath(); ctx.fill();
     ctx.fillStyle = sp.core; ctx.fillRect(-s.r, -1, s.r * 2.8, 2);
@@ -3369,7 +3425,13 @@ function render() {
 let lastHud = '', lastGold = 0, lastCombo = 0, lastWave = 0;
 let abLast = [0, 0], lastNear = null, lastCyc = '';
 function hud() {
-  if (S && S.sword && mode === 'play') $('swordBtn').style.setProperty('--p', swordT / SWORD.cooldown);
+  if (S && S.sword && mode === 'play') {
+    const b = $('swordBtn'), full = swing && swing.charged ? SWORD.chargedCooldown : SWORD.cooldown;
+    b.style.setProperty('--p', Math.min(1, swordT / full));
+    b.style.setProperty('--q', swordCharge === null ? 0 : Math.min(1, swordCharge / SWORD.chargeTime));
+    const t = swordT > 0 ? swordT.toFixed(1) : '', c = b.querySelector('.cdt'); if (c.textContent !== t) c.textContent = t;
+    b.classList.toggle('ready', swordReady);
+  }
   if (S && S.sword && mode === 'play') {
     const b = $('swordBtn'); b.style.setProperty('--p', swordT / SWORD.cooldown);
     const c = b.querySelector('.cdt'); const txt = swordT > 0 ? '' : ''; if (c.textContent !== txt) c.textContent = txt;

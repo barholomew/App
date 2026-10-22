@@ -1205,7 +1205,7 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
-const SET = Object.assign({ autoAim: true, music: true, sfx: true, shake: true, numbers: true, vibrate: true, fx: 'lots' }, store.get('wgSettings', {}));
+const SET = Object.assign({ autoAim: true, music: true, sfx: true, shake: true, numbers: true, vibrate: true, impact: true, fx: 'lots' }, store.get('wgSettings', {}));
 const META_DEFAULT = { gems: 0, gemsTotal: 0, gold: 0, wands: ['oak'], relics: [], wand: 'oak', equip: [], abilities: ['dash'], abEquip: ['dash'], weapons: [], chests: 0, runs: 0, kills: 0, bestCombo: 0, bosses: 0 };
 let META = Object.assign({}, META_DEFAULT, store.get('wgMeta', {}));
 const GOLD_PER_GEM = 40; // Shop gold price = gem price x this
@@ -1480,6 +1480,7 @@ const SET_ROWS = [
   ['music', 'Music', 'The cheerful background song'],
   ['sfx', 'Sound effects', 'Spells, coins, pops and dings'],
   ['shake', 'Screen shake', 'The camera shakes on big hits'],
+  ['impact', 'Impact frames', 'Sword hits flash a black-and-white comic frame. Turn off if flashes bother you'],
   ['numbers', 'Damage numbers', 'Show numbers when you hit monsters'],
   ['vibrate', 'Vibration', 'Buzz when you get hurt (phones only)'],
   ['autoAim', 'Auto-aim', 'When you are not aiming yourself, your wand aims at the closest monster'],
@@ -2075,7 +2076,7 @@ function startGame(i) {
   initAudio(); keepAwake(); sfx('click');
   resetRun(i); applyLoadout();
   [...SCREENS, 'dead', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
-  $('warmPill').hidden = true; lastCyc = ''; useSword = !!S.sword; syncWeapon(); swordCharge = null; swordReady = false; joy = null; aimJoy = null;
+  $('warmPill').hidden = true; lastCyc = ''; useSword = !!S.sword; syncWeapon(); IMP = null; cuts = []; swordSfx.charge(false); swordCharge = null; swordReady = false; joy = null; aimJoy = null;
   buildSpellbar(); buildSpecialBtn(); $('bagBadge').hidden = true;
   $('hint').hidden = true; tipStep = -1; movedT = 0;
   let seen = false; try { seen = localStorage.getItem('wgTips') === '1'; } catch (e) {}
@@ -2084,6 +2085,7 @@ function startGame(i) {
   startWave(1);
 }
 function togglePause() {
+  if (swordCharge !== null) { swordCharge = null; swordReady = false; swordSfx.charge(false); }
   if (mode === 'bag') { toggleBag(); return; }
   if (!$('settings').hidden) return;
   if (mode === 'play') { mode = 'paused'; joy = null; $('pauseStats').innerHTML = statsHTML(); $('pause').hidden = false; sfx('click'); }
@@ -2338,7 +2340,7 @@ function bankGold() {
   return add;
 }
 function die() {
-  mode = 'dead'; joy = null; freeze = 0; sfx('die');
+  mode = 'dead'; joy = null; freeze = 0; sfx('die'); swordCharge = null; swordReady = false; swordSfx.charge(false);
   for (let i = 0; i < 50; i++) { const a = Math.random() * 6.28, s = rand(60, 300); parts.push({ x: P.x, y: P.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.6, 1.2), max: 1.2, size: rand(4, 8), color: pick(['#5a7fd6', '#a7c7ff', '#ffcf3f']), kind: 'star', glow: true }); }
   zaps.push({ ring: true, x1: P.x, y1: P.y, r: 120, life: .5, max: .5, color: '#ffffff', w: 6 });
   const isBest = wave > best;
@@ -2991,7 +2993,7 @@ let swordCharge = null, swordReady = false;
 function updateSword(dt) {
   if (!S.sword) return;
   swordT = Math.max(0, swordT - dt);
-  if (swing) { swing.t += dt; if (swing.t >= SWORD.swingTime + .2) swing = null; }
+  if (swing) { swing.t += dt; updateSwingHits(); if (swing && swing.t >= SWORD.swingTime + .2) swing = null; }
   if (swordCharge !== null) {
     swordCharge += dt;
     if (!swordReady && swordCharge >= SWORD.chargeTime) {
@@ -3014,19 +3016,19 @@ function wandIconSvg() {
 }
 function switchWeapon() {
   if (mode !== 'play' || !S.sword) return;
-  swordCharge = null; swordReady = false; swing = null;
+  swordCharge = null; swordReady = false; swing = null; swordSfx.charge(false);
   useSword = !useSword; SW.draw = 0; syncWeapon(); sfx('click'); retrigger($('swapBtn'), 'ready');
   texts.push({ x: P.x, y: P.y - 50, text: useSword ? 'SWORD' : 'WAND', life: .8, max: .8, color: useSword ? '#ff9a5c' : SPELLS[cur].color, size: 15, vx: 0, vy: -40 });
 }
 function swordPress() {
   if (mode !== 'play' || !swordOn() || swordCharge !== null) return;
   if (swordT > 0) { sfx('nope'); return; }
-  swordCharge = 0; swordReady = false;
+  swordCharge = 0; swordReady = false; swordSfx.charge(true);
 }
 function swordRelease() {
   if (swordCharge === null) return;
   const charged = swordCharge >= SWORD.chargeTime;
-  swordCharge = null; swordReady = false;
+  swordCharge = null; swordReady = false; swordSfx.charge(false);
   if (mode === 'play') swordSlash(charged);
 }
 function swordAimAngle() {
@@ -3041,27 +3043,302 @@ function swordSlash(charged) {
   P.face = Math.cos(a0) < 0 ? -1 : 1;
   const dir = SW.lastDir > 0 ? -1 : 1; SW.lastDir = dir;
   const arc = charged ? SWORD.arc * 1.45 : SWORD.arc, range = charged ? SWORD.range * 1.3 : SWORD.range;
-  swing = { a0, dir, t: 0, arc, charged, from: SW.ang };
   const power = SWORD.dmg * S.dmg * playerDmgMul() * (1 + (wave - 1) * .12) * (charged ? SWORD.chargedMul : 1);
-  let hits = 0;
-  for (const e of [...enemies]) {
+  // everything inside the cone right now gets hit the moment the blade sweeps over it
+  const pending = [];
+  for (const e of enemies) {
     const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1;
-    if (d > range + e.r) continue;
-    const da = Math.abs(((Math.atan2(dy, dx) - a0 + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
-    if (da > arc * .5 + .2) continue;
-    const crit = charged || Math.random() < S.crit;
-    hurt(e, power * (crit ? 2 : 1), '#ff9a3d', crit); hits++;
-    e.burn = SWORD.burnTime; e.burnDps = SWORD.burnDps * S.dmg * (charged ? 2 : 1);
-    if (!e.T.boss) { const kb = SWORD.knockback * (charged ? 1.6 : 1); e.kx += dx / d * kb; e.ky += dy / d * kb; }
-    for (let i = 0; i < 9; i++) { const a = Math.atan2(dy, dx) + rand(-.7, .7), sp = rand(160, 380); parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .3, max: .3, size: rand(2, 4), color: pick(['#ffcf3f', '#ff7a2a', '#ff3b3b']), kind: 'spark', glow: true }); }
+    if (e.dead || d > range + e.r) continue;
+    const rel = angDiff(Math.atan2(dy, dx), a0) * dir;
+    if (Math.abs(rel) > arc * .5 + .2) continue;
+    pending.push({ e, at: Math.max(0, Math.min(1, (rel + arc / 2) / arc)) });
   }
-  if (charged) {
-    const W = { id: 'wave', color: '#ff5d3b', core: '#ffcf3f', r: 26 };
-    shots.push({ x: P.x + Math.cos(a0) * 40, y: P.y + Math.sin(a0) * 40, vx: Math.cos(a0) * 620, vy: Math.sin(a0) * 620, spd: 620, age: 0, r: 26, dmg: power * .8, sp: W, life: .55, pierce: 60, hit: new Set() });
-    flashW = .15; addShake(12); freeze = Math.max(freeze, .09); sfx('boom');
-  }
-  sfx('slash'); addShake(hits ? 6 : 2); if (hits) freeze = Math.max(freeze, .05);
+  pending.sort((x, y) => x.at - y.at);
+  swing = { a0, dir, t: 0, arc, range, charged, power, pending, landed: 0, waveOut: false, from: SW.ang };
+  swordSfx.whoosh(charged);
+  if (SET.fx === 'lots') for (let i = 0; i < (charged ? 10 : 5); i++) parts.push({ x: P.x + Math.cos(a0) * 30, y: P.y + Math.sin(a0) * 30, vx: Math.cos(a0) * rand(80, 220) + rand(-40, 40), vy: Math.sin(a0) * rand(80, 220) + rand(-40, 40), life: .3, max: .3, size: rand(2, 4), color: pick(['#ffcf3f', '#ff7a2a']), glow: true });
 }
+// Blade sweep: a quick wind-up, then a fast sweep that overshoots a little. Shared by the hits and the drawing.
+const SWING_WIND = .045;
+function swingProgress(w) {
+  if (w.t < SWING_WIND) return 0;
+  const k = Math.min(1, (w.t - SWING_WIND) / (SWORD.swingTime - SWING_WIND)), c = 1.6;
+  return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2);
+}
+function updateSwingHits() {
+  const w = swing;
+  if (!w || !w.pending) return;
+  const prog = swingProgress(w), done = w.t >= SWORD.swingTime;
+  while (w.pending.length && (prog >= w.pending[0].at || done)) {
+    const { e } = w.pending.shift();
+    if (e.dead || !enemies.includes(e)) continue;
+    if (Math.hypot(e.x - P.x, e.y - P.y) > w.range + e.r + 50) continue;
+    landSwordHit(e, w);
+  }
+  if (w.charged && !w.waveOut && prog >= .45) {
+    w.waveOut = true;
+    const W = { id: 'wave', color: '#ff5d3b', core: '#ffcf3f', r: 26 };
+    shots.push({ x: P.x + Math.cos(w.a0) * 40, y: P.y + Math.sin(w.a0) * 40, vx: Math.cos(w.a0) * 620, vy: Math.sin(w.a0) * 620, spd: 620, age: 0, r: 26, dmg: w.power * .8, sp: W, life: .55, pierce: 60, hit: new Set() });
+    if (!w.landed) { addShake(8); swordSfx.waveOnly(); }
+  }
+}
+function landSwordHit(e, w) {
+  const first = w.landed === 0; w.landed++;
+  const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1, ang = Math.atan2(dy, dx);
+  const crit = w.charged || Math.random() < S.crit;
+  const n0 = texts.length;
+  hurt(e, w.power * (crit ? 2 : 1), '#ff9a3d', crit);
+  if (texts.length > n0) { const tx = texts[texts.length - 1]; tx.size = w.charged ? 30 : crit ? 24 : 18; tx.vy = -150; tx.life = tx.max = 1; tx.pop = 1; }
+  const killed = e.dead;
+  e.hs = w.charged ? .2 : .13; // hit-shake while time is frozen
+  if (!killed) { e.burn = SWORD.burnTime; e.burnDps = SWORD.burnDps * S.dmg * (w.charged ? 2 : 1); }
+  if (!e.T.boss) { const kb = SWORD.knockback * (w.charged ? 1.6 : 1); e.kx += dx / d * kb; e.ky += dy / d * kb; }
+  // the contact point sits on the edge of the monster facing you
+  const cx = e.x - dx / d * e.r * .5, cy = e.y - dy / d * e.r * .5;
+  const tang = ang + w.dir * Math.PI / 2; // direction the blade is travelling
+  cuts.push({ x: e.x, y: e.y - 4, a: tang + rand(-.25, .25), len: (e.r * 2.4 + 30) * (w.charged ? 1.4 : 1), t: 0, life: w.charged ? .42 : .3, w: w.charged ? 9 : 6 });
+  const lots = SET.fx === 'lots';
+  for (let i = 0; i < (lots ? 16 : 6); i++) { const a = tang + rand(-.55, .55) + (Math.random() < .35 ? Math.PI : 0), sp = rand(220, 620); parts.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(.18, .34), max: .34, size: rand(2, 3.5), color: pick(['#ffffff', '#ffcf3f', '#ff7a2a']), kind: 'spark', glow: true, fr: .004 }); }
+  for (let i = 0; i < (lots ? 8 : 3); i++) { const a = ang + rand(-.9, .9), sp = rand(120, 300); parts.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, g: 900, life: rand(.4, .7), max: .7, size: rand(3, 5), color: e.T.color || '#ffffff', kind: 'confetti', rot: rand(0, 6), fr: .3 }); }
+  for (let i = 0; i < (lots ? 6 : 2); i++) parts.push({ x: cx + rand(-10, 10), y: cy + rand(-10, 10), vx: rand(-30, 30), vy: rand(-90, -40), life: rand(.6, 1.1), max: 1.1, size: rand(2, 4), color: pick(['#ff7a2a', '#ffcf3f', '#ff3b3b']), kind: 'dot', glow: true, fr: .2 });
+  zaps.push({ ring: true, x1: cx, y1: cy, r: w.charged ? 70 : 42, life: .22, max: .22, color: '#ffcf3f', w: w.charged ? 7 : 5 });
+  if (first) {
+    // the big moment: freeze, impact frame, camera punch, layered sound
+    const hold = w.charged ? .15 : .07 + (killed ? .025 : 0) + (e.T.boss ? .03 : 0);
+    freeze = Math.max(freeze, hold);
+    startImpact(cx, cy, ang, tang, w.charged, hold, killed);
+    if (SET.shake) { addShake(w.charged ? 14 : killed ? 8 : 6); kick.x += Math.cos(ang) * (w.charged ? 16 : 9); kick.y += Math.sin(ang) * (w.charged ? 16 : 9); }
+    swordSfx.impact(w.charged, killed, e.T.boss);
+    if (SET.vibrate) { try { navigator.vibrate && navigator.vibrate(w.charged ? [0, 30, 25, 70] : killed ? 28 : 18); } catch (_) {} }
+  } else {
+    freeze = Math.max(freeze, .025);
+    if (SET.shake) addShake(3);
+    swordSfx.impactSmall(killed, w.landed);
+  }
+  if (killed) swordSfx.slice(w.landed);
+}
+
+/* ---------- impact frame ---------- */
+// Timeline of one big sword hit (real time, so it keeps playing while the game is frozen):
+//   0 - neg      inverted black-and-white "impact frame", radial speed lines, starburst, slash streak
+//   neg - red    charged hits only: a red and black frame
+//   then         colour returns; lines, star and streak fade, a short zoom blur, the camera eases back
+const REDUCED_MOTION = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; } })();
+let IMP = null, cuts = [], rawDt = 0;
+function startImpact(x, y, ang, tang, charged, hold, killed) {
+  const n = SET.fx === 'lots' ? (charged ? 46 : 30) : 16, noFlash = REDUCED_MOTION || !SET.impact;
+  const lines = [];
+  for (let i = 0; i < n; i++) lines.push({ a: (i + Math.random() * .8) / n * Math.PI * 2, r0: rand(.18, .42), w: rand(.008, .03) * (charged ? 1.3 : 1) });
+  IMP = { x, y, ang, tang, charged, killed, t: 0, hold,
+    neg: noFlash ? 0 : charged ? .05 : .042, red: noFlash || !charged ? 0 : .05,
+    life: charged ? .5 : .32, zoom: SET.shake ? (charged ? .12 : killed ? .07 : .05) : 0, lines, spin: rand(0, 6.28) };
+}
+function impactZoom() {
+  if (!IMP || !IMP.zoom) return 0;
+  const t = IMP.t;
+  if (t < .02) return IMP.zoom * (t / .02);          // snap in
+  if (t < IMP.hold) return IMP.zoom;                    // hold while frozen
+  return IMP.zoom * Math.exp(-(t - IMP.hold) * 13);     // ease out
+}
+function w2s(x, y) { const z = ZOOM * (1 + impactZoom()); return { x: VW / 2 + kick.x + (x - cam.x) * z, y: VH / 2 + kick.y + (y - cam.y) * z }; }
+function tickImpact(dt) {
+  if (IMP) { IMP.t += dt; if (IMP.t > IMP.life) IMP = null; }
+  for (const c of cuts) c.t += dt;
+  cuts = cuts.filter(c => c.t < c.life);
+  for (const e of enemies) if (e.hs > 0) e.hs -= dt;
+}
+function drawCuts() {
+  for (const c of cuts) {
+    const k = c.t / c.life, grow = Math.min(1, c.t / .05), L = c.len * (.6 + .4 * grow), W = c.w * (1 - k) * (k < .1 ? 1.4 : 1);
+    if (W <= .2) continue;
+    ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.a);
+    glow(0, 0, L * .5, '#ff7a2a', .35 * (1 - k));
+    const blade = (len, wid, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-len / 2, 0); ctx.lineTo(0, -wid / 2); ctx.lineTo(len / 2, 0); ctx.lineTo(0, wid / 2); ctx.closePath(); ctx.fill(); };
+    ctx.globalAlpha = Math.min(1, (1 - k) * 1.6);
+    blade(L * 1.08, W * 2.2, '#ff3b3b');
+    blade(L, W * 1.3, '#ffcf3f');
+    blade(L * .9, W * .6, '#ffffff');
+    ctx.restore();
+  }
+}
+function spikyStar(g, x, y, R, r, n, rot) {
+  g.beginPath();
+  for (let i = 0; i < n * 2; i++) { const a = rot + i / (n * 2) * Math.PI * 2, rr = i % 2 ? r * (0.8 + ((i * 37) % 7) / 20) : R * (0.75 + ((i * 53) % 9) / 24); g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+  g.closePath();
+}
+function drawImpact() {
+  const I = IMP;
+  if (!I || mode === 'menu') return;
+  const t = I.t, c = w2s(I.x, I.y), diag = Math.hypot(VW, VH);
+  const inNeg = t < I.neg, inRed = !inNeg && t < I.neg + I.red;
+  const post = t - (I.neg + I.red);
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (inNeg) {
+    // inverted, high-contrast black and white
+    ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, VW, VH);
+    ctx.globalCompositeOperation = 'difference'; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, VW, VH);
+    ctx.globalCompositeOperation = 'color-burn'; ctx.fillStyle = '#a0a0a0'; ctx.fillRect(0, 0, VW, VH);
+  } else if (inRed) {
+    // blood-red duotone
+    ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, VW, VH);
+    ctx.globalCompositeOperation = 'color-burn'; ctx.fillStyle = '#8a8a8a'; ctx.fillRect(0, 0, VW, VH);
+    ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#ff2a14'; ctx.fillRect(0, 0, VW, VH);
+  } else if (post < .1 && !REDUCED_MOTION) {
+    // a short zoom blur out from the hit as colour returns
+    const z = 1 + .05 * (1 - post / .1) * (I.charged ? 1.6 : 1);
+    ctx.globalAlpha = .28 * (1 - post / .1);
+    try { ctx.drawImage(cv, c.x * (1 - z), c.y * (1 - z), VW * z, VH * z); } catch (_) {}
+    ctx.globalAlpha = 1;
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  // radial speed lines rushing into the hit
+  const lineA = inNeg || inRed ? 1 : Math.max(0, 1 - post / .12);
+  if (lineA > 0) {
+    ctx.fillStyle = inNeg ? '#ffffff' : inRed ? '#120406' : `rgba(255,246,230,${.55 * lineA})`;
+    const pull = inNeg || inRed ? 0 : post * 900;
+    ctx.beginPath();
+    for (const L of I.lines) {
+      const r0 = Math.max(40, L.r0 * diag * .6 + pull) * (I.charged ? .8 : 1), r1 = diag;
+      ctx.moveTo(c.x + Math.cos(L.a) * r0, c.y + Math.sin(L.a) * r0);
+      ctx.lineTo(c.x + Math.cos(L.a - L.w) * r1, c.y + Math.sin(L.a - L.w) * r1);
+      ctx.lineTo(c.x + Math.cos(L.a + L.w) * r1, c.y + Math.sin(L.a + L.w) * r1);
+      ctx.closePath();
+    }
+    ctx.fill();
+  }
+  // starburst at the point of contact
+  const sk = Math.min(1, t / .07), sA = t < .08 ? 1 : Math.max(0, 1 - (t - .08) / .14);
+  if (sA > 0) {
+    const R = (I.charged ? 120 : I.killed ? 86 : 70) * (.55 + .6 * (1 - Math.pow(1 - sk, 3))) * ZOOM;
+    ctx.globalAlpha = sA;
+    if (inNeg) { spikyStar(ctx, c.x, c.y, R, R * .32, 12, I.spin); ctx.fillStyle = '#ffffff'; ctx.fill(); }
+    else if (inRed) { spikyStar(ctx, c.x, c.y, R * 1.05, R * .34, 12, I.spin); ctx.fillStyle = '#120406'; ctx.fill(); spikyStar(ctx, c.x, c.y, R * .7, R * .22, 12, I.spin + .2); ctx.fillStyle = '#ffffff'; ctx.fill(); }
+    else {
+      const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, R * 1.3);
+      g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.35, 'rgba(255,207,63,.8)'); g.addColorStop(1, 'rgba(255,90,40,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.x, c.y, R * 1.3, 0, 6.28); ctx.fill();
+      spikyStar(ctx, c.x, c.y, R * .9, R * .25, 10, I.spin + t * 2); ctx.fillStyle = '#fff6dc'; ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  // the slash streak cutting through the hit
+  const gl = Math.min(1, t / .035), stA = Math.max(0, 1 - t / (I.charged ? .3 : .2));
+  if (stA > 0) {
+    const L = (I.charged ? 620 : 380) * ZOOM * (.4 + .6 * gl), W = (I.charged ? 22 : 14) * ZOOM * stA;
+    ctx.translate(c.x, c.y); ctx.rotate(I.tang);
+    const blade = (len, wid, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-len / 2, 0); ctx.quadraticCurveTo(0, -wid, len / 2, 0); ctx.quadraticCurveTo(0, wid * .35, -len / 2, 0); ctx.fill(); };
+    if (inNeg) blade(L, W, '#ffffff');
+    else if (inRed) { blade(L * 1.05, W * 1.6, '#120406'); blade(L, W * .8, '#ffffff'); }
+    else { ctx.globalAlpha = stA; blade(L * 1.05, W * 2, 'rgba(255,59,59,.85)'); blade(L, W * 1.2, '#ffcf3f'); blade(L * .95, W * .55, '#ffffff'); }
+  }
+  ctx.restore();
+}
+
+/* ---------- sword sound design ---------- */
+// Synthesised in layers: transient crack, body thump, sub-bass drop, crunch, metal ring and a fire tail,
+// with a small reverb send so the big hits have space.
+const swordSfx = (() => {
+  let rev = null, shaper = null, hum = null, bus = null;
+  const ok = () => SET.sfx && AC && master;
+  // one volume knob for every sword sound, balanced against the rest of the game
+  const B = () => { if (!bus) { bus = AC.createGain(); bus.gain.value = .5; bus.connect(master); } return bus; };
+  const rv = () => {
+    if (rev) return rev;
+    const len = Math.floor(AC.sampleRate * 1.3), ir = AC.createBuffer(2, len, AC.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.4); }
+    const conv = AC.createConvolver(); conv.buffer = ir;
+    const wet = AC.createGain(); wet.gain.value = .32; conv.connect(wet); wet.connect(B());
+    return (rev = conv);
+  };
+  const drive = () => {
+    if (shaper) return shaper;
+    shaper = AC.createWaveShaper(); const n = 1024, cur = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; cur[i] = Math.tanh(x * 3.2) * .9; }
+    shaper.curve = cur; shaper.connect(B()); return shaper;
+  };
+  const out = (node, send, dist) => { node.connect(dist ? drive() : B()); if (send) { const g = AC.createGain(); g.gain.value = send; node.connect(g); g.connect(rv()); } };
+  // pitched voice
+  const osc = (type, f1, f2, dur, vol, o = {}) => {
+    const t = AC.currentTime + (o.delay || 0), v = AC.createOscillator(), g = AC.createGain();
+    v.type = type; v.frequency.setValueAtTime(f1, t); v.frequency.exponentialRampToValueAtTime(Math.max(1, f2), t + (o.glide || dur));
+    g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, t + (o.attack || .002)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    v.connect(g); out(g, o.send, o.dist); v.start(t); v.stop(t + dur + .05);
+  };
+  // filtered noise voice, with an optional filter sweep
+  const nz = (dur, vol, type, f1, f2, q, o = {}) => {
+    const t = AC.currentTime + (o.delay || 0), src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+    src.buffer = noiseBuf; src.playbackRate.value = o.rate || 1;
+    f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f1, t);
+    if (f2 && f2 !== f1) f.frequency.exponentialRampToValueAtTime(f2, t + (o.sweep || dur));
+    g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, t + (o.attack || .002)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    src.connect(f); f.connect(g); out(g, o.send, o.dist); src.start(t, Math.random() * .2); src.stop(t + dur + .05);
+  };
+  const vary = () => rand(.94, 1.06);
+  const S_ = {
+    whoosh(charged) {
+      if (!ok()) return; const p = vary();
+      // air being cut: band-passed noise that sweeps up then falls away
+      nz(charged ? .34 : .24, charged ? .3 : .22, 'bandpass', 420 * p, 2600 * p, 1.6, { attack: .05, sweep: .12 });
+      nz(charged ? .3 : .2, .06, 'highpass', 3000, 6000, .7, { attack: .04 });
+      if (charged) { nz(.5, .16, 'lowpass', 180, 900, .8, { attack: .06, send: .3 }); osc('sawtooth', 70, 140, .4, .05, { attack: .05, dist: true }); }
+      // a faint metallic shing off the blade
+      osc('sine', 2700 * p, 2500 * p, .22, .016, { attack: .01, send: .4 });
+      osc('sine', 4100 * p, 3900 * p, .16, .008, { attack: .01, send: .4 });
+    },
+    impact(charged, killed, boss) {
+      if (!ok()) return; const p = vary(), v = charged ? 1.25 : 1;
+      nz(.03, .5 * v, 'highpass', 2500, 0, .8);                                   // crack
+      osc('square', 1600 * p, 240, .035, .06);                                     // snap
+      nz(.18, .45 * v, 'lowpass', 1100, 160, .9, { sweep: .14 });                  // body thump
+      osc('sine', 125 * p, 36, charged ? .5 : .3, .6 * v, { glide: charged ? .4 : .22 }); // sub drop
+      osc('triangle', 240 * p, 70, .12, .12);                                      // punch
+      nz(.09, .24, 'bandpass', 1500 * p, 700, 2.5, { delay: .004 });               // crunch
+      [1380, 2210, 3540].forEach((f, i) => osc('sine', f * p, f * p * .985, [.6, .45, .3][i], [.03, .02, .012][i], { delay: .003, send: .55 })); // blade ring
+      nz(.38, .13, 'bandpass', 260, 1700, 1.1, { delay: .02, attack: .03, send: .3 }); // fire whoomp
+      if (boss) osc('sawtooth', 90 * p, 40, .35, .1, { dist: true });
+      if (charged) {
+        osc('sine', 78, 22, 1.0, .5, { glide: .8, dist: true });                    // huge distorted boom
+        nz(1.1, .32, 'lowpass', 600, 120, .7, { send: .7, sweep: .9 });            // rumble tail
+        nz(.05, .35, 'highpass', 3500, 0, .8, { delay: .055 });                    // second crack
+        for (let i = 0; i < 5; i++) osc('sine', rand(2800, 6200), rand(2600, 6000), rand(.6, 1.2), .007, { delay: rand(.02, .12), send: .9 }); // shimmer
+      }
+    },
+    impactSmall(killed, n) {
+      if (!ok()) return; const p = vary() * (1 + Math.min(n, 5) * .04);
+      nz(.025, .3, 'highpass', 2600, 0, .8);
+      nz(.12, .26, 'lowpass', 900, 180, .9);
+      osc('sine', 150 * p, 50, .18, .32);
+      osc('sine', 1700 * p, 1660 * p, .3, .015, { send: .4 });
+    },
+    slice(n) {
+      if (!ok()) return; const p = 1 + Math.min(n, 6) * .06;
+      // the "confirmed kill" cut: a bright tearing swish and a rising ping
+      nz(.13, .14, 'highpass', 7000, 1800, 1.2, { delay: .03, attack: .005 });
+      osc('triangle', 880 * p, 1760 * p, .1, .045, { delay: .045, send: .3 });
+      osc('sine', 1320 * p, 1320 * p, .25, .025, { delay: .09, send: .5 });
+    },
+    waveOnly() { if (!ok()) return; nz(.6, .22, 'lowpass', 400, 140, .6, { send: .5 }); osc('sine', 110, 40, .4, .3); },
+    charge(on) {
+      if (!ok()) { hum = null; return; }
+      if (on && !hum) {
+        const t = AC.currentTime, v = AC.createOscillator(), v2 = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain();
+        v.type = 'sawtooth'; v2.type = 'sawtooth'; v.frequency.setValueAtTime(55, t); v2.frequency.setValueAtTime(55.8, t);
+        v.frequency.exponentialRampToValueAtTime(110, t + SWORD.chargeTime); v2.frequency.exponentialRampToValueAtTime(111.5, t + SWORD.chargeTime);
+        f.type = 'lowpass'; f.Q.value = 6; f.frequency.setValueAtTime(200, t); f.frequency.exponentialRampToValueAtTime(1400, t + SWORD.chargeTime);
+        g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.05, t + .25);
+        v.connect(f); v2.connect(f); f.connect(g); g.connect(B()); v.start(t); v2.start(t);
+        hum = { v, v2, g };
+      } else if (!on && hum) {
+        const t = AC.currentTime, h = hum; hum = null;
+        h.g.gain.cancelScheduledValues(t); h.g.gain.setValueAtTime(h.g.gain.value, t); h.g.gain.exponentialRampToValueAtTime(.0001, t + .08);
+        h.v.stop(t + .1); h.v2.stop(t + .1);
+      }
+    },
+  };
+  // a sound glitch must never break the game
+  for (const k in S_) { const f = S_[k]; S_[k] = (...args) => { try { f(...args); } catch (e) { console.warn('sword sfx', k, e); } }; }
+  return S_;
+})();
 function paintSword(g, heat) {
   // blade: dark crimson with a molten edge
   g.fillStyle = '#1a0a0e'; g.fillRect(-8, -76, 16, 66); g.fillRect(-5, -82, 10, 8); g.fillRect(-2, -86, 4, 5);
@@ -3100,14 +3377,13 @@ function swordPose(dt, bob) {
   let heat = 0, reachT = 0, stretch = 1;
   if (swing) {
     // quick wind-up to the start of the arc, then a fast sweep that overshoots a little
-    const wind = .045, tot = SWORD.swingTime;
+    const wind = SWING_WIND, tot = SWORD.swingTime;
     const start = swing.a0 - swing.dir * swing.arc * .5;
     let ang;
     if (swing.t < wind) { const k = swing.t / wind; ang = swing.from + angDiff(start, swing.from) * (1 - Math.pow(1 - k, 2)); }
     else {
       const k = Math.min(1, (swing.t - wind) / (tot - wind));
-      const c = 1.6, e = 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); // ease out with overshoot
-      ang = start + swing.dir * swing.arc * e;
+      ang = start + swing.dir * swing.arc * swingProgress(swing);
       stretch = 1 + Math.sin(Math.min(1, k * 1.4) * Math.PI) * .1;
       reachT = Math.sin(Math.min(1, k) * Math.PI) * (swing.charged ? 16 : 10);
     }
@@ -3718,7 +3994,9 @@ function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.imageSmoothingEnabled = false;
   const sx = shake ? rand(-shake, shake) : 0, sy = shake ? rand(-shake, shake) : 0;
-  ctx.translate(VW / 2 + sx + kick.x, VH / 2 + sy + kick.y); ctx.scale(ZOOM, ZOOM); ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
+  tickImpact(rawDt);
+  const zp = ZOOM * (1 + impactZoom());
+  ctx.translate(VW / 2 + sx + kick.x, VH / 2 + sy + kick.y); ctx.scale(zp, zp); ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
   const hw = VW / 2 / ZOOM + 30, hh = VH / 2 / ZOOM + 30;
   drawGround(cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh);
   drawCloudShadows();
@@ -3755,7 +4033,7 @@ function render() {
   drawParts(false);
 
   drawSwordAim();
-  const actors = enemies.map(e => ({ y: e.y, f: () => drawEnemy(e) }));
+  const actors = enemies.map(e => ({ y: e.y, f: e.hs > 0 ? () => { const j = e.hs * 30; ctx.save(); ctx.translate(rand(-j, j), rand(-j * .5, j * .5)); drawEnemy(e); ctx.restore(); } : () => drawEnemy(e) }));
   actors.push({ y: P.y + 10, f: drawPlayer });
   pushStructActors(actors);
   actors.push({ y: DAYNIGHT.campfire.y, f: drawCampfireTop });
@@ -3776,6 +4054,7 @@ function render() {
   }
   for (const s of shots) drawShot(s);
   drawParts(true);
+  drawCuts();
   for (const z of zaps) {
     const k = z.life / z.max;
     if (z.ring) {
@@ -3842,6 +4121,7 @@ function render() {
   ctx.fillStyle = vignette; ctx.fillRect(0, 0, VW, VH);
   if (flash > 0) { ctx.fillStyle = `rgba(255,93,115,${flash * .45})`; ctx.fillRect(0, 0, VW, VH); }
   if (flashW > 0) { ctx.fillStyle = `rgba(255,255,255,${flashW * .8})`; ctx.fillRect(0, 0, VW, VH); }
+  drawImpact();
   if (mode === 'play' && P.hp / P.maxHp < .3) {
     const g = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .3, VW / 2, VH / 2, Math.max(VW, VH) * .7);
     g.addColorStop(0, 'rgba(255,93,115,0)'); g.addColorStop(1, `rgba(255,93,115,${.28 + Math.sin(T * 6) * .1})`);
@@ -3939,6 +4219,7 @@ function frame(now) {
 function step(now) {
   const raw = Math.min(.05, (now - last) / 1000); last = now;
   drawDt = mode === 'play' && freeze <= 0 ? raw * (lvlFx > 0 ? .25 : 1) : 0;
+  rawDt = raw; // real time: the impact frame always finishes, even if the game pauses mid-hit
   if (mode === 'play') {
     if (freeze > 0) freeze -= raw;
     else update(raw * (lvlFx > 0 ? .25 : 1));

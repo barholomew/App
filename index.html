@@ -335,33 +335,6 @@ button { font: inherit; color: inherit; }
 .note { background: var(--mint); color: var(--ink); border: 3px solid var(--ink); border-radius: 14px; padding: 8px 12px; font-size: 15px; font-weight: 800; }
 
 /* stats */
-.realmlist { display: grid; gap: 14px; position: relative; padding-left: 4px; }
-.realm { position: relative; display: grid; grid-template-columns: 62px 1fr auto; gap: 12px; align-items: center; width: 100%; padding: 12px 12px 12px 10px; border-radius: 18px; border: 3px solid var(--ink); background: linear-gradient(135deg, var(--a), var(--b)); color: #fff; box-shadow: 0 5px 0 var(--ink); text-align: left; cursor: pointer; font: inherit; animation: cardIn .45s cubic-bezier(.2, 1.4, .4, 1) backwards; animation-delay: calc(var(--i) * 70ms); }
-.realm:not(:last-child)::after { content: ''; position: absolute; left: 40px; bottom: -17px; width: 4px; height: 14px; background: repeating-linear-gradient(var(--ink) 0 4px, transparent 4px 7px); }
-.realm .rboss { width: 62px; height: 62px; border-radius: 14px; background: rgba(0,0,0,.35); border: 2px solid rgba(255,255,255,.18); display: grid; place-items: center; overflow: hidden; }
-.realm .rboss img { width: 52px; height: 52px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 0 6px rgba(255,40,60,.6)); }
-.realm .rtext { display: grid; gap: 2px; min-width: 0; }
-.realm .rtext small { font: 800 11px var(--font-body); opacity: .75; text-transform: uppercase; letter-spacing: .04em; }
-.realm .rtext b { font: 700 20px/1.05 var(--font-display); text-shadow: 0 2px 0 rgba(0,0,0,.5); }
-.realm .rtext em { font: 700 13px/1.25 var(--font-body); font-style: normal; opacity: .85; }
-.realm .rfoes { display: flex; align-items: center; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
-.realm .rfoes img { width: 22px; height: 22px; object-fit: contain; image-rendering: pixelated; background: rgba(0,0,0,.25); border-radius: 6px; padding: 2px; }
-.realm .rvs { font: 800 11px var(--font-body); color: #ffb3bd; margin-left: 4px; }
-.realm .rstars { display: grid; justify-items: center; gap: 4px; grid-template-columns: repeat(3, auto); align-content: center; }
-.realm .rstars i { width: 16px; height: 16px; background: rgba(255,255,255,.18); clip-path: polygon(50% 0, 62% 35%, 100% 38%, 70% 60%, 80% 100%, 50% 78%, 20% 100%, 30% 60%, 0 38%, 38% 35%); }
-.realm .rstars i.on { background: #ffd23a; filter: drop-shadow(0 0 4px #ffcf3f); }
-.realm .rstars small { grid-column: 1 / -1; font: 800 10px var(--font-body); opacity: .8; white-space: nowrap; }
-.realm.current { box-shadow: 0 5px 0 var(--ink), 0 0 0 3px #ffd23a, 0 0 22px rgba(255,210,58,.5); }
-.realm.locked { filter: grayscale(.85) brightness(.7); cursor: not-allowed; }
-.realm.locked .rboss img { filter: brightness(0); opacity: .6; }
-.realm.nope { animation: nope .3s; }
-.starico { width: 18px; height: 18px; background: #ffd23a; clip-path: polygon(50% 0, 62% 35%, 100% 38%, 70% 60%, 80% 100%, 50% 78%, 20% 100%, 30% 60%, 0 38%, 38% 35%); display: inline-block; }
-.wstars { display: flex; justify-content: center; gap: 14px; margin: 4px 0; }
-.wstar { display: grid; justify-items: center; gap: 6px; width: 88px; }
-.wstar i { width: 54px; height: 54px; background: #3a3350; clip-path: polygon(50% 0, 62% 35%, 100% 38%, 70% 60%, 80% 100%, 50% 78%, 20% 100%, 30% 60%, 0 38%, 38% 35%); }
-.wstar.on i { background: #ffd23a; animation: starPop .5s cubic-bezier(.2, 2, .4, 1) backwards; animation-delay: calc(500ms + var(--i) * 320ms); filter: drop-shadow(0 0 8px #ffcf3f); }
-.wstar small { font: 800 11px/1.2 var(--font-body); text-align: center; opacity: .8; }
-@keyframes starPop { from { transform: scale(0) rotate(-40deg); } }
 .statgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .statgrid div { background: var(--c); border: 3px solid var(--ink); border-radius: 14px; padding: 8px 6px; display: grid; gap: 3px; justify-items: center; text-align: center; box-shadow: 0 3px 0 var(--ink); animation: cardIn .4s cubic-bezier(.2, 1.5, .4, 1) backwards; animation-delay: calc(var(--i) * 60ms + 150ms); }
 .statgrid small { font: 900 11px var(--font-ui); color: var(--ink); letter-spacing: .03em; }
@@ -709,7 +682,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
       <span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span>
       <img id="heroWiz" alt="The wizard">
       <h1 class="logo" id="logo" aria-label="Wizard Grove"></h1>
-      <p class="tagline">Five realms. Five bosses. One wizard.</p>
+      <p class="tagline">Blast monsters, grab gold, get stronger!</p>
     </div>
     <button class="btn go big" id="playBtn">Play</button>
     <div class="menu-grid">
@@ -718,17 +691,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
       <button class="mbtn" id="guideBtn" style="--c: var(--mint)"><svg viewBox="0 0 10 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="M3 0h4v1H3zM1 1h8v1H1zM0 2h10v7H0z"/><path fill="#fff8e6" d="M2 2h2v1H2z"/><path fill="#fff8e6" d="M3 4h1v2H3zM6 4h1v2H6z"/></svg>Monsters</button>
       <button class="mbtn" id="recBtn" style="--c: var(--sun)"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="M1 0h8v1H1zM0 1h2v3H0zM8 1h2v3H8zM2 1h6v4H2zM3 5h4v1H3zM4 6h2v2H4zM2 8h6v2H2z"/><path fill="#fff8e6" d="M3 2h1v2H3z"/></svg>Records</button>
     </div>
-    <div class="foot">Clear realms for gems and stars. Spend gems and gold in the Shop.</div>
-  </div>
-</div>
-
-<div class="overlay sunny" id="realms" hidden>
-  <div class="clouds" aria-hidden="true"><i></i><i></i><i></i></div>
-  <div class="modal">
-    <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button><span class="stars" aria-label="Stars"><i class="starico"></i><span id="realmStars">0</span></span></div>
-    <h2>Choose your path</h2>
-    <p>Fight through each realm and defeat its boss to open the next. Earn up to 3 stars in every realm.</p>
-    <div class="realmlist" id="realmList"></div>
+    <div class="foot">Beat bosses for gems and grab gold in your runs. Spend both in the Shop.</div>
   </div>
 </div>
 
@@ -855,21 +818,6 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
   </div>
 </div>
 
-<div class="overlay" id="won" hidden>
-  <div class="modal center">
-    <h2>Realm cleared!</h2>
-    <p id="wonRealm"></p>
-    <div class="wstars" id="wonStars"></div>
-    <div class="ribbon" id="wonUnlock" hidden></div>
-    <div class="ribbon" id="wonEndless" hidden>Endless mode unlocked!</div>
-    <div class="statgrid" id="wonStats"></div>
-    <div class="earn"><i class="gem"></i><span id="wonGems"></span></div>
-    <div class="earn"><i class="coin"></i><span id="wonGold"></span></div>
-    <button class="btn go" id="wonNext" style="width:100%">Next realm</button>
-    <button class="btn ghost small" id="wonMap" style="width:100%">Realm map</button>
-  </div>
-</div>
-
 <div class="overlay" id="dead" hidden>
   <div class="modal center">
     <h2>Oh no!</h2>
@@ -909,20 +857,6 @@ window.addEventListener('unhandledrejection', function (e) { try { e.preventDefa
 (() => {
 "use strict";
 const WIZ = new Image(); WIZ.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFIAAABQCAYAAACK5CKQAAAACXBIWXMAAAsTAAALEwEAmpwYAAAGTGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIwLTAyLTE2VDE5OjA1OjUxKzAyOjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMC0wMi0xNlQxOToyNzoyOCswMjowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMC0wMi0xNlQxOToyNzoyOCswMjowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo2ZTUwMzhlOC05MTU5LThiNGYtYTg0Mi1mZWE2M2Q4OTBiOGQiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDpjNzNiZmFkZS1iZjg3LTdiNDQtYTYyNC1kNjE3Njc1OTNmNjYiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo5NTAyN2EwZi1lYmM4LTFiNGQtOGIyMC1kMjhmMDU1MzFmMzQiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjk1MDI3YTBmLWViYzgtMWI0ZC04YjIwLWQyOGYwNTUzMWYzNCIgc3RFdnQ6d2hlbj0iMjAyMC0wMi0xNlQxOTowNTo1MSswMjowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjb252ZXJ0ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImZyb20gaW1hZ2UvZ2lmIHRvIGltYWdlL3BuZyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6NmU1MDM4ZTgtOTE1OS04YjRmLWE4NDItZmVhNjNkODkwYjhkIiBzdEV2dDp3aGVuPSIyMDIwLTAyLTE2VDE5OjI3OjI4KzAyOjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+opn2iwAAAYNJREFUeNrt3LFNxDAUBuBbCK6mpGEAVriOCRAT0CJaxA5scA0DMAQSEg0MAIHW74qnR+wjkb7ir5wo9mfp7Lwkt5mmaSPzAwEkSJACEiRIkAISJEgBCRIkyD9muz2degYkSJAg1wwZB35599bk5Oq5ycXte5Ps+CVDgwQJEmQGF2F6pwoNEiRIkGuGjDC9k8H2vCEACRIkyLmQ2WIxOtkNw83Td5PKxIAECRJkFTKDe73fDU22eES4z4+vJrEdJEiQIEcWcqsDjameX+3vYhYbkCBBgvxN/HGPx8f26eWhSXZ+tf+P52dN/q1oARIkyFVCzt2AR4jROYAI7XFip/11E5AgQYIcCZfCho73Trx+bD+AzCYCJEiQIAc+3MqKDL0fdsX+9dyAgwQJEuTcl6TSDXmyAa4uZjEgQYIEuSbIapGgCpn1ByRIkCCXBJkNpHdRJLt+TziQIEGCPPZHm70hYztIkCBBzoHMCq1Lh8yOBwkSJMiekKM/TK+m+gLCMf9w6Qfh8cZ9vtoSgQAAAABJRU5ErkJggg==";
-const HAT_ART = `
-..........oo..
-.........obho.
-........obbo..
-.......obhbo..
-.......obbbo..
-......obhbbbo.
-......obbybbo.
-.....obbyyybo.
-.....obhbybbbo
-....oddddddddo
-obbhhbbbbbbbbo
-.oooooooooooo.`;
-const HAT_POS = { x: 10, y: -24 }; // where the hat sits on the 82x80 wizard image (image pixels)
 const WIZ_FIST = new Image(); WIZ_FIST.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFIAAABQCAYAAACK5CKQAAAClUlEQVR4nO2dsUtVURzH3zWXIIIGkRpa1KRB31uCILe2/oDAQQcRwiX3/gBnaQlFDFr6AwKJwCEpChx87y0S5dASOLkITfpa/f2unNPxfM59IN/P9vN67r18+PHznPM7F6vBYNAS+YwM+wWuCxIJIZEQEgkhkRASCSGREBIJIZEQEgkhkRASCSGREBIJMVry5p1OG92j63Z7FXk/EmUkhERCSCQEWiN9TZxY+mSu//xxZOK79x+Y+NbNs+Dvx2ruMGuoMhJCIiEkEqLKacf6mjU+v5v9QiFiNXTk64qJm6yZykgIiYSQSIiia+0YvualMjU9YX8wbeetvob7mllVeSX04t8XZSSEREJIJESjNTI2D8R58saEl6zVsXmmMhJCIiEkEqJojYzVxI8Pt0s+vvVsa7/o/S+ijISQSAiJhEBrZGpNTK1hO8uPssaXRBkJIZEQEgkx1P3Ivc8HJp579d3EX9Yem/j277d2/MJmcLzv4Xja7dlgw6rX65u1eKi/pYyEkEgIiYRI6mvH+tixeWT/xWHq+2XRWXxt4u67lyb+s/fNxPdmxuz41R07PtAnV0ZCSCSEREIE55G5NdH3nWc37P37zz/831teEX8+s3WyHh5wZ/LKz1JGQkgkhERCBOeRqecfU88ves5dHzoXf0b9+P3TpPEp5yuVkRASCSGREOh+5OnfG8Hrfq3bOvllws6qraGx73Rq5yNr7xO8XNtvzEEZCSGREBIJ0WjPJrb/l0usRpdEGQkhkRASCVG0Rvq1buysTn0tn/cdTio532UqIyEkEkIiIRqdR5b+ntvj90ePCz5LGQkhkRASCWFqpO/R0D2U0kR7RgWfrYyEkEgIiYQIziPrPZFm176ppPbRyX9B8w+SGLRAXv/ejwAAAABJRU5ErkJggg=="; // same wizard without the staff, so he can grip the sword
 const GRASS = new Image(); GRASS.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAA4JGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxMzggNzkuMTU5ODI0LCAyMDE2LzA5LzE0LTAxOjA5OjAxICAgICAgICAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgICAgICAgICAgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIgogICAgICAgICAgICB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIKICAgICAgICAgICAgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOmV4aWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vZXhpZi8xLjAvIj4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5BZG9iZSBQaG90b3Nob3AgQ0MgMjAxNyAoV2luZG93cyk8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHhtcDpDcmVhdGVEYXRlPjIwMTctMTEtMDJUMTQ6MTA6NDErMDE6MDA8L3htcDpDcmVhdGVEYXRlPgogICAgICAgICA8eG1wOk1vZGlmeURhdGU+MjAxNy0xMS0wMlQxNDoxMTo1MCswMTowMDwveG1wOk1vZGlmeURhdGU+CiAgICAgICAgIDx4bXA6TWV0YWRhdGFEYXRlPjIwMTctMTEtMDJUMTQ6MTE6NTArMDE6MDA8L3htcDpNZXRhZGF0YURhdGU+CiAgICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2UvcG5nPC9kYzpmb3JtYXQ+CiAgICAgICAgIDxwaG90b3Nob3A6Q29sb3JNb2RlPjM8L3Bob3Rvc2hvcDpDb2xvck1vZGU+CiAgICAgICAgIDx4bXBNTTpJbnN0YW5jZUlEPnhtcC5paWQ6NjViNDhkNzItODY0Yy0xNjRiLThhN2QtYWVmZTk0MzA0NzdmPC94bXBNTTpJbnN0YW5jZUlEPgogICAgICAgICA8eG1wTU06RG9jdW1lbnRJRD54bXAuZGlkOjY1YjQ4ZDcyLTg2NGMtMTY0Yi04YTdkLWFlZmU5NDMwNDc3ZjwveG1wTU06RG9jdW1lbnRJRD4KICAgICAgICAgPHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD54bXAuZGlkOjY1YjQ4ZDcyLTg2NGMtMTY0Yi04YTdkLWFlZmU5NDMwNDc3ZjwveG1wTU06T3JpZ2luYWxEb2N1bWVudElEPgogICAgICAgICA8eG1wTU06SGlzdG9yeT4KICAgICAgICAgICAgPHJkZjpTZXE+CiAgICAgICAgICAgICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0iUmVzb3VyY2UiPgogICAgICAgICAgICAgICAgICA8c3RFdnQ6YWN0aW9uPmNyZWF0ZWQ8L3N0RXZ0OmFjdGlvbj4KICAgICAgICAgICAgICAgICAgPHN0RXZ0Omluc3RhbmNlSUQ+eG1wLmlpZDo2NWI0OGQ3Mi04NjRjLTE2NGItOGE3ZC1hZWZlOTQzMDQ3N2Y8L3N0RXZ0Omluc3RhbmNlSUQ+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDp3aGVuPjIwMTctMTEtMDJUMTQ6MTA6NDErMDE6MDA8L3N0RXZ0OndoZW4+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDpzb2Z0d2FyZUFnZW50PkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE3IChXaW5kb3dzKTwvc3RFdnQ6c29mdHdhcmVBZ2VudD4KICAgICAgICAgICAgICAgPC9yZGY6bGk+CiAgICAgICAgICAgIDwvcmRmOlNlcT4KICAgICAgICAgPC94bXBNTTpIaXN0b3J5PgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpYUmVzb2x1dGlvbj43MjAwMDAvMTAwMDA8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOllSZXNvbHV0aW9uPjcyMDAwMC8xMDAwMDwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPGV4aWY6Q29sb3JTcGFjZT42NTUzNTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+NjQ8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFlEaW1lbnNpb24+NjQ8L2V4aWY6UGl4ZWxZRGltZW5zaW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAKPD94cGFja2V0IGVuZD0idyI/PhrtnekAAAAgY0hSTQAAeiUAAICDAAD5/wAAgOkAAHUwAADqYAAAOpgAABdvkl/FRgAAA1pJREFUeNrsW9l6qjAY5KWEuC99HBFJtWq1fS1xRThatdo+038uFBohuIGEEC9y2a/N8C8zk6mU/fcKIh/pCcATgBt+wMaA5rqYAKCFDrKhQmZYB7TQxQIAmTpkhnX3yIYKWRsLVAEWhszx6ztHmTcFawGnCow6IDPay+eWLShtuskfgspMA2RFW/qFrzeo/XzAy+9nKBDI6swM63yswdKmCy+/nycnt2yJA0B+1fYBUNr2OATAxpC9szXIKuC2BZSp9rciRyrIkwYoUw3Q4jpQytse5FdtfqmwPG74vgAvhCkaADwcwS1DC4sBAO3yt/Qh1wAgC1MvL48bibooMvUHVYCFQZ40QB55qPJES87l5013QCMPhZdou7mw7oSqCDRvJmoAej8OCYLkpaXOTi58vaVC7HiVbMao0yugSKGlrHZzpABYGJSJBhnj2JpTjQ5AYd3x01JGCu0hxz7MAu9qPmkBsgqKDC+PLAxZm9EaLG26zPofzZsuq1RmTX6IUJSr6sR2SwoA92r0mxml4dESps4egNyyBbX9IJaB6KpK40CkUAxa4iIAlV3fHYzl7/fH/kFHEhXXALwIQPn73bcaq/tBbC3BFIAihRc4p/bzkRoQpKC+D7p8LK2QhArIr9quXU2eyq4vzttgbtmCKjEEeSh9ZabdtD6v4gGlbY8PcUSYM7Lh1/6hmCAPQ490p0n5q8w0MQISQebsuUpIDQDIbAabs7YAERl5Qn+buORNpqoF0EL3AXHJm0xnSMrCoEw1kMdqsv2A3LIFxXUHKgyZJRMA8qu2T2ixcqFiB4CU10nQF7EDQLPfw6ZDuALgnNIshniR4moGBLVBlYHSZAIA+QTnSOzCuiNGCzinuutDadtjLrKeafGrZGZKYrE3A4BMIiGeUhCkYGuJ8lRli1QBNiUhPmMQe7Ff7wa+uh+4XmZ116daetJVD5bGmRaw8UOfsMgMomyohyDmuHFVBM/ratM2zsUhqEy1s/8c4fhw8kg9pEMjBsOb7/lzeS7/nmuodug16PXhon7RvTeDSKPckfMAtMBnA0hJCGHmli3Ir9qQD5DbUmjnZaK5wzLybKAdEMIcqcljgsjUI88GIwsfZoDxuBQqX1TY2TgRAv3UAk8AngCIDcD/AQDdA7/PhLopJAAAAABJRU5ErkJggg==";
 
@@ -943,18 +877,13 @@ const pick = a => a[Math.random() * a.length | 0];
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------- pixel sprites (left half, mirrored) ---------- */
-function sprite(src, pal, mirror = true, glowChars = '') {
+function sprite(src, pal, mirror = true) {
   const rows = src.trim().split('\n').map(r => r.trim());
   const full = rows.map(r => mirror ? r + [...r].reverse().join('') : r);
   const w = Math.max(...full.map(r => r.length)), h = full.length;
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d');
-  c.eyes = [];
-  full.forEach((r, y) => [...r].forEach((ch, x) => {
-    if (!pal[ch]) return;
-    g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1);
-    if (glowChars.includes(ch)) c.eyes.push({ x: x + .5, y: y + .5, c: pal[ch] });
-  }));
+  full.forEach((r, y) => [...r].forEach((ch, x) => { if (pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
   return c;
 }
 function tint(src, color) {
@@ -968,11 +897,11 @@ const SLIME = `
 ..oohh
 .ohhwh
 .ohwhh
-ohohhh
-ohhohh
-ohEEhh
 ohhhhh
-.okwkk
+ohhkhh
+ohhkhh
+ohhhhh
+.ohhhh
 ..oooo`;
 const BAT_A = `
 o......
@@ -995,8 +924,8 @@ o......`;
 const SKEL = `
 ...oo
 ..oww
-.oowo
-.owEw
+.owww
+.owkw
 .owww
 ..owk
 ...ow
@@ -1030,19 +959,19 @@ const MUSH = `
 orrrrr
 orrwrr
 oooooo
-..ooEc
+..ocec
 ..occc
-..okwk
+..occc
 ...ooo`;
 const GHOST = `
 ...ooo
 ..owww
 .owwww
-.oEEww
-owwEEw
+.owkkw
+owwkkw
 owwwww
-owwkkk
-owwwkw
+owwwww
+owwwww
 owwwww
 owowow
 o.o.o.`;
@@ -1127,7 +1056,7 @@ oooooo`;
 const KNIGHT = `
 ..oooo
 .ommmm
-.omEEm
+.omkkm
 .ommmm
 oommmm
 ommmrr
@@ -1145,26 +1074,25 @@ oyryy
 ooooo`;
 const SPR = {};
 function makeSprites() {
-  const def = (key, src, pal, eyes = 'E') => { const s = sprite(src, pal, true, eyes); SPR[key] = { n: s, w: tint(s, '#ffffff'), i: tint(s, '#9fe6ff'), eyes: s.eyes }; };
-  def('slime', SLIME, { o: '#160a20', h: '#5e3196', w: '#a88ad8', k: '#0c0412', E: '#ff2a4a' });
-  def('boss', SLIME, { o: '#22040a', h: '#94142a', w: '#ff7a8c', k: '#120206', E: '#ffd23a' });
-  def('batA', BAT_A, { o: '#0a0712', h: '#3e355e', b: '#1e1830', r: '#ff2a3a' }, 'r');
-  def('batB', BAT_B, { o: '#0a0712', h: '#3e355e', b: '#1e1830', r: '#ff2a3a' }, 'r');
-  def('skel', SKEL, { o: '#100c14', w: '#d6ccb4', k: '#1a1420', E: '#ff3030' });
-  def('golem', GOLEM, { o: '#101016', s: '#666c7c', d: '#3c4150', y: '#ff7a1a' }, 'y');
-  def('bigslime', SLIME, { o: '#05200d', h: '#24804a', w: '#7cf0a8', k: '#03140a', E: '#ffe23a' });
-  def('mush', MUSH, { o: '#18050a', r: '#9a1c28', w: '#ffc8cf', c: '#cdbd9c', k: '#18050a', E: '#d8ff3a' });
-  def('ghost', GHOST, { o: '#1a2236', w: '#c4d6ea', k: '#080c16', E: '#3affff' });
-  def('boar', BOAR, { o: '#170a04', h: '#5e3818', k: '#ff3a1a', p: '#b86c6c', w: '#fff0cc' }, 'k');
-  def('beetle', BEETLE, { o: '#0c0606', s: '#2e2020', b: '#6a5252', r: '#ff2222' }, 'r');
-  def('wolf', WOLF, { o: '#121016', g: '#545869', k: '#ffc43a', w: '#c4c7d2', a: '#121016' }, 'k');
-  def('spider', SPIDER, { o: '#0e0814', s: '#351f44', r: '#ff2a4a' }, 'r');
-  def('darkmage', MAGE, { o: '#0a0614', p: '#381858', k: '#100820', y: '#ff4dff' }, 'y');
-  def('knight', KNIGHT, { o: '#0c0e16', m: '#868ea2', k: '#0c0e16', r: '#7e1424', E: '#ff3a2a' });
-  def('titan', GOLEM, { o: '#1a100b', s: '#86684f', d: '#5a3e2e', y: '#ff3b1f' }, 'y');
-  def('queen', SPIDER, { o: '#16060f', s: '#621f42', r: '#ffcf3f' }, 'r');
-  def('lich', LICH, { o: '#100820', p: '#3a2470', w: '#d6ccb4', k: '#5dff8a', l: '#ffd166' }, 'k');
-  def('king', KNIGHT, { o: '#070407', m: '#3a2832', k: '#070407', r: '#b01e36', E: '#ff2020' });
+  const def = (key, src, pal) => { const s = sprite(src, pal); SPR[key] = { n: s, w: tint(s, '#ffffff'), i: tint(s, '#9fe6ff') }; };
+  def('slime', SLIME, { o: '#2a1240', h: '#9b5de5', w: '#e0c3ff', k: '#1a0b2b' });
+  def('boss', SLIME, { o: '#3a0a10', h: '#d63c4a', w: '#ffb3b8', k: '#1a0508' });
+  def('batA', BAT_A, { o: '#120d1f', h: '#5b4f86', b: '#2b2340', r: '#ff4d6d' });
+  def('batB', BAT_B, { o: '#120d1f', h: '#5b4f86', b: '#2b2340', r: '#ff4d6d' });
+  def('skel', SKEL, { o: '#1b1622', w: '#ece6d6', k: '#2a2233' });
+  def('golem', GOLEM, { o: '#1a1c24', s: '#8a92a6', d: '#565d70', y: '#ffb347' });
+  def('bigslime', SLIME, { o: '#0f3a1e', h: '#3ddc84', w: '#c8ffd9', k: '#082411' });
+  def('mush', MUSH, { o: '#2a0d12', r: '#e5484d', w: '#ffe9ec', c: '#f1e3c8', e: '#2a0d12' });
+  def('ghost', GHOST, { o: '#2b3550', w: '#e8f3ff', k: '#2b3550' });
+  def('boar', BOAR, { o: '#231208', h: '#8b5a2b', k: '#ff4d4d', p: '#f4a6a6', w: '#fff6e0' });
+  def('beetle', BEETLE, { o: '#120a0a', s: '#3a2a2a', b: '#8a6a6a', r: '#ff3b3b' });
+  def('wolf', WOLF, { o: '#1d1a26', g: '#7a7f93', k: '#ffcf3f', w: '#c9ccd6', a: '#1d1a26' });
+  def('spider', SPIDER, { o: '#1a1222', s: '#4a2f5e', r: '#ff3b5c' });
+  def('darkmage', MAGE, { o: '#120c22', p: '#5b2f86', k: '#1a1230', y: '#ff5dff' });
+  def('knight', KNIGHT, { o: '#141824', m: '#b8c0d0', k: '#141824', r: '#c2263b' });
+  def('titan', GOLEM, { o: '#20140f', s: '#9a7a62', d: '#6a4c3a', y: '#ff5d3b' });
+  def('queen', SPIDER, { o: '#1a0a14', s: '#7a2a52', r: '#ffcf3f' });
+  def('lich', LICH, { o: '#140c24', p: '#4a2f86', w: '#ece6d6', k: '#7dff9a', l: '#ffd166' });
   SPR.crown = sprite(CROWN.trim().split('\n').map(r => r.trim().padEnd(5, '.')).join('\n'), { o: '#5a3a00', y: '#ffd166', r: '#ef4b5c' });
 }
 makeSprites();
@@ -1188,32 +1116,14 @@ const TYPES = {
   knight:   { name: 'Knight', hp: 140, speed: 42, dmg: 28, r: 17, scale: 3, spr: 'knight', xp: 5, gold: 5, color: '#b8c0d0', armor: .5, note: 'armor halves damage' },
   titan:    { name: 'Stone Titan', hp: 1500, speed: 30, dmg: 45, r: 44, scale: 6, spr: 'titan', xp: 60, gold: 60, color: '#9a7a62', boss: true, note: 'boss, wave 15' },
   queen:    { name: 'Spider Queen', hp: 1300, speed: 52, dmg: 40, r: 38, scale: 7, spr: 'queen', xp: 70, gold: 70, color: '#7a2a52', boss: true, note: 'boss, wave 20' },
-  king:     { name: 'The Hollow King', hp: 2200, speed: 40, dmg: 48, r: 34, scale: 6, spr: 'king', xp: 100, gold: 100, color: '#b01e36', boss: true, note: 'final boss of the Ashen Throne' },
   lich:     { name: 'Lich Lord', hp: 1000, speed: 34, dmg: 30, r: 30, scale: 4, spr: 'lich', xp: 50, gold: 50, color: '#7dff9a', boss: true, note: 'boss, wave 10' },
 };
 // [type, first wave, spawn weight]
 const POOL = [['slime', 1, 5], ['bat', 2, 3], ['skel', 3, 3], ['mush', 4, 2], ['bigslime', 4, 2], ['ghost', 5, 2], ['golem', 6, 1.5], ['boar', 7, 1.6], ['beetle', 8, 1.6], ['wolf', 3, 1.8], ['spider', 6, 1.8], ['darkmage', 9, 1.2], ['knight', 12, 1.3]];
-// The campaign: five realms played in order. Each has its own monsters, look and final boss.
-// base = how many waves of difficulty it starts ahead; par = seconds for the speed star.
-const REALMS = [
-  { id: 'grove', name: 'Whispering Grove', sub: 'Something stirs beneath the moss', waves: 6, base: 0, boss: 'boss', gems: 5, par: 300,
-    pool: [['slime', 5], ['bat', 3], ['skel', 2], ['mush', 2]], tint: null, grade: null, ambient: 'fireflies', a: '#2f6b3f', b: '#173823' },
-  { id: 'marsh', name: 'Bonewood Marsh', sub: 'The dead do not rest here', waves: 6, base: 3, boss: 'lich', gems: 8, par: 330,
-    pool: [['skel', 4], ['ghost', 3], ['bigslime', 2], ['bat', 2], ['beetle', 1.5]], tint: '#86a29c', grade: 'rgba(10,40,40,.12)', ambient: 'fog', a: '#2c5a58', b: '#13282c' },
-  { id: 'peaks', name: 'Stonefang Peaks', sub: 'Something heavy walks the cliffs', waves: 7, base: 6, boss: 'titan', gems: 10, par: 390,
-    pool: [['golem', 2], ['boar', 2.5], ['wolf', 3], ['beetle', 2], ['skel', 1.5]], tint: '#bcae9a', grade: 'rgba(60,40,20,.1)', ambient: 'dust', a: '#6e5a44', b: '#2e241c' },
-  { id: 'hollow', name: 'Webwood Hollow', sub: 'Eight eyes watch from the dark', waves: 7, base: 9, boss: 'queen', gems: 12, par: 420,
-    pool: [['spider', 4], ['darkmage', 2], ['wolf', 2], ['ghost', 2], ['bat', 2]], tint: '#8e7cb0', grade: 'rgba(30,10,50,.16)', ambient: 'spores', a: '#4d3a78', b: '#1d1430' },
-  { id: 'throne', name: 'The Ashen Throne', sub: 'The Hollow King awaits', waves: 8, base: 13, boss: 'king', gems: 25, par: 520,
-    pool: [['knight', 3], ['darkmage', 2.5], ['golem', 2], ['boar', 2], ['spider', 2], ['beetle', 2]], tint: '#b0705f', grade: 'rgba(70,0,0,.16)', ambient: 'ash', a: '#7a2a24', b: '#2a0c0c' },
-];
-const RUN = { realm: -1, stage: 0 };
-const realmOn = () => RUN.realm >= 0;
 const BOSS_ORDER = ['boss', 'lich', 'titan', 'queen'];
 const bossFor = n => n % 5 === 0 ? BOSS_ORDER[(n / 5 - 1) % BOSS_ORDER.length] : null;
-const SOULS_BY_BOSS = { boss: 2, lich: 3, titan: 3, queen: 4, king: 6 };
+const SOULS_BY_BOSS = { boss: 2, lich: 3, titan: 3, queen: 4 };
 function pickType(n) {
-  if (realmOn()) { const pool = REALMS[RUN.realm].pool; let r = Math.random() * pool.reduce((a, p) => a + p[1], 0); for (const p of pool) { r -= p[1]; if (r <= 0) return p[0]; } return pool[0][0]; }
   const opts = POOL.filter(p => n >= p[1]);
   let r = Math.random() * opts.reduce((a, p) => a + p[2], 0);
   for (const p of opts) { r -= p[2]; if (r <= 0) return p[0]; }
@@ -1303,13 +1213,12 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
 const SET = Object.assign({ autoAim: true, music: true, sfx: true, shake: true, numbers: true, vibrate: true, impact: true, fx: 'lots' }, store.get('wgSettings', {}));
-const META_DEFAULT = { realm: 0, realmStars: {}, bestTime: {}, gems: 0, gemsTotal: 0, gold: 0, wands: ['oak'], relics: [], wand: 'oak', equip: [], abilities: ['dash'], abEquip: ['dash'], weapons: [], chests: 0, runs: 0, kills: 0, bestCombo: 0, bosses: 0 };
+const META_DEFAULT = { gems: 0, gemsTotal: 0, gold: 0, wands: ['oak'], relics: [], wand: 'oak', equip: [], abilities: ['dash'], abEquip: ['dash'], weapons: [], chests: 0, runs: 0, kills: 0, bestCombo: 0, bosses: 0 };
 let META = Object.assign({}, META_DEFAULT, store.get('wgMeta', {}));
 const GOLD_PER_GEM = 40; // Shop gold price = gem price x this
 const goldPrice = it => it.price * GOLD_PER_GEM;
 delete META.stars; delete META.starsTotal;
-META.realmStars = Object.assign({}, META.realmStars); META.bestTime = Object.assign({}, META.bestTime);
-const GEMS_BY_BOSS = { boss: 5, lich: 8, titan: 10, queen: 12, king: 25 };
+const GEMS_BY_BOSS = { boss: 5, lich: 8, titan: 10, queen: 12 };
 const saveSet = () => store.set('wgSettings', SET), saveMeta = () => store.set('wgMeta', META);
 const WANDS = [
   { id: 'oak', spell: 0, name: 'Fire Wand', desc: 'Shoots Fireballs that set monsters on fire', price: 0, shaft: '#8a5a2b', hi: '#c08a4a', band: '#ffcf3f', tip: '#ff8a3d' },
@@ -1426,7 +1335,6 @@ function sfxRaw(type, n = 0) {
     case 'kill': tone('square', 520 * v, 1040, .07, .04); tone('triangle', 780 * v, 1560, .09, .04, .035); noise(.06, .04, 3000, 1); break;
     case 'big': noise(.3, .12, 400, .7); tone('sawtooth', 200, 50, .3, .06); break;
     case 'gem': { const f = 880 * Math.pow(2, PENTA[Math.min(n, PENTA.length - 1)] / 12); tone('sine', f, f, .1, .05); tone('triangle', f * 2, f * 2, .05, .015); break; }
-    case 'star': { const f = 784 * Math.pow(1.26, n); tone('triangle', f, f, .35, .08); tone('sine', f * 2, f * 2, .5, .04, .04); tone('sine', 196, 98, .2, .06); break; }
     case 'coin': tone('square', 1318 * v, 1318 * v, .05, .028); tone('square', 1976 * v, 1976 * v, .13, .028, .05); break;
     case 'hurt': tone('sawtooth', 220, 55, .3, .1); noise(.2, .12, 600, .8); break;
     case 'level': [523, 659, 784, 1046, 1318].forEach((f, i) => tone('square', f, f, .14, .04, i * .07)); tone('triangle', 2093, 2093, .4, .03, .35); break;
@@ -1529,7 +1437,7 @@ function buildLogo(el) {
   let k = 0;
   el.innerHTML = ['Wizard', 'Grove'].map(w => [...w].map(ch => `<span style="--i:${k};color:${HAPPY[k++ % HAPPY.length]}">${ch}</span>`).join('')).join('<br>');
 }
-const SCREENS = ['loading', 'title', 'realms', 'settings', 'store', 'inventory', 'guide', 'records'];
+const SCREENS = ['loading', 'title', 'settings', 'store', 'inventory', 'guide', 'records'];
 function showScreen(id) {
   SCREENS.forEach(x => { $(x).hidden = x !== id; });
   if ($(id)) $(id).scrollTop = 0;
@@ -1541,23 +1449,22 @@ function go(id) {
   if (id === 'store') { closeSheet(); renderStore(true); }
   if (id === 'guide') renderGuide();
   if (id === 'records') renderRecords();
-  if (id === 'realms') renderRealms();
   if (id === 'settings') { settingsFrom = 'title'; renderSettings(); }
   showScreen(id);
 }
 document.querySelectorAll('[data-to]').forEach(b => b.onclick = () => go(b.dataset.to));
-$('playBtn').onclick = () => { initAudio(); go('realms'); };
+$('playBtn').onclick = () => { initAudio(); META.wand = 'oak'; startGame(0); };
 $('invBtn').onclick = () => go('inventory');
 $('storeBtn').onclick = () => go('store');
 $('setBtn').onclick = () => go('settings');
 $('guideBtn').onclick = () => go('guide');
 $('recBtn').onclick = () => go('records');
 function renderTitle() {
-  $('heroWiz').src = heroWizURL();
+  $('heroWiz').src = WIZ.src;
   buildLogo($('logo'));
   $('titleGems').textContent = META.gems; $('titleGold').textContent = META.gold || 0;
-  $('titleBest').hidden = !META.realm;
-  $('titleBest').textContent = META.realm >= REALMS.length ? 'All realms cleared' : `Realm ${META.realm + 1} of ${REALMS.length}`;
+  $('titleBest').hidden = !best;
+  $('titleBest').textContent = `Best: wave ${best}`;
 }
 
 /* settings screen */
@@ -1868,7 +1775,6 @@ const GUIDE = {
   boar: 'Stops, shows a red "!", then charges in a straight line.',
   beetle: 'Runs up and explodes for 28 damage. Move away when it flashes!',
   boss: 'Boss. Fires rings of bullets and dashes at you. Drops 5 gems.',
-  king: 'Final boss. Spins rings of blades, charges you down and calls knights from the ash. Drops 25 gems.',
   wolf: 'Fast hunters that always come in packs of three.',
   spider: 'Zig-zags quickly toward you. The Spider Queen calls them.',
   darkmage: 'Teleports around you and fires bolts that follow you.',
@@ -1884,38 +1790,9 @@ function renderGuide() {
     <div><b>${t.name}</b><span class="d">${GUIDE[k]}</span>
     <div class="meta"><em class="chip hurt">Hits for ${t.dmg}</em><em class="chip soft">${t.boss ? 'Wave ' + (BOSS_ORDER.indexOf(k) + 1) * 5 + ', then every 20 waves' : 'From wave ' + first(k)}</em></div></div></div>`).join('');
 }
-const sprURL = key => { const c = SPR[key] && SPR[key].n; if (!c) return ''; const k = '_url'; return c[k] || (c[k] = c.toDataURL()); };
-function renderRealms() {
-  const total = Object.values(META.realmStars || {}).reduce((a, b) => a + b, 0);
-  $('realmStars').textContent = `${total}/${REALMS.length * 3}`;
-  const cards = REALMS.map((R, i) => {
-    const locked = i > META.realm, done = i < META.realm, st = META.realmStars[R.id] || 0, boss = TYPES[R.boss];
-    const foes = R.pool.slice(0, 4).map(([t]) => `<img src="${sprURL(TYPES[t].spr)}" alt="">`).join('');
-    const best = META.bestTime[R.id] ? ` · best ${fmtTime(META.bestTime[R.id])}` : '';
-    return `<button class="realm ${locked ? 'locked' : ''} ${done ? 'done' : ''} ${i === META.realm ? 'current' : ''}" data-r="${i}" style="--a:${R.a};--b:${R.b};--i:${i}" ${locked ? 'aria-disabled="true"' : ''}>
-      <span class="rboss"><img src="${sprURL(boss.spr)}" alt=""></span>
-      <span class="rtext"><small>Realm ${i + 1} · ${R.waves} waves</small><b>${R.name}</b><em>${locked ? `Beat ${REALMS[i - 1].name} to unlock` : R.sub}</em>
-        <span class="rfoes">${foes}<span class="rvs">Boss: ${boss.name}</span></span></span>
-      <span class="rstars">${[0, 1, 2].map(k => `<i class="${k < st ? 'on' : ''}"></i>`).join('')}<small>${done ? 'Cleared' + best : locked ? 'Locked' : 'Next'}</small></span>
-    </button>`;
-  });
-  const endless = META.realm >= REALMS.length;
-  cards.push(`<button class="realm endless ${endless ? '' : 'locked'}" data-r="-1" style="--a:#3a2a5a;--b:#120a1e;--i:${REALMS.length}">
-      <span class="rboss"><img src="${sprURL('king')}" alt=""></span>
-      <span class="rtext"><small>Endless</small><b>The Endless Night</b><em>${endless ? 'Waves that never stop. How far can you go?' : 'Clear all five realms to unlock'}</em>${endless && best ? `<span class="rvs">Best: wave ${best}</span>` : ''}</span>
-      <span class="rstars"><small>${endless ? 'Open' : 'Locked'}</small></span></button>`);
-  $('realmList').innerHTML = cards.join('');
-  $('realmList').querySelectorAll('.realm').forEach(b => b.onclick = () => {
-    const r = +b.dataset.r;
-    if (b.classList.contains('locked')) { sfx('nope'); retrigger(b, 'nope'); toast(r < 0 ? 'Clear all five realms first' : `Beat ${REALMS[r - 1].name} first`); return; }
-    META.wand = 'oak'; startGame(0, r);
-  });
-}
 function renderRecords() {
   const rows = [
-    ['Realms cleared', `${Math.min(META.realm, REALMS.length)}/${REALMS.length}`, 'Bosses of the campaign defeated', '#ff5d73'],
-    ['Stars', `${Object.values(META.realmStars || {}).reduce((a, b) => a + b, 0)}/${REALMS.length * 3}`, 'Earned across all realms', '#ffcf3f'],
-    ['Best endless wave', best, 'The furthest wave in Endless', '#ffcf3f'],
+    ['Best wave', best, 'The furthest wave you reached', '#ffcf3f'],
     ['Runs played', META.runs, 'How many games you have finished', '#ff8fc8'],
     ['Monsters defeated', META.kills, 'Added up across all your runs', '#38c6ff'],
     ['Best combo', META.bestCombo, 'Most kills chained together', '#3fd99a'],
@@ -1929,7 +1806,7 @@ function renderRecords() {
 /* loading screen */
 function boot() {
   mode = 'loading'; showScreen('loading');
-  $('loadWiz').src = heroWizURL(); buildLogo($('loadLogo'));
+  $('loadWiz').src = WIZ.src; buildLogo($('loadLogo'));
   const tips = [
     'Tip: drag on the left side to move, and on the right side to aim',
     'Tip: on a computer, move with WASD and aim with the mouse',
@@ -1985,7 +1862,7 @@ function banner(text, sub, kind) {
 }
 function fmtTime(t) { t = Math.floor(t); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; }
 function statsHTML() {
-  const rows = [['WAVE', realmOn() ? `${RUN.stage}/${REALMS[RUN.realm].waves}` : wave], ['LEVEL', level], ['KILLS', kills], ['COMBO', bestCombo], ['GOLD', totalGold], ['TIME', fmtTime(time)]];
+  const rows = [['WAVE', wave], ['LEVEL', level], ['KILLS', kills], ['COMBO', bestCombo], ['GOLD', totalGold], ['TIME', fmtTime(time)]];
   return rows.map(([k, v], i) => `<div style="--c:${HAPPY[i]};--i:${i}"><small>${k}</small><strong>${v}</strong></div>`).join('');
 }
 function confetti(n) {
@@ -2051,11 +1928,10 @@ $('nextWaveBtn').onclick = () => { $('shop').hidden = true; mode = 'play'; start
 let wakeLock = null;
 async function keepAwake() { try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => wakeLock = null); } } catch (e) {} }
 
-function startGame(i, realm = RUN.realm) {
+function startGame(i) {
   initAudio(); keepAwake(); sfx('click');
-  RUN.realm = realm; RUN.stage = 0;
   resetRun(i); applyLoadout();
-  [...SCREENS, 'dead', 'won', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
+  [...SCREENS, 'dead', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
   $('warmPill').hidden = true; lastCyc = ''; weapon = S.sword ? 'sword' : S.knife ? 'knife' : S.prism ? 'prism' : S.gaunt ? 'gaunt' : 'wand'; prismReset(); gauntReset(); syncWeapon(); IMP = null; cuts = []; knives = []; drops = []; decals = []; splats = []; knifeT = 0; knifeHold = false; KN.show = 1; swordSfx.charge(false); swordCharge = null; swordReady = false; joy = null; aimJoy = null;
   buildSpellbar(); buildSpecialBtn(); $('bagBadge').hidden = true;
   $('hint').hidden = true; tipStep = -1; movedT = 0;
@@ -2076,10 +1952,8 @@ $('pauseBtn').onclick = () => togglePause();
 $('resumeBtn').onclick = () => togglePause();
 $('pauseSetBtn').onclick = () => { sfx('click'); settingsFrom = 'pause'; renderSettings(); $('pause').hidden = true; $('settings').hidden = false; $('settings').scrollTop = 0; };
 $('quitBtn').onclick = () => { $('pause').hidden = true; const g = bankGold(); toMenu('title'); if (g > 0) toast(`+${g} gold saved for the Shop`); };
-$('againBtn').onclick = () => { $('dead').hidden = true; startGame(0, RUN.realm); };
-$('wonNext').onclick = () => { $('won').hidden = true; const n = RUN.realm + 1; if (n < REALMS.length) startGame(0, n); else toMenu('realms'); };
-$('wonMap').onclick = () => { $('won').hidden = true; toMenu('realms'); };
-$('deadMenuBtn').onclick = () => { $('dead').hidden = true; toMenu(realmOn() ? 'realms' : 'title'); };
+$('againBtn').onclick = () => { $('dead').hidden = true; startGame(0); };
+$('deadMenuBtn').onclick = () => { $('dead').hidden = true; toMenu('title'); };
 $('soundBtn').onclick = () => { const on = !(SET.sfx || SET.music); SET.sfx = SET.music = on; saveSet(); initAudio(); paintSound(); sfx('click'); };
 function toMenu(screen) { mode = 'menu'; resetRun(0); buildSpellbar(); go(screen); }
 
@@ -2137,114 +2011,26 @@ function updateTips(dt) {
   else if (tipT > 3.5) showTip(tipStep + 1);
 }
 function startWave(n) {
-  waveState = 'fighting';
+  wave = n; waveState = 'fighting';
   if (S.waveShield && S.shield < 1) S.shield = 1;
-  let boss, count;
-  if (realmOn()) {
-    // n is the wave inside this realm; `wave` is the overall difficulty used by scaling
-    const R = REALMS[RUN.realm];
-    RUN.stage = n; wave = R.base + n;
-    boss = n === R.waves ? R.boss : null;
-    count = 5 + n * 3 + RUN.realm * 2;
-  } else { wave = n; boss = bossFor(n); count = 5 + n * 3; }
+  const boss = bossFor(n);
   queue = [];
-  for (let i = 0; i < count; i++) queue.push(pickType(wave));
+  const count = 5 + n * 3;
+  for (let i = 0; i < count; i++) queue.push(pickType(n));
   if (boss) { queue.length = Math.ceil(queue.length * .5); queue.unshift(boss); }
   spawnT = 1.2;
-  if (realmOn()) {
-    const R = REALMS[RUN.realm];
-    if (n === 1) banner(R.name, R.sub, 'boss');
-    else if (boss) banner('Final wave', `${TYPES[boss].name} is coming`, 'boss');
-    else banner(`Wave ${n} of ${R.waves}`, '', '');
-  } else banner(`Wave ${n}`, '', boss ? 'boss' : '');
+  banner(`Wave ${n}`, '', boss ? 'boss' : '');
   sfx('wave');
-}
-const nextWave = () => startWave(realmOn() ? RUN.stage + 1 : wave + 1);
-let rifts = [], lastRiftSfx = 0;
-function drawRifts() {
-  for (const r of rifts) {
-    const k = r.t / r.life, open = k < .25 ? k / .25 : k > .7 ? 1 - (k - .7) / .3 : 1;
-    if (open <= 0) continue;
-    ctx.save();
-    ctx.globalAlpha = .85 * open; ctx.fillStyle = '#0a0410';
-    ctx.beginPath(); ctx.ellipse(r.x, r.y, r.r * open, r.r * .42 * open, 0, 0, 6.28); ctx.fill();
-    ctx.globalAlpha = .9 * open; ctx.strokeStyle = '#ff2a4a'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(r.x, r.y, r.r * open, r.r * .42 * open, 0, 0, 6.28); ctx.stroke();
-    ctx.globalAlpha = .35 * open; ctx.strokeStyle = '#7a1aff'; ctx.lineWidth = 5;
-    ctx.beginPath(); ctx.ellipse(r.x, r.y, r.r * open * 1.12, r.r * .48 * open, 0, 0, 6.28); ctx.stroke();
-    ctx.restore();
-  }
-}
-function realmAmbient(dt) {
-  if (!realmOn() || SET.fx !== 'lots') return;
-  const kind = REALMS[RUN.realm].ambient, z = ZOOM, w = VW / 2 / z + 40, h = VH / 2 / z + 40;
-  const at = () => ({ x: cam.x + rand(-w, w), y: cam.y + rand(-h, h) });
-  if (kind === 'fireflies' && Math.random() < dt * 3) { const p = at(); parts.push({ ...p, vx: rand(-15, 15), vy: rand(-15, 15), life: rand(1.5, 3), max: 3, size: rand(2, 3), color: '#e8ff7a', kind: 'dot', glow: true, fr: .8 }); }
-  if (kind === 'fog' && Math.random() < dt * 4) { const p = at(); parts.push({ ...p, vx: rand(10, 25), vy: rand(-4, 4), life: rand(2.5, 4), max: 4, size: rand(26, 44), color: '#9fb6b2', kind: 'smoke', fr: 1 }); }
-  if (kind === 'dust' && Math.random() < dt * 8) { const p = at(); parts.push({ ...p, vx: rand(60, 120), vy: rand(-10, 10), life: rand(1, 2), max: 2, size: rand(1.5, 2.5), color: '#d8c8a8', kind: 'dot', fr: 1 }); }
-  if (kind === 'spores' && Math.random() < dt * 5) { const p = at(); parts.push({ ...p, vx: rand(-8, 8), vy: rand(-30, -12), life: rand(2, 3.5), max: 3.5, size: rand(1.5, 3), color: pick(['#c77dff', '#7dffd9']), kind: 'dot', glow: true, fr: 1 }); }
-  if (kind === 'ash' && Math.random() < dt * 10) { const p = at(); const ember = Math.random() < .3; parts.push({ ...p, vx: rand(-20, 10), vy: ember ? rand(-50, -20) : rand(20, 45), life: rand(1.5, 3), max: 3, size: ember ? rand(1.5, 2.5) : rand(2, 3.5), color: ember ? '#ff6a2a' : '#5a5050', kind: 'dot', glow: ember, fr: 1 }); }
-}
-function updateRifts(dt) {
-  for (const r of rifts) {
-    r.t += dt;
-    if (r.t < r.life * .7 && Math.random() < dt * 30) parts.push({ x: r.x + rand(-r.r, r.r) * .7, y: r.y + rand(-4, 2), vx: rand(-10, 10), vy: rand(-70, -30), life: rand(.4, .7), max: .7, size: rand(5, 9), color: '#1a0c24', kind: 'smoke' });
-    if (r.t < r.life * .5 && Math.random() < dt * 14) parts.push({ x: r.x + rand(-r.r, r.r) * .6, y: r.y, vx: rand(-20, 20), vy: rand(-120, -60), life: .4, max: .4, size: rand(1.5, 2.5), color: pick(['#ff2a4a', '#7a1aff']), kind: 'dot', glow: true });
-  }
-  rifts = rifts.filter(r => r.t < r.life);
-}
-// ---------- boss entrance: the camera turns to face it, bars close in, its name burns onto the screen
-const INTRO = { e: null, t: 0, dur: 2.1 };
-function bossIntro(e) {
-  INTRO.e = e; INTRO.t = 0; e.intro = INTRO.dur;
-  swordSfx.bossRoar();
-  addShake(10);
-}
-const introK = () => { if (!INTRO.e) return 0; const t = INTRO.t, d = INTRO.dur; return t < .35 ? t / .35 : t > d - .45 ? Math.max(0, (d - t) / .45) : 1; };
-function updateIntro(dt) {
-  if (!INTRO.e) return;
-  INTRO.t += dt;
-  const e = INTRO.e;
-  if (e.intro > 0) e.intro -= dt;
-  if (INTRO.t > .5 && INTRO.t < 1.3 && Math.random() < dt * 20) shake = Math.max(shake, 2.5);
-  if (INTRO.t >= INTRO.dur || e.dead) { INTRO.e = null; e.intro = 0; }
-}
-function drawBossIntro() {
-  const k = introK(); if (k <= 0) return;
-  const e = INTRO.e, t = INTRO.t, ez = k * k * (3 - 2 * k);
-  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  const g = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .2, VW / 2, VH / 2, Math.hypot(VW, VH) * .6);
-  g.addColorStop(0, 'rgba(20,0,8,0)'); g.addColorStop(1, `rgba(20,0,8,${.7 * ez})`);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
-  const bar = VH * .11 * ez;
-  ctx.fillStyle = '#050206'; ctx.fillRect(0, 0, VW, bar); ctx.fillRect(0, VH - bar, VW, bar);
-  // name card slides in from the left
-  const slide = t < .55 ? 1 - Math.pow(1 - Math.min(1, (t - .15) / .4), 3) : 1;
-  if (t > .15) {
-    const y = VH * .66, x = 22 - (1 - slide) * 260;
-    ctx.globalAlpha = ez; ctx.textAlign = 'left';
-    ctx.fillStyle = '#ff2a4a'; ctx.fillRect(x, y - 30, 4, 52);
-    ctx.font = '700 13px "Nunito", sans-serif'; ctx.fillStyle = '#ff8a95'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText(RUN.realm >= 0 ? `${REALMS[RUN.realm].name.toUpperCase()} · BOSS` : 'BOSS', x + 14, y - 14);
-    const size = Math.min(40, VW / 11);
-    ctx.font = `700 ${size}px "Pixelify Sans", sans-serif`;
-    const jitter = t < 1 ? rand(-1.2, 1.2) : 0;
-    ctx.lineJoin = 'round'; ctx.strokeStyle = '#000000'; ctx.lineWidth = 7; ctx.strokeText(e.T.name.toUpperCase(), x + 14 + jitter, y + 18);
-    ctx.fillStyle = '#ffffff'; ctx.fillText(e.T.name.toUpperCase(), x + 14 + jitter, y + 18);
-    ctx.globalAlpha = ez * (.6 + Math.sin(T * 20) * .2); ctx.fillStyle = '#ff2a4a'; ctx.fillText(e.T.name.toUpperCase(), x + 16 + jitter, y + 16);
-  }
-  ctx.restore();
 }
 function spawnEnemy(type, x, y) {
   const T = TYPES[type];
-  if (x === undefined && T.boss) { const a = Math.random() * Math.PI * 2; x = P.x + Math.cos(a) * 240; y = P.y + Math.sin(a) * 200; }
   if (x === undefined) {
     const a = Math.random() * Math.PI * 2;
     const dist = Math.hypot(VW, VH) / 2 / ZOOM + 50;
     x = P.x + Math.cos(a) * dist; y = P.y + Math.sin(a) * dist;
   }
   const night = nightOf(wave);
-  const hpMul = realmOn() && T.boss ? 1 + RUN.realm * .35 : (T.boss ? 1 + (wave / 5 - 1) * .9 : 1 + (wave - 1) * .16) * (1 + night * .6);
+  const hpMul = (T.boss ? 1 + (wave / 5 - 1) * .9 : 1 + (wave - 1) * .16) * (1 + night * .6);
   const dmgMul = (1 + (wave - 1) * .04) * (1 + night * .3);
   const e = {
     type, T, x, y, age: 0, sq: 0,
@@ -2253,11 +2039,7 @@ function spawnEnemy(type, x, y) {
     kx: 0, ky: 0, flash: 0, slow: 0, burn: 0, burnDps: 0, burnTick: 0, ph: Math.random() * 6, face: 1,
     shotT: type === 'mush' ? rand(1, 2) : 2.5, dashT: 4, summonT: 5, st: 'walk', stT: 0, cx: 0, cy: 0, fuse: 0, spCd: 0,
   };
-  e.baseMaxHp = e.maxHp; e.baseDmg = e.dmg; e.baseSpeed = e.speed; e.nightBuff = false; e.lunge = 0;
-  rifts.push({ x, y: y + T.r * .8, r: T.r * (T.boss ? 2.2 : 1.5), t: 0, life: T.boss ? 1.4 : .7 });
-  if (rifts.length > 40) rifts.shift();
-  if (mode === 'play') { const now = performance.now(); if (now - lastRiftSfx > 160 && Math.hypot(x - P.x, y - P.y) < 520) { lastRiftSfx = now; swordSfx.riftOpen(); } }
-  if (T.boss && mode === 'play') bossIntro(e);
+  e.baseMaxHp = e.maxHp; e.baseDmg = e.dmg; e.baseSpeed = e.speed; e.nightBuff = false;
   if (isNight) setEnemyNight(e, true);
   enemies.push(e);
   return e;
@@ -2329,7 +2111,6 @@ function hurt(e, d, color, crit, quiet) {
 }
 function kill(e) {
   e.dead = true; kills++;
-  for (let i = 0; i < 4; i++) parts.push({ x: e.x + rand(-e.r, e.r) * .5, y: e.y - rand(0, e.r), vx: rand(-25, 25), vy: rand(-60, -20), life: rand(.5, .8), max: .8, size: rand(6, 10), color: '#1e1428', kind: 'smoke' });
   combo++; comboT = 2.2; bestCombo = Math.max(bestCombo, combo);
   if (combo >= 5 && combo % 5 === 0) {
     const b = Math.floor(combo / 5) * 2;
@@ -2402,7 +2183,7 @@ function damagePlayer(d) {
     return;
   }
   const taken = Math.max(Math.ceil(d * .3), Math.round(d - S.armor));
-  P.hp -= taken; P.inv = .75; P.hurtT = .22; addShake(10); flash = .35; freeze = Math.max(freeze, .08);
+  P.hp -= taken; P.inv = .75; addShake(10); flash = .35; freeze = Math.max(freeze, .08);
   combo = 0;
   texts.push({ x: P.x, y: P.y - 30, text: '-' + taken, life: 1, max: 1, color: '#ff5d73', size: 22, vx: 0, vy: -60 });
   retrigger($('hpMeter'), 'hurt');
@@ -2415,56 +2196,23 @@ function bankGold() {
   if (add > 0) { META.gold = (META.gold || 0) + add; bankedGold = totalGold; saveMeta(); }
   return add;
 }
-function winRealm() {
-  if (mode !== 'play') return;
-  mode = 'won'; joy = null; freeze = 0; prismStop(false); swordSfx.charge(false);
-  const R = REALMS[RUN.realm], id = R.id;
-  const goldWon = bankGold();
-  // stars: 1 for clearing, 1 for finishing above half health, 1 for beating the par time
-  const got = [true, P.hp >= P.maxHp * .5, time <= R.par];
-  const n = got.filter(Boolean).length, prev = META.realmStars[id] || 0, first = RUN.realm >= META.realm;
-  let gems = 0;
-  if (first) { gems += R.gems; META.realm = RUN.realm + 1; }
-  if (n > prev) { gems += (n - prev) * 2; META.realmStars[id] = n; }
-  META.bestTime[id] = Math.min(META.bestTime[id] || 1e9, Math.round(time));
-  META.gems += gems; META.gemsTotal += gems;
-  META.runs++; META.kills += kills; META.chests = (META.chests || 0) + chestsRun; META.bestCombo = Math.max(META.bestCombo, bestCombo); META.bosses += bossKills;
-  saveMeta();
-  swordSfx.victory();
-  setTimeout(() => {
-    if (mode !== 'won') return;
-    $('wonRealm').textContent = R.name;
-    $('wonStars').innerHTML = got.map((g, i) => `<div class="wstar ${g ? 'on' : ''}" style="--i:${i}"><i></i><small>${['Cleared', 'Above half health', `Under ${fmtTime(R.par)}`][i]}</small></div>`).join('');
-    $('wonStats').innerHTML = statsHTML();
-    $('wonGems').textContent = gems ? `+${gems} gems${first ? ' for your first clear' : ' for new stars'}` : 'Beat your star record for more gems';
-    $('wonGold').textContent = `+${goldWon} gold for the Shop`;
-    const next = REALMS[RUN.realm + 1];
-    $('wonUnlock').hidden = !(first && next);
-    if (next) $('wonUnlock').textContent = `Unlocked: ${next.name}`;
-    $('wonEndless').hidden = !(first && !next);
-    $('wonNext').textContent = next ? `Next: ${next.name}` : 'Back to the map';
-    $('won').hidden = false;
-    confetti(80);
-    got.forEach((g, i) => { if (g) setTimeout(() => sfx('star', i), 500 + i * 320); });
-  }, 900);
-}
 function die() {
   mode = 'dead'; joy = null; freeze = 0; sfx('die'); prismStop(false); if (GT.grab && GT.grab.e) GT.grab.e.grabbed = false; GT.grab = null; swordCharge = null; swordReady = false; swordSfx.charge(false);
   for (let i = 0; i < 50; i++) { const a = Math.random() * 6.28, s = rand(60, 300); parts.push({ x: P.x, y: P.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.6, 1.2), max: 1.2, size: rand(4, 8), color: pick(['#5a7fd6', '#a7c7ff', '#ffcf3f']), kind: 'star', glow: true }); }
   zaps.push({ ring: true, x1: P.x, y1: P.y, r: 120, life: .5, max: .5, color: '#ffffff', w: 6 });
-  const isBest = !realmOn() && wave > best;
+  const isBest = wave > best;
   if (isBest) { best = wave; try { localStorage.setItem('wizardGroveBest', best); } catch (e) {} }
   const goldWon = bankGold();
   META.runs++; META.kills += kills; META.chests = (META.chests || 0) + chestsRun;
   META.bestCombo = Math.max(META.bestCombo, bestCombo); META.bosses += bossKills; saveMeta();
   setTimeout(() => {
     if (mode !== 'dead') return;
-    $('deadSub').textContent = realmOn() ? `The monsters got you in ${REALMS[RUN.realm].name}, wave ${RUN.stage} of ${REALMS[RUN.realm].waves}.` : `The monsters got you on wave ${wave}.`;
+    $('deadSub').textContent = `The monsters got you on wave ${wave}.`;
     $('deadStats').innerHTML = statsHTML();
     $('deadGems').textContent = runGems ? `+${runGems} gems earned` : 'Beat a boss to earn gems';
     $('deadGold').textContent = `+${goldWon} gold for the Shop`;
     $('deadBest').hidden = !isBest;
-    $('deadBestLine').textContent = realmOn() ? 'Level up, grab better weapons and try again!' : isBest ? '' : `Your best is wave ${best}. You can beat it!`;
+    $('deadBestLine').textContent = isBest ? '' : `Your best is wave ${best}. You can beat it!`;
     $('deadBestLine').hidden = isBest;
     $('dead').hidden = false;
     if (isBest) confetti(60);
@@ -4576,28 +4324,6 @@ const swordSfx = (() => {
       nz(.5, .09, 'highpass', 5200, 2600, .8, { attack: .04, sweep: .4 });
       nz(.25, .05, 'lowpass', 500, 150, .7);
     },
-    victory() {
-      if (!ok()) return;
-      // a triumphant rising fanfare
-      [[523.3, 0], [659.3, .12], [784, .24], [1046.5, .38]].forEach(([f, d]) => { osc('square', f, f, .5, .05, { delay: d, send: .5 }); osc('triangle', f / 2, f / 2, .6, .06, { delay: d }); });
-      [1046.5, 1318.5, 1568].forEach(f => osc('sine', f, f, 1.4, .03, { delay: .5, send: .8 }));
-      osc('sine', 130, 65, .6, .3, { delay: .38 });
-    },
-    riftOpen() {
-      if (!ok()) return;
-      nz(.35, .05, 'lowpass', 300, 900, 1.2, { attack: .08 });
-      osc('sine', 70, 48, .3, .05, { attack: .05 });
-    },
-    bossRoar() {
-      if (!ok()) return;
-      // a guttural, distorted roar over a rumbling sub drop
-      osc('sawtooth', 70, 46, 1.4, .14, { dist: 2, attack: .08, glide: 1.2 });
-      osc('sawtooth', 73.5, 47, 1.4, .1, { dist: 2, attack: .1, glide: 1.2 });
-      osc('square', 140, 90, 1.1, .05, { dist: true, attack: .1 });
-      nz(1.4, .35, 'bandpass', 500, 160, 1.4, { attack: .1, sweep: 1.2, send: .6 });
-      osc('sine', 55, 28, 1.6, .5, { attack: .05, glide: 1.4 });
-      nz(.05, .4, 'lowpass', 2000, 0, .7);
-    },
     gauntSwing() {
       if (!ok()) return; const p = vary();
       nz(.11, .38, 'bandpass', 380 * p, 2700 * p, 1.6, { attack: .005, sweep: .08 });  // fast air rip
@@ -4891,16 +4617,11 @@ function update(dt) {
   const cineMul = (1 - CINE.slow * cineEase()) * (PR.on ? PRISM.moveMul : 1) * (GT.grab ? 0 : 1);
   P.x += mx * 150 * S.move * playerSpeedMul() * webMul * cineMul * dt; P.y += my * 150 * S.move * playerSpeedMul() * webMul * cineMul * dt;
   P.moving = ml > .05; if (P.moving) { P.walk += dt; P.mdx = mx / ml; P.mdy = my / ml; }
-  P.hurtT = Math.max(0, (P.hurtT || 0) - dt);
-  if (P.moving) { P.stepT = (P.stepT || 0) - dt; if (P.stepT <= 0) { P.stepT = .21; for (let i = 0; i < 2; i++) parts.push({ x: P.x + rand(-8, 8) - (P.mdx || 0) * 6, y: P.y + 26, vx: -(P.mdx || 0) * rand(20, 50) + rand(-10, 10), vy: rand(-18, -6), life: .35, max: .35, size: rand(4, 6), color: '#d9cfae', kind: 'smoke' }); } }
   updateAbilities(dt);
   updateSword(dt);
   updateKnife(dt);
   updatePrism(dt);
   updateGaunt(dt);
-  updateRifts(dt);
-  realmAmbient(dt);
-  updateIntro(dt);
   updateCycle(dt);
   updateWorld(dt);
   updateTips(dt);
@@ -4945,10 +4666,7 @@ function update(dt) {
     if (!queue.length && !enemies.length) waveCleared();
   } else if (waveState === 'cleared') {
     clearT -= dt;
-    if (clearT <= 0 && pendingLv === 0 && lvlFx <= 0) {
-      if (realmOn() && RUN.stage >= REALMS[RUN.realm].waves) { if (!items.length || clearT < -2.5) { waveState = 'won'; winRealm(); } }
-      else nextWave();
-    }
+    if (clearT <= 0 && pendingLv === 0 && lvlFx <= 0) startWave(wave + 1);
   }
 
   for (const e of enemies) {
@@ -4960,7 +4678,7 @@ function update(dt) {
       if (e.burnTick <= 0) { e.burnTick = .4; hurt(e, e.burnDps * .4, '#ff9d5c'); }
       if (e.dead) continue;
     }
-    if (frozenT > 0 || e.grabbed || e.launched || e.intro > 0 || INTRO.e) continue;
+    if (frozenT > 0 || e.grabbed || e.launched) continue;
     let dx = P.x - e.x, dy = P.y - e.y; const d = Math.hypot(dx, dy) || 1;
     dx /= d; dy /= d;
     const ux = dx, uy = dy;
@@ -5032,19 +4750,6 @@ function update(dt) {
         const base = Math.atan2(uy, ux);
         for (let i = -1; i <= 1; i++) { const a = base + i * .25; eshots.push({ x: e.x, y: e.y - 30, vx: Math.cos(a) * 230, vy: Math.sin(a) * 230, r: 13, dmg: Math.round(22 * e.dmgMul * enemyNightMul(e)), life: 4, color: '#6a4c3a', core: '#c9a36b' }); }
       }
-    } else if (e.type === 'king') {
-      // spiralling blade rings, a telegraphed charge, and knights called from the ash
-      e.shotT -= dt; e.summonT -= dt; e.stT -= dt;
-      if (e.shotT <= 0) {
-        e.shotT = 2.1; e.sq = 1; e.spin = (e.spin || 0) + .35;
-        for (let i = 0; i < 14; i++) { const a = e.spin + i / 14 * Math.PI * 2; eshots.push({ x: e.x, y: e.y - 20, vx: Math.cos(a) * 170, vy: Math.sin(a) * 170, r: 8, dmg: Math.round(16 * e.dmgMul * enemyNightMul(e)), life: 4, color: '#ff2a3a', core: '#ffd0d0' }); }
-        zaps.push({ ring: true, x1: e.x, y1: e.y, r: 90, life: .35, max: .35, color: '#ff2a3a', w: 6 });
-      }
-      if (e.st === 'walk' && e.stT <= 0 && d < 380) { e.st = 'wind'; e.stT = .8; }
-      else if (e.st === 'wind') { dx = 0; dy = 0; if (e.stT <= 0) { e.st = 'charge'; e.stT = .55; e.cx = ux; e.cy = uy; addShake(5); } }
-      else if (e.st === 'charge') { dx = e.cx; dy = e.cy; sp = 420 * slowMul; if (Math.random() < dt * 30) parts.push({ x: e.x, y: e.y + e.r * .7, vx: rand(-30, 30), vy: rand(-20, 0), life: .5, max: .5, size: rand(6, 10), color: '#3a2228', kind: 'smoke' }); if (e.stT <= 0) { e.st = 'rest'; e.stT = 1; } }
-      else if (e.st === 'rest') { dx *= .3; dy *= .3; if (e.stT <= 0) { e.st = 'walk'; e.stT = 3.5; } }
-      if (e.summonT <= 0) { e.summonT = 9; for (let i = 0; i < 2; i++) { const a = i * Math.PI + rand(-.5, .5); spawnEnemy('knight', e.x + Math.cos(a) * 80, e.y + Math.sin(a) * 80); } }
     } else if (e.type === 'queen') {
       e.shotT -= dt; e.summonT -= dt;
       if (e.shotT <= 0) {
@@ -5188,8 +4893,7 @@ function updateFx(dt) {
   const kd = Math.pow(.0005, dt); kick.x *= kd; kick.y *= kd;
   dark = nightAmt * .7;
   const lean = CINE.lean * cineEase() + PRISM.lean * prismZoomK() + GAUNT.lean * gauntZoomK(), la = GT.zk > .01 ? GT.lookA : PR.on || PR.zk > .01 ? PR.ang : swordOn() ? swordAimAngle() : 0;
-  let tx = P.x + Math.cos(la) * lean, ty = P.y + Math.sin(la) * lean;
-  if (INTRO.e) { const k = introK(); tx += (INTRO.e.x - P.x) * .5 * k; ty += (INTRO.e.y - P.y) * .5 * k; }
+  const tx = P.x + Math.cos(la) * lean, ty = P.y + Math.sin(la) * lean;
   cam.x += (tx - cam.x) * Math.min(1, dt * 8); cam.y += (ty - cam.y) * Math.min(1, dt * 8);
 }
 
@@ -5272,42 +4976,26 @@ function drawEnemy(e) {
   const sc = T0.scale, w = img.width * sc, h = img.height * sc;
   const floaty = e.type === 'bat' || e.type === 'ghost' || e.type === 'lich';
   const fly = floaty ? (e.type === 'lich' ? 6 : 10) + Math.sin(T * 4 + e.ph) * 3 : 0;
-  const born = Math.min(1, e.age * 3);
-  // lean in and swell right before biting
-  const dd = Math.hypot(P.x - e.x, P.y - e.y), wantL = !e.T.boss && dd < e.r + 52 ? 1 : 0;
-  e.lunge = (e.lunge || 0) + (wantL - (e.lunge || 0)) * Math.min(1, (drawDt || .016) * 12);
-  shadow(e.x, e.y + e.r * .8, e.r * (floaty ? .75 : 1.12) * born);
-  shadow(e.x, e.y + e.r * .8, e.r * (floaty ? .5 : .8) * born);
+  const born = Math.min(1, e.age * 4);
+  shadow(e.x, e.y + e.r * .8, e.r * (floaty ? .7 : 1) * born);
   if (e.fuse > 0) glow(e.x, e.y, 50, '#ff3b3b', .35 + Math.sin(T * 30) * .2);
-  if (e.T.boss) { glow(e.x, e.y - e.r * .4, e.r * 3, '#000000', .35); glow(e.x, e.y - e.r * .4, e.r * 2.6, e.T.color, .22 + Math.sin(T * 3) * .06); }
+  if (e.T.boss) glow(e.x, e.y - e.r * .4, e.r * 2.6, e.T.color, .25);
   if (e.night) glow(e.x, e.y - e.r * .3, e.r * 2.2, '#ff3b5c', Math.min(.6, .3 + .12 * e.night));
   ctx.save();
   const shakeX = e.st === 'wind' ? rand(-2, 2) : 0;
-  const rise = (1 - born) * (1 - born) * h * .6; // claws up out of the ground
-  ctx.translate(e.x + shakeX, e.y + e.r * .8 - fly + rise);
-  ctx.globalAlpha = Math.min(1, born * 1.6) * (e.type === 'ghost' ? .6 + Math.sin(T * 3 + e.ph) * .2 : 1);
-  const grow = .7 + born * .3 + e.lunge * .1;
+  ctx.translate(e.x + shakeX, e.y + e.r * .8 - fly);
+  ctx.globalAlpha = born * (e.type === 'ghost' ? .6 + Math.sin(T * 3 + e.ph) * .2 : 1);
+  const grow = .5 + born * .5;
   ctx.scale(grow, grow);
-  if (e.lunge > .02) ctx.rotate((P.x < e.x ? -1 : 1) * e.lunge * .12);
   if (e.fuse > 0) { const s = 1 + (.7 - e.fuse) * .4; ctx.scale(s, s); }
   if (e.st === 'wind') { ctx.fillStyle = '#2d1f4f'; ctx.fillRect(-4, -h - 18, 8, 16); ctx.fillStyle = '#ff4d4d'; ctx.fillRect(-2, -h - 16, 4, 8); ctx.fillRect(-2, -h - 6, 4, 3); }
   let sx = e.face < 0 ? -1 : 1, sy = 1;
   if (e.type === 'slime' || e.type === 'boss' || e.type === 'bigslime') { const q = Math.sin(T * 6 + e.ph) * .08; sx *= 1 + q; sy = 1 - q; }
-  else if (e.type === 'king') ctx.rotate(Math.sin(T * 2 + e.ph) * .03);
   else if (e.type === 'skel' || e.type === 'golem' || e.type === 'boar' || e.type === 'beetle') ctx.rotate(Math.sin(T * 8 + e.ph) * .06);
   sx *= 1 + e.sq * .28; sy *= 1 - e.sq * .2;
   ctx.scale(sx, sy);
   ctx.drawImage(img, -w / 2, -h, w, h);
-  // burning eyes: a soft glow and a hot core that flickers, brighter when lunging or at night
-  if (set.eyes && set.eyes.length && img === set.n) {
-    const heat = .55 + e.lunge * .45 + (e.night ? .2 : 0) + Math.sin(T * 9 + e.ph) * .08;
-    for (const ey of set.eyes) {
-      const ex = -w / 2 + ey.x * sc, eyy = -h + ey.y * sc;
-      glow(ex, eyy, sc * (2.6 + e.lunge * 1.2), ey.c, Math.min(1, heat));
-      ctx.fillStyle = '#ffffff'; ctx.globalAlpha = Math.min(1, heat * .9); ctx.fillRect(ex - sc * .22, eyy - sc * .22, sc * .44, sc * .44); ctx.globalAlpha = 1;
-    }
-  }
-  if (e.type === 'boss' || e.type === 'king') { const cw = SPR.crown.width * 4, ch = SPR.crown.height * 4; ctx.drawImage(SPR.crown, -cw / 2, -h - ch + 10, cw, ch); }
+  if (e.type === 'boss') { const cw = SPR.crown.width * 4, ch = SPR.crown.height * 4; ctx.drawImage(SPR.crown, -cw / 2, -h - ch + 10, cw, ch); }
   ctx.restore();
   if (e.T.boss) {
     const bw = 100, by = e.y - e.r * 2.4;
@@ -5320,19 +5008,6 @@ function drawEnemy(e) {
     ctx.fillStyle = '#ff5d73'; ctx.fillRect(e.x - bw / 2, by, bw * Math.max(0, e.hp / e.maxHp), 3);
   }
 }
-const HAT_IMG = sprite(HAT_ART, { o: '#1b1433', b: '#3b3a9e', h: '#6260d6', d: '#ffcf3f', y: '#fff1a8' }, false);
-const HAT_RED = tint(HAT_IMG, '#ff4d5e');
-const wizRedCache = new Map();
-function wizRed(img) { let c = wizRedCache.get(img); if (!c) { c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight; const g = c.getContext('2d'); g.drawImage(img, 0, 0); g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(255,60,80,.7)'; g.fillRect(0, 0, c.width, c.height); wizRedCache.set(img, c); } return c; }
-// the title screen wizard wears the hat too
-let heroURL = null;
-function heroWizURL() {
-  if (heroURL) return heroURL;
-  if (!WIZ.complete || !WIZ.naturalWidth) return WIZ.src;
-  const c = document.createElement('canvas'); c.width = 82; c.height = 80 + 26; const g = c.getContext('2d');
-  g.imageSmoothingEnabled = false; g.drawImage(WIZ, 0, 26); g.drawImage(HAT_IMG, HAT_POS.x, 26 + HAT_POS.y, 56, 48);
-  return heroURL = c.toDataURL();
-}
 function drawPlayer() {
   if (mode === 'dead') return;
   const s = .74, w = 82 * s, h = 80 * s;
@@ -5340,22 +5015,11 @@ function drawPlayer() {
   const squash = P.moving ? 1 + Math.sin(P.walk * 22) * .03 : 1;
   shadow(P.x, P.y + h / 2 - 6, 18);
   const blink = P.inv > 0 && Math.floor(P.inv * 16) % 2 === 0;
-  // lean into the direction he's running
-  P.lean = (P.lean || 0) + ((P.moving ? (P.mdx || 0) * .09 : 0) - (P.lean || 0)) * Math.min(1, (drawDt || .016) * 10);
   ctx.save(); if (blink) ctx.globalAlpha = .45;
-  ctx.translate(P.x, P.y + h / 2 - bob); ctx.rotate(P.lean); ctx.scale(P.face / squash, squash);
+  ctx.translate(P.x, P.y + h / 2 - bob); ctx.scale(P.face / squash, squash);
   const img = weapon !== 'wand' && WIZ_FIST.complete && WIZ_FIST.naturalWidth ? WIZ_FIST : WIZ;
-  const hurt = (P.hurtT || 0) > 0;
-  if (img.complete && img.naturalWidth) { try { ctx.drawImage(hurt ? wizRed(img) : img, -w / 2, -h, w, h); } catch (e) {} }
-  // the hat: sits on the hood, wobbles with each step and trails behind when he runs
-  const hs = s * 4, hx = -w / 2 + HAT_POS.x * s, hy = -h + HAT_POS.y * s, hw = 14 * hs, hh = 12 * hs;
-  const px = hx + hw * .5, py = hy + hh * .85;
-  const wob = Math.sin(T * 2.2) * .03 + (P.moving ? Math.sin(P.walk * 11) * .05 : 0) - Math.abs(P.lean) * 1.4;
-  ctx.translate(px, py); ctx.rotate(wob); ctx.translate(-px, -py);
-  ctx.drawImage(hurt ? HAT_RED : HAT_IMG, hx, hy, hw, hh);
+  if (img.complete && img.naturalWidth) { try { ctx.drawImage(img, -w / 2, -h, w, h); } catch (e) {} }
   ctx.restore();
-  // a twinkle off the hat's star now and then
-  if (Math.random() < .03) parts.push({ x: P.x + P.face * (-w / 2 + (HAT_POS.x + 37) * s), y: P.y + h / 2 - bob - h + (HAT_POS.y + 28) * s, vx: rand(-10, 10), vy: rand(-30, -10), life: .5, max: .5, size: rand(2, 3.5), color: '#fff1a8', kind: 'star', glow: true });
   if (S.shield > 0) {
     ctx.save();
     glow(P.x, P.y, 46, '#9fe6ff', .25);
@@ -5457,10 +5121,6 @@ function render() {
   const hw = VW / 2 / ZOOM + 30, hh = VH / 2 / ZOOM + 30;
   drawGround(cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh);
   drawCloudShadows();
-  if (realmOn() && REALMS[RUN.realm].tint && mode !== 'menu') {
-    ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = REALMS[RUN.realm].tint;
-    ctx.fillRect(cam.x - hw, cam.y - hh, hw * 2, hh * 2); ctx.restore();
-  }
   drawStructGround();
   drawCampfire();
 
@@ -5494,7 +5154,6 @@ function render() {
   drawParts(false);
 
   drawDecals();
-  drawRifts();
   drawSwordAim();
   drawKnifeAim();
   const actors = enemies.map(e => ({ y: e.y, f: e.hs > 0 ? () => { const j = e.hs * 30; ctx.save(); ctx.translate(rand(-j, j), rand(-j * .5, j * .5)); drawEnemy(e); ctx.restore(); } : () => drawEnemy(e) }));
@@ -5588,11 +5247,9 @@ function render() {
   sun.addColorStop(0, 'rgba(255,230,190,.1)'); sun.addColorStop(1, 'rgba(255,244,200,0)');
   ctx.fillStyle = sun; ctx.fillRect(0, 0, VW, VH * .45);
   ctx.fillStyle = vignette; ctx.fillRect(0, 0, VW, VH);
-  if (realmOn() && REALMS[RUN.realm].grade && mode !== 'menu') { ctx.fillStyle = REALMS[RUN.realm].grade; ctx.fillRect(0, 0, VW, VH); }
   if (flash > 0) { ctx.fillStyle = `rgba(255,93,115,${flash * .45})`; ctx.fillRect(0, 0, VW, VH); }
   if (flashW > 0) { ctx.fillStyle = `rgba(255,255,255,${flashW * .8})`; ctx.fillRect(0, 0, VW, VH); }
   drawCineBars();
-  drawBossIntro();
   drawImpact();
   if (mode === 'play' && P.hp / P.maxHp < .3) {
     const g = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .3, VW / 2, VH / 2, Math.max(VW, VH) * .7);
@@ -5685,7 +5342,7 @@ function hud() {
   $('hpText').textContent = hpTxt;
   $('xpFill').style.width = (xp / xpNeed * 100) + '%';
   $('xpText').textContent = `LV ${level} · ${Math.floor(xp)} / ${xpNeed} XP`;
-  $('waveText').textContent = realmOn() ? `Wave ${Math.max(1, RUN.stage)}/${REALMS[RUN.realm].waves}` : `Wave ${Math.max(1, wave)}`;
+  $('waveText').textContent = `Wave ${Math.max(1, wave)}`;
   $('goldText').textContent = gold;
   if (gold > lastGold) retrigger($('goldPill'), 'bump');
   if (wave !== lastWave) retrigger($('wavePill'), 'bump');

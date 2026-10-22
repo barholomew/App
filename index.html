@@ -581,14 +581,17 @@ body.menu-mode #hint,
 .swordbtn.ready { box-shadow: 0 5px 0 var(--ink), 0 0 22px #ffcf3f, 0 0 40px #ff5d3b; }
 .swordbtn .cdt { font-size: 20px; }
 .swordbtn svg { width: 38px; height: 38px; }
-.gauntbtn { background: radial-gradient(circle at 35% 30%, #ff5d7a, #7a0f2e 72%); }
+.gauntbtn { background: radial-gradient(circle at 50% 50%, #2a1846 40%, transparent 41%), conic-gradient(from var(--rb, 0deg), #ff4d5e, #ff9a3d, #ffe45c, #5dff8f, #4dc3ff, #b47dff, #ff4d5e); animation: rbspin 3s linear infinite; }
+@property --rb { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@keyframes rbspin { to { --rb: 360deg; } }
 .gauntbtn .kico, .grabbtn .kico { position: relative; z-index: 1; display: grid; place-items: center; }
 .gauntbtn .kico img { width: 50px; height: 50px; }
 .gauntbtn.hit .kico { animation: kflick .2s cubic-bezier(.2, 1.6, .4, 1); }
-.grabbtn { position: fixed; z-index: 2; right: calc(max(20px, env(safe-area-inset-right, 0px)) + 94px); bottom: calc(env(safe-area-inset-bottom, 0px) + 146px); width: 62px; height: 62px; background: radial-gradient(circle at 35% 30%, #c43a8f, #3a0a2a 72%); }
+.grabbtn { position: fixed; z-index: 2; right: calc(max(20px, env(safe-area-inset-right, 0px)) + 94px); bottom: calc(env(safe-area-inset-bottom, 0px) + 146px); width: 62px; height: 62px; background: radial-gradient(circle at 50% 50%, #2a1846 44%, transparent 45%), conic-gradient(from var(--rb, 0deg), #b47dff, #4dc3ff, #5dff8f, #ffe45c, #ff9a3d, #ff4d5e, #b47dff); animation: rbspin 4s linear infinite reverse; }
+.grabbtn.combo { box-shadow: 0 5px 0 var(--ink), 0 0 26px #ffffff, 0 0 44px #b47dff; transform: scale(1.12); transition: transform .12s; }
 .grabbtn .kico img { width: 40px; height: 40px; }
 .grabbtn .cdt { font-size: 18px; }
-.grabbtn.ready { box-shadow: 0 5px 0 var(--ink), 0 0 18px #ff4df0; }
+.grabbtn.ready { box-shadow: 0 5px 0 var(--ink), 0 0 18px #ffffff; }
 body.menu-mode .gauntbtn, body.menu-mode .grabbtn { visibility: hidden; }
 .prismbtn { --c: #3b4a8a; background: radial-gradient(circle at 35% 30%, #6f86d9, #283266 70%); }
 .prismbtn .kico { position: relative; z-index: 1; display: grid; place-items: center; }
@@ -3610,11 +3613,17 @@ const GAUNT = {
   grabCd: 5, grabRange: 300, grabWhiffCd: 1.2,
   dashSpeed: 1500,      // the lunge toward the grabbed monster
   holdTime: .26,        // the beat between grab and punch
-  punchDmg: 180,
+  punchDmg: 180,        // single grab punch
+  comboJab: 100,        // double tap: first hit (keeps hold of the monster)
+  comboFinisher: 175,   // double tap: second hit, launches harder
+  rewind: .15,          // the beat between the two hits
   launchSpeed: 1050, launchTime: .5,
   bowlDmg: 60,          // damage a launched monster does to anything it crashes into
   zoom: .14, lean: 40,
 };
+// rainbow helpers: a hex colour that cycles through the spectrum over time, and an HSL hue
+const rbHex = (off = 0) => RAINBOW[(Math.floor(T * 8) + off) % 6];
+const rbHue = (off = 0) => (T * 160 + off) % 360;
 const CHAOS = { dark: '#1a0a12', iron: '#565068', ironHi: '#a49bbd', ironLo: '#34304a', plate: '#b0183f', plateHi: '#ff5b7d', red: '#ff2d55', mag: '#ff4df0', hot: '#ffd1e6', deep: '#7a0f2e' };
 const GT = { cd: 0, gcd: 0, gcdFull: 1, parryT: 0, parryA: 0, hitSet: null, reflected: 0, punch: 0, hand: 1, punchA: 0, grab: null, zk: 0, lookA: 0, charge: 0 };
 let flyers = [], shockFx = [], ghosts = [];
@@ -3646,10 +3655,10 @@ function parryCheck() {
     GT.hitSet.add(e); hitAny = true;
     const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1;
     const crit = Math.random() < S.crit;
-    hurt(e, GAUNT.parryDmg * gMult() * (crit ? 2 : 1), CHAOS.hot, crit);
+    hurt(e, GAUNT.parryDmg * gMult() * (crit ? 2 : 1), rbHex(), crit);
     e.hs = .09;
     if (!e.T.boss) { e.kx += dx / d * GAUNT.parryKnock; e.ky += dy / d * GAUNT.parryKnock; }
-    for (let i = 0; i < 9; i++) { const a = Math.atan2(dy, dx) + rand(-.8, .8), sp = rand(180, 420); parts.push({ x: e.x - dx / d * e.r * .6, y: e.y - dy / d * e.r * .6, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .22, max: .22, size: rand(2, 3.5), color: pick([CHAOS.red, CHAOS.mag, '#ffffff']), kind: 'spark', glow: true, fr: .01 }); }
+    for (let i = 0; i < 9; i++) { const a = Math.atan2(dy, dx) + rand(-.8, .8), sp = rand(180, 420); parts.push({ x: e.x - dx / d * e.r * .6, y: e.y - dy / d * e.r * .6, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .22, max: .22, size: rand(2, 3.5), color: pick(RAINBOW), kind: 'spark', glow: true, fr: .01 }); }
   }
   for (const b of eshots) {
     if (b.life <= 0 || (b.x - c.x) ** 2 + (b.y - c.y) ** 2 > (R + b.r + 8) ** 2) continue;
@@ -3657,20 +3666,29 @@ function parryCheck() {
     // fly back at the closest monster (or straight out along the punch)
     const t = nearest(b.x, b.y, 520), sp = Math.max(380, Math.hypot(b.vx, b.vy) * GAUNT.reflectSpeed);
     const a = t ? Math.atan2(t.y - b.y, t.x - b.x) : GT.parryA;
-    shots.push({ x: b.x, y: b.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, spd: sp, age: 0, r: Math.max(6, b.r + 1), dmg: Math.max(10, b.dmg) * GAUNT.reflectMul * S.dmg, sp: { id: 'chaos', color: CHAOS.mag, core: '#ffffff' }, life: 1.6, pierce: 2, hit: new Set() });
+    shots.push({ x: b.x, y: b.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, spd: sp, age: 0, r: Math.max(6, b.r + 1), dmg: Math.max(10, b.dmg) * GAUNT.reflectMul * S.dmg, sp: { id: 'chaos', color: pick(RAINBOW), core: '#ffffff' }, life: 1.6, pierce: 2, hit: new Set() });
     zaps.push({ ring: true, x1: b.x, y1: b.y, r: 26, life: .18, max: .18, color: '#ffffff', w: 4 });
-    for (let i = 0; i < 8; i++) { const sa = a + rand(-1, 1), v = rand(150, 380); parts.push({ x: b.x, y: b.y, vx: Math.cos(sa) * v, vy: Math.sin(sa) * v, life: .2, max: .2, size: 2, color: pick(['#ffffff', CHAOS.mag]), kind: 'spark', glow: true }); }
+    for (let i = 0; i < 8; i++) { const sa = a + rand(-1, 1), v = rand(150, 380); parts.push({ x: b.x, y: b.y, vx: Math.cos(sa) * v, vy: Math.sin(sa) * v, life: .2, max: .2, size: 2, color: pick(RAINBOW), kind: 'spark', glow: true }); }
   }
   if (GT.reflected && !GT.reflectShown) {
     GT.reflectShown = true; freeze = Math.max(freeze, .07); addShake(4);
-    texts.push({ x: P.x, y: P.y - 52, text: 'REFLECT!', life: .9, max: .9, color: CHAOS.mag, size: 17, vx: 0, vy: -50 });
+    texts.push({ x: P.x, y: P.y - 52, text: 'REFLECT!', life: .9, max: .9, color: rbHex(), size: 17, vx: 0, vy: -50 });
     swordSfx.gauntReflect();
   }
   if (hitAny) { freeze = Math.max(freeze, .035); if (SET.shake) addShake(3.5); swordSfx.gauntThud(); if (SET.vibrate) { try { navigator.vibrate && navigator.vibrate(12); } catch (_) {} } }
 }
 
 function gauntGrab() {
-  if (mode !== 'play' || !gauntOn() || GT.grab) return;
+  if (mode !== 'play' || !gauntOn()) return;
+  // second tap while grabbing queues the double hit
+  if (GT.grab) {
+    const G = GT.grab;
+    if (G.e && !G.combo && (G.ph === 'dash' || G.ph === 'hold')) {
+      G.combo = true; swordSfx.comboTick(); retrigger($('grabBtn'), 'combo');
+      texts.push({ x: P.x, y: P.y - 54, text: 'x2!', life: .6, max: .6, color: rbHex(), size: 20, vx: 0, vy: -60 });
+    }
+    return;
+  }
   if (GT.gcd > 0) { sfx('nope'); retrigger($('grabBtn'), 'nope'); return; }
   // pick a monster: the one closest to your aim when you're aiming, otherwise the closest one
   const aiming = (swordDrag && swordDrag.on) || P.manual;
@@ -3720,13 +3738,13 @@ function updateGrab(dt) {
     if (e) { const stop = e.r + 20; G.tx = e.x - Math.cos(G.a) * stop; G.ty = e.y - Math.sin(G.a) * stop; }
     P.x = G.sx + (G.tx - G.sx) * ez; P.y = G.sy + (G.ty - G.sy) * ez;
     ghosts.push({ x: P.x, y: P.y, face: P.face, t: 0, life: .22 });
-    if (Math.random() < .9) parts.push({ x: P.x + rand(-10, 10), y: P.y + rand(-14, 10), vx: -Math.cos(G.a) * rand(60, 160), vy: -Math.sin(G.a) * rand(60, 160), life: .3, max: .3, size: rand(2, 4), color: pick([CHAOS.red, CHAOS.mag]), kind: 'dot', glow: true });
+    if (Math.random() < .9) parts.push({ x: P.x + rand(-10, 10), y: P.y + rand(-14, 10), vx: -Math.cos(G.a) * rand(60, 160), vy: -Math.sin(G.a) * rand(60, 160), life: .3, max: .3, size: rand(2, 4), color: pick(RAINBOW), kind: 'dot', glow: true });
     if (k >= 1) {
       if (!e) { G.ph = 'recover'; G.t = 0; return; }
       G.ph = 'hold'; G.t = 0; e.hs = GAUNT.holdTime + .05;
       addShake(3); freeze = Math.max(freeze, .03);
       swordSfx.grabCatch(); swordSfx.grabCharge();
-      zaps.push({ ring: true, x1: e.x, y1: e.y, r: e.r + 18, life: .2, max: .2, color: CHAOS.mag, w: 4 });
+      zaps.push({ ring: true, x1: e.x, y1: e.y, r: e.r + 18, life: .2, max: .2, color: rbHex(), w: 4 });
     }
   } else if (G.ph === 'hold') {
     GT.charge = Math.min(1, G.t / GAUNT.holdTime);
@@ -3737,35 +3755,63 @@ function updateGrab(dt) {
     G.a = Math.atan2(e.y - P.y, e.x - P.x); GT.lookA = G.a;
     // chaos energy rushes into the fist
     const fx = P.x - Math.cos(G.a) * 6 + P.face * 8, fy = P.y + 6;
-    for (let i = 0; i < 2; i++) { const a = rand(0, 6.28), r = rand(30, 60); parts.push({ x: fx + Math.cos(a) * r, y: fy + Math.sin(a) * r, vx: -Math.cos(a) * r * 6, vy: -Math.sin(a) * r * 6, life: .15, max: .15, size: rand(2, 3), color: pick([CHAOS.mag, CHAOS.red, '#ffffff']), kind: 'spark', glow: true, fr: .5 }); }
-    if (G.t >= GAUNT.holdTime) gauntPunch(G);
+    for (let i = 0; i < 2; i++) { const a = rand(0, 6.28), r = rand(30, 60); parts.push({ x: fx + Math.cos(a) * r, y: fy + Math.sin(a) * r, vx: -Math.cos(a) * r * 6, vy: -Math.sin(a) * r * 6, life: .15, max: .15, size: rand(2, 3), color: pick(RAINBOW), kind: 'spark', glow: true, fr: .5 }); }
+    if (G.t >= GAUNT.holdTime) gauntPunch(G, G.combo ? 1 : 0);
+  } else if (G.ph === 'rewind') {
+    // between the two hits: the monster reels in your grip while the fist cocks back again
+    GT.charge = Math.min(1, G.t / GAUNT.rewind);
+    if (Math.random() < .8) { const fx = P.x + P.face * 8, fy = P.y + 6, a = rand(0, 6.28), r = rand(26, 50); parts.push({ x: fx + Math.cos(a) * r, y: fy + Math.sin(a) * r, vx: -Math.cos(a) * r * 7, vy: -Math.sin(a) * r * 7, life: .13, max: .13, size: rand(2, 3), color: pick(RAINBOW), kind: 'spark', glow: true, fr: .5 }); }
+    if (G.t >= GAUNT.rewind) gauntPunch(G, 2);
   } else if (G.ph === 'recover') {
     if (G.t < .1) { P.x -= Math.cos(G.a) * 260 * dt; P.y -= Math.sin(G.a) * 260 * dt; }
-    if (G.t >= .2) { GT.grab = null; GT.charge = 0; if (GT.gcd <= 0) GT.gcd = GT.gcdFull = GAUNT.grabCd; }
+    if (G.t >= .2) { GT.grab = null; GT.charge = 0; $('grabBtn').classList.remove('combo'); if (GT.gcd <= 0) GT.gcd = GT.gcdFull = GAUNT.grabCd; }
   }
 }
-function gauntPunch(G) {
+const POW_WORDS = ['POW!', 'BAM!', 'WHAM!', 'KRAK!', 'BOOM!'];
+function gauntPunch(G, stage = 0) {
   const e = G.e, a = G.a, ux = Math.cos(a), uy = Math.sin(a);
-  e.grabbed = false;
   const nd = deaths.length;
-  hurt(e, GAUNT.punchDmg * gMult(), CHAOS.hot, true);
-  const n = texts[texts.length - 1]; if (n) { n.size = 32; n.vy = -170; n.life = n.max = 1.1; n.color = CHAOS.hot; }
+  const dmg = stage === 1 ? GAUNT.comboJab : stage === 2 ? GAUNT.comboFinisher : GAUNT.punchDmg;
+  hurt(e, dmg * gMult(), '#ffffff', true);
+  const n = texts[texts.length - 1]; if (n) { n.size = stage === 1 ? 26 : 34; n.vy = -170; n.life = n.max = 1.1; n.color = rbHex(stage * 2); }
   const killed = e.dead;
+  if (stage === 1 && !killed) {
+    // first of two: a sharp hit that keeps hold of the monster
+    e.hs = .2;
+    const cx = e.x - ux * e.r * .5, cy = e.y - uy * e.r * .5, hold = .09;
+    freeze = Math.max(freeze, hold);
+    startImpact(cx, cy, a, a, false, hold, false, IMP_PAL.rainbow, { word: pick(POW_WORDS), tilt: rand(-.05, .05) });
+    if (SET.shake) { addShake(8); kick.x += ux * 9; kick.y += uy * 9; }
+    for (let i = 0; i < 16; i++) { const sa = a + rand(-.8, .8), sp = rand(200, 520); parts.push({ x: cx, y: cy, vx: Math.cos(sa) * sp, vy: Math.sin(sa) * sp, life: rand(.18, .3), max: .3, size: rand(2, 3.5), color: pick(RAINBOW), kind: 'spark', glow: true, fr: .01 }); }
+    zaps.push({ ring: true, x1: cx, y1: cy, r: 50, life: .22, max: .22, color: rbHex(), w: 6 });
+    swordSfx.impact(false, false, e.T.boss); swordSfx.chaosPunch(.6);
+    if (SET.vibrate) { try { navigator.vibrate && navigator.vibrate(25); } catch (_) {} }
+    GT.punch = 1; GT.hand = 1; GT.punchA = a; GT.charge = 0;
+    e.x += ux * 8; e.y += uy * 8;            // knocked back a little in your grip
+    G.ph = 'rewind'; G.t = 0;
+    return;
+  }
+  e.grabbed = false;
   if (killed) deaths.length = nd; // the launched body plays its own ending
   const cx = e.x - ux * e.r * .5, cy = e.y - uy * e.r * .5;
   if (!e.T.boss) {
     e.launched = !killed;
-    flyers.push({ e, x: e.x, y: e.y, vx: ux * GAUNT.launchSpeed, vy: uy * GAUNT.launchSpeed, t: 0, life: GAUNT.launchTime, trail: [], dead: killed, hit: new Set([e]), spin: 0, ring: 0 });
+    const ls = GAUNT.launchSpeed * (stage === 2 ? 1.3 : 1);
+    flyers.push({ e, x: e.x, y: e.y, vx: ux * ls, vy: uy * ls, t: 0, life: GAUNT.launchTime * (stage === 2 ? 1.15 : 1), trail: [], dead: killed, hit: new Set([e]), spin: 0, ring: 0 });
   } else { e.kx += ux * 520; e.ky += uy * 520; }
   e.hs = .18;
-  const hold = .15;
+  const fin = stage === 2, hold = fin ? .2 : .15;
   freeze = Math.max(freeze, hold);
-  startImpact(cx, cy, a, a, true, hold, killed, IMP_PAL.chaos); // streak runs along the punch
+  const word = killed ? 'K.O.!' : fin ? 'SMASH!' : pick(POW_WORDS);
+  startImpact(cx, cy, a, a, true, hold, killed, IMP_PAL.rainbow, { word, tilt: (fin ? .09 : .06) * (Math.random() < .5 ? -1 : 1), big: fin }); // streak runs along the punch
+  // the finisher drops into slow motion for a beat, then snaps back
+  if (fin || killed) slowMo(fin ? .55 : .35, .28);
+  if (fin) texts.push({ x: P.x, y: P.y - 60, text: 'DOUBLE HIT!', life: 1.1, max: 1.1, color: rbHex(3), size: 18, vx: 0, vy: -40 });
   if (SET.shake) { addShake(15); kick.x += ux * 18; kick.y += uy * 18; }
-  for (let i = 0; i < 26; i++) { const sa = a + rand(-.7, .7), sp = rand(250, 700); parts.push({ x: cx, y: cy, vx: Math.cos(sa) * sp, vy: Math.sin(sa) * sp, life: rand(.2, .4), max: .4, size: rand(2, 4), color: pick([CHAOS.red, CHAOS.mag, '#ffffff', CHAOS.hot]), kind: 'spark', glow: true, fr: .005 }); }
-  zaps.push({ ring: true, x1: cx, y1: cy, r: 80, life: .3, max: .3, color: CHAOS.mag, w: 8 });
-  zaps.push({ ring: true, x1: cx, y1: cy, r: 46, life: .2, max: .2, color: '#ffffff', w: 5 });
-  swordSfx.impact(true, killed, e.T.boss); swordSfx.chaosPunch();
+  for (let i = 0; i < 26; i++) { const sa = a + rand(-.7, .7), sp = rand(250, 700); parts.push({ x: cx, y: cy, vx: Math.cos(sa) * sp, vy: Math.sin(sa) * sp, life: rand(.2, .4), max: .4, size: rand(2, 4), color: pick(RAINBOW), kind: 'spark', glow: true, fr: .005 }); }
+  RAINBOW.forEach((c, i) => zaps.push({ ring: true, x1: cx, y1: cy, r: 50 + i * 14, life: .26 + i * .03, max: .26 + i * .03, color: c, w: 6 }));
+  zaps.push({ ring: true, x1: cx, y1: cy, r: 40, life: .18, max: .18, color: '#ffffff', w: 6 });
+  swordSfx.impact(true, killed, e.T.boss); swordSfx.chaosPunch(1); swordSfx.rainbowChime(fin || killed);
   if (SET.vibrate) { try { navigator.vibrate && navigator.vibrate([0, 35, 25, 80]); } catch (_) {} }
   GT.punch = 1; GT.hand = 1; GT.punchA = a; GT.charge = 0;
   G.ph = 'recover'; G.t = 0;
@@ -3782,27 +3828,27 @@ function updateFlyers(dt) {
     if (f.dead) f.spin += dt * 18 * Math.sign(f.vx || 1);
     else { e.x = f.x; e.y = f.y; e.kx = e.ky = 0; }
     f.trail.unshift({ x: f.x, y: f.y }); if (f.trail.length > 12) f.trail.pop();
-    if ((f.ring -= dt) <= 0) { f.ring = .06; if (Math.hypot(f.vx, f.vy) > 300) zaps.push({ ring: true, x1: f.x, y1: f.y, r: e.r + 10, life: .15, max: .15, color: CHAOS.red, w: 3 }); }
-    if (Math.random() < .9) parts.push({ x: f.x + rand(-e.r, e.r) * .5, y: f.y + rand(-e.r, e.r) * .5, vx: -f.vx * .1 + rand(-30, 30), vy: -f.vy * .1 + rand(-30, 30), life: .3, max: .3, size: rand(2, 4), color: pick([CHAOS.red, CHAOS.mag, CHAOS.hot]), kind: 'dot', glow: true });
+    if ((f.ring -= dt) <= 0) { f.ring = .06; if (Math.hypot(f.vx, f.vy) > 300) zaps.push({ ring: true, x1: f.x, y1: f.y, r: e.r + 10, life: .15, max: .15, color: rbHex(2), w: 3 }); }
+    if (Math.random() < .9) parts.push({ x: f.x + rand(-e.r, e.r) * .5, y: f.y + rand(-e.r, e.r) * .5, vx: -f.vx * .1 + rand(-30, 30), vy: -f.vy * .1 + rand(-30, 30), life: .3, max: .3, size: rand(2, 4), color: pick(RAINBOW), kind: 'dot', glow: true });
     // crash into other monsters
     for (const o of enemies) {
       if (o.dead || f.hit.has(o) || o === e) continue;
       if ((o.x - f.x) ** 2 + (o.y - f.y) ** 2 > (o.r + e.r) ** 2) continue;
       f.hit.add(o);
-      hurt(o, GAUNT.bowlDmg * gMult(), CHAOS.hot, false);
+      hurt(o, GAUNT.bowlDmg * gMult(), rbHex(2), false);
       o.hs = .08;
       if (!o.T.boss) { const dx = o.x - f.x, dy = o.y - f.y, d = Math.hypot(dx, dy) || 1; o.kx += (dx / d * .6 + f.vx / 1000) * 520; o.ky += (dy / d * .6 + f.vy / 1000) * 520; }
       freeze = Math.max(freeze, .03); if (SET.shake) addShake(4);
-      zaps.push({ ring: true, x1: o.x, y1: o.y, r: 34, life: .18, max: .18, color: CHAOS.hot, w: 4 });
-      for (let i = 0; i < 10; i++) { const a = rand(0, 6.28), v = rand(120, 360); parts.push({ x: o.x, y: o.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: .25, max: .25, size: rand(2, 3), color: pick([CHAOS.red, '#ffffff']), kind: 'spark', glow: true }); }
+      zaps.push({ ring: true, x1: o.x, y1: o.y, r: 34, life: .18, max: .18, color: rbHex(4), w: 4 });
+      for (let i = 0; i < 10; i++) { const a = rand(0, 6.28), v = rand(120, 360); parts.push({ x: o.x, y: o.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: .25, max: .25, size: rand(2, 3), color: pick(RAINBOW), kind: 'spark', glow: true }); }
       swordSfx.impactSmall(o.dead, f.hit.size);
     }
     if (f.t >= f.life) {
       f.done = true;
       if (f.dead) {
         // the body bursts apart where it lands
-        for (let i = 0; i < 30; i++) { const a = rand(0, 6.28), v = rand(80, 340); parts.push({ x: f.x, y: f.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, g: 500, life: rand(.4, .8), max: .8, size: rand(3, 6), color: pick([e.T.color || '#ffffff', CHAOS.red, CHAOS.mag]), kind: 'confetti', rot: rand(0, 6) }); }
-        zaps.push({ ring: true, x1: f.x, y1: f.y, r: 60, life: .3, max: .3, color: CHAOS.mag, w: 6 });
+        for (let i = 0; i < 30; i++) { const a = rand(0, 6.28), v = rand(80, 340); parts.push({ x: f.x, y: f.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, g: 500, life: rand(.4, .8), max: .8, size: rand(3, 6), color: pick(RAINBOW), kind: 'confetti', rot: rand(0, 6) }); }
+        zaps.push({ ring: true, x1: f.x, y1: f.y, r: 60, life: .3, max: .3, color: rbHex(), w: 6 });
         addShake(5); sfx('boom');
       } else {
         e.launched = false;
@@ -3815,24 +3861,25 @@ function updateFlyers(dt) {
 
 /* ---------- gauntlet drawing ---------- */
 // One armoured fist pointing along +x: cuff, knuckle plates, spikes and glowing chaos runes
-function paintGauntlet(g, glowAmt, small) {
+function paintGauntlet(g, glowAmt, small, hue = 330) {
   const s = small ? .8 : 1;
   g.save(); g.scale(s, s);
   g.fillStyle = CHAOS.dark; g.fillRect(-13, -8, 9, 16);
   g.fillStyle = CHAOS.iron; g.fillRect(-12, -7, 7, 14);
   g.fillStyle = CHAOS.ironHi; g.fillRect(-12, -7, 7, 2);
-  g.fillStyle = CHAOS.plate; g.fillRect(-12, 3, 7, 3);
-  g.fillStyle = CHAOS.red; g.fillRect(-10, -1.5, 4, 2.5);
+  g.fillStyle = `hsl(${hue + 60} 95% 55%)`; g.fillRect(-12, 3, 7, 3);
+  g.fillStyle = `hsl(${hue + 120} 100% 62%)`; g.fillRect(-10, -1.5, 4, 2.5);
   g.fillStyle = CHAOS.dark; g.beginPath(); g.moveTo(-5, -10); g.lineTo(8, -9); g.quadraticCurveTo(13, -8, 13, -4); g.lineTo(13, 4); g.quadraticCurveTo(13, 8, 8, 9); g.lineTo(-5, 10); g.closePath(); g.fill();
   g.fillStyle = CHAOS.iron; g.beginPath(); g.moveTo(-4, -8); g.lineTo(7, -7.5); g.quadraticCurveTo(11, -7, 11, -3.5); g.lineTo(11, 3.5); g.quadraticCurveTo(11, 7, 7, 7.5); g.lineTo(-4, 8); g.closePath(); g.fill();
-  g.fillStyle = CHAOS.plate; g.beginPath(); g.moveTo(-4, -8); g.lineTo(7, -7.5); g.quadraticCurveTo(11, -7, 11, -3.5); g.lineTo(-4, -2.5); g.closePath(); g.fill();
-  g.fillStyle = CHAOS.plateHi; g.fillRect(-3, -7.2, 11, 1.6);
+  g.fillStyle = `hsl(${hue} 92% 54%)`; g.beginPath(); g.moveTo(-4, -8); g.lineTo(7, -7.5); g.quadraticCurveTo(11, -7, 11, -3.5); g.lineTo(-4, -2.5); g.closePath(); g.fill();
+  g.fillStyle = `hsl(${hue} 100% 80%)`; g.fillRect(-3, -7.2, 11, 1.6);
   g.fillStyle = CHAOS.ironLo; for (let i = 0; i <= 5; i += 2.6) g.fillRect(3, i - .5, 7, 1);
   // knuckle spikes
   g.fillStyle = '#c9c0d6'; for (const y of [-5.5, 0, 5.5]) { g.beginPath(); g.moveTo(11, y - 2); g.lineTo(16, y); g.lineTo(11, y + 2); g.closePath(); g.fill(); }
   // glowing knuckle line
-  g.globalAlpha = .6 + glowAmt * .4; g.fillStyle = glowAmt > .6 ? '#ffffff' : CHAOS.red; g.fillRect(9.5, -6.5, 1.5, 13);
-  g.fillStyle = CHAOS.mag; g.globalAlpha = .45 + glowAmt * .5; g.beginPath(); g.arc(2, -4.8, 1.6 + glowAmt * 1.4, 0, 6.28); g.fill();
+  g.globalAlpha = .7 + glowAmt * .3; for (let i = 0; i < 6; i++) { g.fillStyle = RAINBOW[i]; g.fillRect(9.5, -6.5 + i * 13 / 6, 1.5, 13 / 6 + .2); }
+  if (glowAmt > .6) { g.globalAlpha = glowAmt - .6; g.fillStyle = '#ffffff'; g.fillRect(9.5, -6.5, 1.5, 13); }
+  g.fillStyle = `hsl(${hue + 180} 100% 65%)`; g.globalAlpha = .55 + glowAmt * .45; g.beginPath(); g.arc(2, -4.8, 1.6 + glowAmt * 1.4, 0, 6.28); g.fill();
   g.globalAlpha = 1; g.restore();
 }
 function chaosBolt(x1, y1, x2, y2, segs, jag, col, w) {
@@ -3845,9 +3892,9 @@ let gauntIconURL = null, grabIconURL = null;
 function gauntImg(size = 40) {
   if (!gauntIconURL) {
     const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d');
-    const fl = g.createRadialGradient(48, 48, 2, 48, 48, 40); fl.addColorStop(0, 'rgba(255,77,240,.55)'); fl.addColorStop(1, 'rgba(255,45,85,0)'); g.fillStyle = fl; g.fillRect(0, 0, 96, 96);
-    g.save(); g.translate(36, 58); g.rotate(-.5); g.scale(2.1, 2.1); paintGauntlet(g, .8, true); g.restore();
-    g.save(); g.translate(58, 40); g.rotate(-.9); g.scale(2.3, 2.3); paintGauntlet(g, 1); g.restore();
+    RAINBOW.forEach((col, i) => { g.globalAlpha = .28; g.fillStyle = col; g.beginPath(); g.arc(48, 48, 44 - i * 6, 0, 6.28); g.fill(); }); g.globalAlpha = 1;
+    g.save(); g.translate(36, 58); g.rotate(-.5); g.scale(2.1, 2.1); paintGauntlet(g, .8, true, 200); g.restore();
+    g.save(); g.translate(58, 40); g.rotate(-.9); g.scale(2.3, 2.3); paintGauntlet(g, 1, false, 320); g.restore();
     gauntIconURL = c.toDataURL();
   }
   return `<img src="${gauntIconURL}" alt="" style="width:${size}px;height:${size}px;display:block">`;
@@ -3855,9 +3902,9 @@ function gauntImg(size = 40) {
 function grabImg(size = 40) {
   if (!grabIconURL) {
     const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d');
-    g.strokeStyle = '#ffd1e6'; g.lineCap = 'round';
-    [[22, 30, 8], [14, 48, 10], [22, 66, 8]].forEach(([x, y, w]) => { g.lineWidth = w * .6; g.globalAlpha = .8; g.beginPath(); g.moveTo(x - 10, y); g.lineTo(x + 18, y); g.stroke(); });
-    g.globalAlpha = 1; g.save(); g.translate(58, 48); g.scale(2.6, 2.6); paintGauntlet(g, 1); g.restore();
+    g.lineCap = 'round';
+    [[22, 30, 8], [14, 48, 10], [22, 66, 8]].forEach(([x, y, w], i) => { g.strokeStyle = RAINBOW[i * 2]; g.lineWidth = w * .6; g.globalAlpha = .8; g.beginPath(); g.moveTo(x - 10, y); g.lineTo(x + 18, y); g.stroke(); });
+    g.globalAlpha = 1; g.save(); g.translate(58, 48); g.scale(2.6, 2.6); paintGauntlet(g, 1, false, 280); g.restore();
     grabIconURL = c.toDataURL();
   }
   return `<img src="${grabIconURL}" alt="" style="width:${size}px;height:${size}px;display:block">`;
@@ -3882,17 +3929,17 @@ function drawGauntlets(bob) {
     glowF = .4 + GT.charge * .6;
     // chaos tether between the clamping fist and the wizard
     ctx.save(); ctx.globalAlpha = .8;
-    chaosBolt(P.x, P.y, bx, by, 6, 6, CHAOS.mag, 2.5); chaosBolt(P.x, P.y, bx, by, 6, 4, '#ffffff', 1);
+    chaosBolt(P.x, P.y, bx, by, 6, 6, rbHex(), 2.5); chaosBolt(P.x, P.y, bx, by, 6, 6, rbHex(3), 1.6); chaosBolt(P.x, P.y, bx, by, 6, 4, '#ffffff', 1);
     ctx.restore();
-    glow(fx, fy, 20 + GT.charge * 34, CHAOS.mag, .4 + GT.charge * .5);
+    glow(fx, fy, 20 + GT.charge * 34, rbHex(), .4 + GT.charge * .5);
   }
-  const drawOne = (x, y, a, gl, small) => {
-    glow(x, y, small ? 16 : 22, CHAOS.red, .25 + gl * .35);
-    ctx.save(); ctx.translate(x, y); ctx.rotate(a); if (Math.cos(a) < 0) ctx.scale(1, -1); paintGauntlet(ctx, gl, small); ctx.restore();
-    if (Math.random() < .08 + gl * .2) { ctx.save(); ctx.globalAlpha = .7; const r = rand(0, 6.28); chaosBolt(x, y, x + Math.cos(r) * 14, y + Math.sin(r) * 14, 3, 3, pick([CHAOS.mag, CHAOS.red]), 1.5); ctx.restore(); }
+  const drawOne = (x, y, a, gl, small, hue) => {
+    glow(x, y, small ? 16 : 22, rbHex(small ? 3 : 0), .25 + gl * .35);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a); if (Math.cos(a) < 0) ctx.scale(1, -1); paintGauntlet(ctx, gl, small, hue); ctx.restore();
+    if (Math.random() < .08 + gl * .2) { ctx.save(); ctx.globalAlpha = .7; const r = rand(0, 6.28); chaosBolt(x, y, x + Math.cos(r) * 14, y + Math.sin(r) * 14, 3, 3, pick(RAINBOW), 1.5); ctx.restore(); }
   };
-  drawOne(bx, by, ba, glowB, true);
-  drawOne(fx, fy, fa, glowF, false);
+  drawOne(bx, by, ba, glowB, true, rbHue(120));
+  drawOne(fx, fy, fa, glowF, false, rbHue());
 }
 function drawGauntFx() {
   // dash afterimages
@@ -3903,17 +3950,19 @@ function drawGauntFx() {
       ctx.save(); ctx.globalAlpha = a; ctx.translate(g.x, g.y + h / 2); ctx.scale(g.face, 1);
       try { ctx.drawImage(WIZ_FIST, -w / 2, -h, w, h); } catch (_) {}
       ctx.restore();
-      glow(g.x, g.y, 26, CHAOS.mag, a * .6);
+      glow(g.x, g.y, 26, RAINBOW[Math.floor(g.x / 9) % 6] || '#ffffff', a * .6);
     }
   }
   // Rebound shockwave: a crescent of chaos in front of the fist, cracked with lightning
   for (const f of shockFx) {
     const k = f.t / f.life, ez = 1 - Math.pow(1 - k, 3), R = GAUNT.parryRadius * (.55 + .6 * ez), al = 1 - k;
     ctx.save(); ctx.lineCap = 'round';
-    ctx.globalAlpha = al * .25; ctx.fillStyle = CHAOS.red; ctx.beginPath(); ctx.arc(f.x, f.y, R, 0, 6.28); ctx.fill();
-    [[CHAOS.deep, 14], [CHAOS.red, 9], [CHAOS.mag, 5], ['#ffffff', 2]].forEach(([c, w]) => { ctx.globalAlpha = al; ctx.strokeStyle = c; ctx.lineWidth = w * (1 - k * .5); ctx.beginPath(); ctx.arc(f.x, f.y, R, f.a - 1.25, f.a + 1.25); ctx.stroke(); });
+    ctx.globalAlpha = al * .18; ctx.fillStyle = rbHex(); ctx.beginPath(); ctx.arc(f.x, f.y, R, 0, 6.28); ctx.fill();
+    ctx.globalAlpha = al; ctx.strokeStyle = '#1a1030'; ctx.lineWidth = 18 * (1 - k * .5); ctx.beginPath(); ctx.arc(f.x, f.y, R, f.a - 1.25, f.a + 1.25); ctx.stroke();
+    RAINBOW.forEach((c, i) => { ctx.strokeStyle = c; ctx.lineWidth = 2.6 * (1 - k * .4); ctx.beginPath(); ctx.arc(f.x, f.y, R + (i - 2.5) * 2.5 * (1 - k * .4), f.a - 1.2, f.a + 1.2); ctx.stroke(); });
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(f.x, f.y, R, f.a - 1.1, f.a + 1.1); ctx.stroke();
     ctx.globalAlpha = al * .9;
-    for (const b of f.bolts) { const a = f.a + b.a; chaosBolt(f.x - Math.cos(a) * R * .2, f.y - Math.sin(a) * R * .2, f.x + Math.cos(a) * R * 1.05, f.y + Math.sin(a) * R * 1.05, 4, 5, k < .4 ? '#ffffff' : CHAOS.mag, 1.6); }
+    for (const b of f.bolts) { const a = f.a + b.a; chaosBolt(f.x - Math.cos(a) * R * .2, f.y - Math.sin(a) * R * .2, f.x + Math.cos(a) * R * 1.05, f.y + Math.sin(a) * R * 1.05, 4, 5, k < .4 ? '#ffffff' : RAINBOW[Math.floor(b.seed) % 6], 1.6); }
     ctx.restore();
   }
   // launched monsters: a tapered chaos trail, afterimages, and a tumbling body if it's already dead
@@ -3922,7 +3971,7 @@ function drawGauntFx() {
     ctx.save(); ctx.lineCap = 'round';
     for (let i = 0; i < tr.length - 1; i++) {
       const k = 1 - i / tr.length;
-      ctx.globalAlpha = .75 * k; ctx.strokeStyle = i < 3 ? '#ffffff' : i < 6 ? CHAOS.mag : CHAOS.red; ctx.lineWidth = e.r * 1.6 * k;
+      ctx.globalAlpha = .8 * k; ctx.strokeStyle = i < 2 ? '#ffffff' : RAINBOW[(i + Math.floor(T * 14)) % 6]; ctx.lineWidth = e.r * 1.7 * k;
       ctx.beginPath(); ctx.moveTo(tr[i].x, tr[i].y); ctx.lineTo(tr[i + 1].x, tr[i + 1].y); ctx.stroke();
     }
     ctx.restore();
@@ -3950,14 +3999,33 @@ let IMP = null, cuts = [], rawDt = 0;
 const IMP_PAL = {
   fire: { mid: '255,207,63', edge: '255,90,40', outer: 'rgba(255,59,59,.85)', core: '#ffcf3f', star: '#fff6dc', duo: '#ff2a14' },
   chaos: { mid: '255,77,240', edge: '255,45,85', outer: 'rgba(122,15,46,.9)', core: '#ff4df0', star: '#ffe6f6', duo: '#d01a8a' },
+  rainbow: { mid: '255,255,255', edge: '180,120,255', outer: 'rgba(26,16,48,.9)', core: '#ffffff', star: '#ffffff', duo: '#ff2a14', rainbow: true },
 };
-function startImpact(x, y, ang, tang, charged, hold, killed, pal = IMP_PAL.fire) {
+function startImpact(x, y, ang, tang, charged, hold, killed, pal = IMP_PAL.fire, extra = {}) {
   const n = SET.fx === 'lots' ? (charged ? 46 : 30) : 16, noFlash = REDUCED_MOTION || !SET.impact;
   const lines = [];
   for (let i = 0; i < n; i++) lines.push({ a: (i + Math.random() * .8) / n * Math.PI * 2, r0: rand(.18, .42), w: rand(.008, .03) * (charged ? 1.3 : 1) });
   IMP = { x, y, ang, tang, charged, killed, t: 0, hold,
     neg: noFlash ? 0 : charged ? .05 : .042, red: noFlash || !charged ? 0 : .05,
-    life: charged ? .5 : .32, zoom: SET.shake ? (charged ? .12 : killed ? .07 : .05) : 0, lines, spin: rand(0, 6.28), pal };
+    life: Math.max(charged ? .5 : .32, extra.word ? .8 : 0), zoom: SET.shake ? (charged ? (extra.big ? .17 : .12) : killed ? .07 : .05) : 0, lines, spin: rand(0, 6.28), pal,
+    word: extra.word || null, tilt: SET.shake && !REDUCED_MOTION ? (extra.tilt || 0) : 0, big: !!extra.big, wordRot: rand(-.22, -.08) };
+}
+// a quick dutch-angle tilt on the biggest hits, easing back as time resumes
+function impactTilt() {
+  if (!IMP || !IMP.tilt) return 0;
+  const t = IMP.t;
+  if (t < .03) return IMP.tilt * (t / .03);
+  if (t < IMP.hold) return IMP.tilt;
+  return IMP.tilt * Math.exp(-(t - IMP.hold) * 9);
+}
+// slow motion: time drops to `scale` and eases back to normal over `dur` seconds
+const SLOW = { t: 0, dur: 1, scale: 1 };
+function slowMo(dur, scale) { if (REDUCED_MOTION) return; SLOW.t = SLOW.dur = dur; SLOW.scale = scale; }
+function timeScale(raw) {
+  if (SLOW.t <= 0) return 1;
+  SLOW.t = Math.max(0, SLOW.t - raw);
+  const k = SLOW.t / SLOW.dur;
+  return 1 - (1 - SLOW.scale) * Math.pow(k, .7);
 }
 function impactZoom() {
   if (!IMP || !IMP.zoom) return 0;
@@ -4008,7 +4076,7 @@ function drawImpact() {
     // blood-red duotone
     ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, VW, VH);
     ctx.globalCompositeOperation = 'color-burn'; ctx.fillStyle = '#8a8a8a'; ctx.fillRect(0, 0, VW, VH);
-    ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = I.pal.duo; ctx.fillRect(0, 0, VW, VH);
+    ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = I.pal.rainbow ? `hsl(${(t * 2600) % 360} 100% 55%)` : I.pal.duo; ctx.fillRect(0, 0, VW, VH);
   } else if (post < .1 && !REDUCED_MOTION) {
     // a short zoom blur out from the hit as colour returns
     const z = 1 + .05 * (1 - post / .1) * (I.charged ? 1.6 : 1);
@@ -4021,16 +4089,17 @@ function drawImpact() {
   const lineA = inNeg || inRed ? 1 : Math.max(0, 1 - post / .12);
   if (lineA > 0) {
     ctx.fillStyle = inNeg ? '#ffffff' : inRed ? '#120406' : `rgba(255,246,230,${.55 * lineA})`;
-    const pull = inNeg || inRed ? 0 : post * 900;
+    const pull = inNeg || inRed ? 0 : post * 900, rbLines = I.pal.rainbow && !inNeg && !inRed;
     ctx.beginPath();
-    for (const L of I.lines) {
+    for (const [li, L] of I.lines.entries()) {
+      if (rbLines) { ctx.fill(); ctx.beginPath(); ctx.fillStyle = RAINBOW[li % 6]; ctx.globalAlpha = .7 * lineA; }
       const r0 = Math.max(40, L.r0 * diag * .6 + pull) * (I.charged ? .8 : 1), r1 = diag;
       ctx.moveTo(c.x + Math.cos(L.a) * r0, c.y + Math.sin(L.a) * r0);
       ctx.lineTo(c.x + Math.cos(L.a - L.w) * r1, c.y + Math.sin(L.a - L.w) * r1);
       ctx.lineTo(c.x + Math.cos(L.a + L.w) * r1, c.y + Math.sin(L.a + L.w) * r1);
       ctx.closePath();
     }
-    ctx.fill();
+    ctx.fill(); ctx.globalAlpha = 1;
   }
   // starburst at the point of contact
   const sk = Math.min(1, t / .07), sA = t < .08 ? 1 : Math.max(0, 1 - (t - .08) / .14);
@@ -4043,7 +4112,11 @@ function drawImpact() {
       const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, R * 1.3);
       g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.35, `rgba(${I.pal.mid},.8)`); g.addColorStop(1, `rgba(${I.pal.edge},0)`);
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.x, c.y, R * 1.3, 0, 6.28); ctx.fill();
-      spikyStar(ctx, c.x, c.y, R * .9, R * .25, 10, I.spin + t * 2); ctx.fillStyle = I.pal.star; ctx.fill();
+      if (I.pal.rainbow) {
+        // stacked rainbow starbursts, each a little smaller and turning the other way
+        for (let i = 0; i < 6; i++) { spikyStar(ctx, c.x, c.y, R * (1.15 - i * .12), R * (.3 - i * .03), 10 + (i % 2) * 2, I.spin + t * (i % 2 ? -3 : 3) + i * .3); ctx.fillStyle = RAINBOW[i]; ctx.fill(); }
+        spikyStar(ctx, c.x, c.y, R * .42, R * .14, 8, I.spin - t * 4); ctx.fillStyle = '#ffffff'; ctx.fill();
+      } else { spikyStar(ctx, c.x, c.y, R * .9, R * .25, 10, I.spin + t * 2); ctx.fillStyle = I.pal.star; ctx.fill(); }
     }
     ctx.globalAlpha = 1;
   }
@@ -4055,9 +4128,30 @@ function drawImpact() {
     const blade = (len, wid, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-len / 2, 0); ctx.quadraticCurveTo(0, -wid, len / 2, 0); ctx.quadraticCurveTo(0, wid * .35, -len / 2, 0); ctx.fill(); };
     if (inNeg) blade(L, W, '#ffffff');
     else if (inRed) { blade(L * 1.05, W * 1.6, '#120406'); blade(L, W * .8, '#ffffff'); }
+    else if (I.pal.rainbow) { ctx.globalAlpha = stA; blade(L * 1.05, W * 2.4, I.pal.outer); RAINBOW.forEach((col, i) => { ctx.save(); ctx.translate(0, (i - 2.5) * W * .28); blade(L * (1 - Math.abs(i - 2.5) * .05), W * .5, col); ctx.restore(); }); blade(L * .9, W * .45, '#ffffff'); }
     else { ctx.globalAlpha = stA; blade(L * 1.05, W * 2, I.pal.outer); blade(L, W * 1.2, I.pal.core); blade(L * .95, W * .55, '#ffffff'); }
   }
   ctx.restore();
+  // comic word: slams in with an overshoot, shudders, then lifts away
+  if (I.word) {
+    const wt = t, pop = wt < .07 ? 1 - Math.pow(1 - wt / .07, 3) * 1 : 1, over = wt < .12 ? 1 + Math.sin(Math.min(1, wt / .12) * Math.PI) * .25 : 1;
+    const fade = wt < .55 ? 1 : Math.max(0, 1 - (wt - .55) / .25);
+    if (fade > 0) {
+      const size = (I.big ? 64 : 50) * Math.min(1.25, ZOOM), shake = wt < I.hold ? 3 : 0;
+      const wx = Math.max(size * 1.4, Math.min(VW - size * 1.4, c.x + Math.cos(I.ang) * 30)), wy = Math.max(size, c.y - 80 * ZOOM - (wt > .55 ? (wt - .55) * 120 : 0));
+      ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.translate(wx + rand(-shake, shake), wy + rand(-shake, shake)); ctx.rotate(I.wordRot); ctx.scale(pop * over, pop * over);
+      ctx.globalAlpha = fade; ctx.font = `700 ${size}px "Pixelify Sans", "Trebuchet MS", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+      ctx.fillStyle = '#1a1030'; ctx.fillText(I.word, 5, 7);
+      ctx.strokeStyle = '#1a1030'; ctx.lineWidth = size * .22; ctx.strokeText(I.word, 0, 0);
+      if (inNeg) { ctx.fillStyle = '#ffffff'; }
+      else { const g = ctx.createLinearGradient(-size * 1.6, -size * .5, size * 1.6, size * .5), sh = (t * 3) % 1; RAINBOW.forEach((col, i) => g.addColorStop(((i / 6) + sh) % 1, col)); ctx.fillStyle = g; }
+      ctx.fillText(I.word, 0, 0);
+      ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = Math.max(1.5, size * .04); ctx.strokeText(I.word, 0, -size * .04);
+      ctx.restore();
+    }
+  }
 }
 
 /* ---------- sword sound design ---------- */
@@ -4253,16 +4347,27 @@ const swordSfx = (() => {
       osc('sine', 115, 52, .2, .4); nz(.09, .34, 'lowpass', 900, 150, .8);
       for (let i = 0; i < 4; i++) nz(.025, .1, 'bandpass', rand(3000, 5200), 0, 8, { delay: .02 + i * .03 }); // chain-like rattle
     },
+    comboTick() {
+      if (!ok()) return;
+      osc('square', 880, 1760, .06, .12); osc('sine', 1760, 1760, .12, .09, { delay: .05, send: .4 });
+    },
+    rainbowChime(big) {
+      if (!ok()) return;
+      // a bright rising arpeggio that rings out over the impact
+      const notes = [523.3, 659.3, 784, 1046.5, 1318.5, 1568];
+      notes.forEach((f, i) => osc(i % 2 ? 'triangle' : 'sine', f, f, big ? .9 : .6, (big ? .05 : .035) * (1 - i * .08), { delay: .06 + i * .035, send: .7 }));
+      if (big) { nz(.9, .12, 'highpass', 6000, 9000, .7, { attack: .1, send: .8 }); osc('sine', 220, 110, .8, .08, { delay: .05, send: .5 }); }
+    },
     grabCharge() {
       if (!ok()) return; const d = GAUNT.holdTime;
       osc('sawtooth', 90, 430, d, .06, { dist: true, attack: .02 });
       osc('sine', 600, 1900, d, .025, { send: .4 });
       nz(d, .12, 'bandpass', 400, 4500, 3, { attack: .05 });
     },
-    chaosPunch() {
+    chaosPunch(v = 1) {
       if (!ok()) return;
-      osc('sawtooth', 62, 28, .6, .12, { dist: true, glide: .5 });
-      nz(.5, .2, 'bandpass', 2200, 280, 1, { send: .6 });
+      osc('sawtooth', 62, 28, .6, .12 * v, { dist: true, glide: .5 });
+      nz(.5, .2 * v, 'bandpass', 2200, 280, 1, { send: .6 });
       for (let i = 0; i < 6; i++) nz(.03, .14, 'highpass', 7000, 0, .7, { delay: rand(0, .3) });   // electric crackles
     },
     knifeRicochet(n) {
@@ -4994,7 +5099,7 @@ function render() {
   const sx = shake ? rand(-shake, shake) : 0, sy = shake ? rand(-shake, shake) : 0;
   tickImpact(rawDt); updateCine(rawDt);
   const zp = ZOOM * (1 + impactZoom() + CINE.zoom * cineEase() + PRISM.zoom * prismZoomK() + GAUNT.zoom * gauntZoomK());
-  ctx.translate(VW / 2 + sx + kick.x, VH / 2 + sy + kick.y); ctx.scale(zp, zp); ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
+  ctx.translate(VW / 2 + sx + kick.x, VH / 2 + sy + kick.y); ctx.rotate(impactTilt()); ctx.scale(zp, zp); ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
   const hw = VW / 2 / ZOOM + 30, hh = VH / 2 / ZOOM + 30;
   drawGround(cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh);
   drawCloudShadows();
@@ -5234,11 +5339,12 @@ function frame(now) {
 }
 function step(now) {
   const raw = Math.min(.05, (now - last) / 1000); last = now;
-  drawDt = mode === 'play' && freeze <= 0 ? raw * (lvlFx > 0 ? .25 : 1) : 0;
+  const ts = mode === 'play' && freeze <= 0 ? timeScale(raw) : 1;
+  drawDt = mode === 'play' && freeze <= 0 ? raw * (lvlFx > 0 ? .25 : 1) * ts : 0;
   rawDt = raw; // real time: the impact frame always finishes, even if the game pauses mid-hit
   if (mode === 'play') {
     if (freeze > 0) freeze -= raw;
-    else update(raw * (lvlFx > 0 ? .25 : 1));
+    else update(raw * (lvlFx > 0 ? .25 : 1) * ts);
     if (lvlFx > 0) { lvlFx -= raw; if (lvlFx <= 0 && mode === 'play' && pendingLv > 0) showLevelUp(); }
   } else if (mode === 'dead' || mode === 'menu' || mode === 'loading') {
     if (mode !== 'dead') { P.x += 34 * raw; P.moving = true; P.walk += raw; P.face = 1; aim = -.3; }

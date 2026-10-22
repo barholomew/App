@@ -2498,8 +2498,20 @@ function buildSpecialBtn() {
   b.innerHTML = `<svg viewBox="0 0 10 10" shape-rendering="crispEdges"><path fill="#2d1f4f" d="${sp.icon}"/></svg><span class="cnt">${spec[held]}</span><small>${({ bomb: 'Bombs', bow: 'Ice Bow', hammer: 'Hammer', laser: 'Laser' })[held]}</small>`;
 }
 $('swapBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); switchWeapon(); };
-$('swordBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); try { $('swordBtn').setPointerCapture(e.pointerId); } catch (_) {} swordPress(); };
-['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => $('swordBtn').addEventListener(ev, () => swordRelease()));
+// Slash button doubles as an aim stick: drag away from it to point the swing
+let swordDrag = null;
+$('swordBtn').onpointerdown = e => {
+  e.stopPropagation(); e.preventDefault();
+  try { $('swordBtn').setPointerCapture(e.pointerId); } catch (_) {}
+  swordDrag = { id: e.pointerId, ox: e.clientX, oy: e.clientY, on: false, a: aim };
+  swordPress();
+};
+$('swordBtn').addEventListener('pointermove', e => {
+  if (!swordDrag || e.pointerId !== swordDrag.id) return;
+  const dx = e.clientX - swordDrag.ox, dy = e.clientY - swordDrag.oy;
+  if (Math.hypot(dx, dy) > 14) { swordDrag.on = true; swordDrag.a = Math.atan2(dy, dx); }
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => $('swordBtn').addEventListener(ev, () => { swordRelease(); swordDrag = null; }));
 $('specialBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); useSpecial(); };
 $('openBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); if (nearChest) openChest(nearChest); };
 $('bagBtn').onclick = () => toggleBag();
@@ -2734,11 +2746,15 @@ function swordRelease() {
   swordCharge = null; swordReady = false;
   if (mode === 'play') swordSlash(charged);
 }
+function swordAimAngle() {
+  if (swordDrag && swordDrag.on) return swordDrag.a;
+  if (!P.manual && SET.autoAim) { const t = nearest(P.x, P.y, SWORD.range + 80); if (t) return Math.atan2(t.y - P.y, t.x - P.x); }
+  return aim;
+}
 function swordSlash(charged) {
   if (!swordOn() || swordT > 0) return;
   swordT = charged ? SWORD.chargedCooldown : SWORD.cooldown;
-  let a0 = aim;
-  if (!P.manual && SET.autoAim) { const t = nearest(P.x, P.y, SWORD.range + 80); if (t) a0 = Math.atan2(t.y - P.y, t.x - P.x); }
+  const a0 = swordAimAngle();
   P.face = Math.cos(a0) < 0 ? -1 : 1;
   const dir = SW.lastDir > 0 ? -1 : 1; SW.lastDir = dir;
   const arc = charged ? SWORD.arc * 1.45 : SWORD.arc, range = charged ? SWORD.range * 1.3 : SWORD.range;
@@ -2841,6 +2857,48 @@ function swordPose(dt, bob) {
   if (SW.trail.length > 10) SW.trail.pop();
   return { hand, heat, stretch, R };
 }
+// Ground cone showing exactly where the next slash will land
+let aimShow = 0, aimAng = 0, aimBig = 0;
+function drawSwordAim() {
+  if (!swordOn() || mode !== 'play') { aimShow = 0; return; }
+  const want = swordAimAngle();
+  aimAng += angDiff(want, aimAng) * Math.min(1, drawDt * 18);
+  const charging = swordCharge !== null, active = charging || (swordDrag && swordDrag.on);
+  aimBig += ((swordReady ? 1 : 0) - aimBig) * Math.min(1, drawDt * 14); // grows to the charged size once charged
+  const k = aimBig, ready = swordT <= 0;
+  aimShow += ((active ? 1 : ready ? .6 : .25) - aimShow) * Math.min(1, drawDt * 10);
+  const arc = SWORD.arc * (1 + .45 * k), R = SWORD.range * (1 + .3 * k);
+  const cx = P.x, cy = P.y + 6, a1 = aimAng - arc / 2, a2 = aimAng + arc / 2;
+  const col = swordReady ? '255,207,63' : '255,122,60';
+  ctx.save();
+  // soft filled cone
+  const g = ctx.createRadialGradient(cx, cy, 20, cx, cy, R);
+  g.addColorStop(0, `rgba(${col},0)`); g.addColorStop(.75, `rgba(${col},${.16 * aimShow})`); g.addColorStop(1, `rgba(${col},${.32 * aimShow})`);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, a1, a2); ctx.closePath(); ctx.fill();
+  // outer edge, with dashes that flow toward where you aim
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = `rgba(${col},${.85 * aimShow})`; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(cx, cy, R, a1, a2); ctx.stroke();
+  ctx.setLineDash([8, 9]); ctx.lineDashOffset = -T * 40;
+  ctx.strokeStyle = `rgba(255,255,255,${.45 * aimShow})`; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx + Math.cos(a1) * 28, cy + Math.sin(a1) * 28); ctx.lineTo(cx + Math.cos(a1) * R, cy + Math.sin(a1) * R);
+  ctx.moveTo(cx + Math.cos(a2) * 28, cy + Math.sin(a2) * 28); ctx.lineTo(cx + Math.cos(a2) * R, cy + Math.sin(a2) * R); ctx.stroke();
+  ctx.setLineDash([]);
+  // arrowhead past the edge, pointing where the swing goes
+  const ax = cx + Math.cos(aimAng) * (R + 14 + Math.sin(T * 6) * 3), ay = cy + Math.sin(aimAng) * (R + 14 + Math.sin(T * 6) * 3);
+  ctx.translate(ax, ay); ctx.rotate(aimAng);
+  ctx.fillStyle = `rgba(26,18,51,${.8 * aimShow})`; ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-7, -12); ctx.lineTo(-2, 0); ctx.lineTo(-7, 12); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = `rgba(${col},${aimShow})`; ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-4, -8); ctx.lineTo(0, 0); ctx.lineTo(-4, 8); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  // mark enemies the slash would hit
+  if (aimShow > .3) for (const e of enemies) {
+    const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy);
+    if (d > R + e.r || Math.abs(angDiff(Math.atan2(dy, dx), aimAng)) > arc * .5 + .2) continue;
+    ctx.save(); ctx.strokeStyle = `rgba(${col},${.9 * aimShow})`; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.ellipse(e.x, e.y + e.r * .7, e.r + 6, (e.r + 6) * .45, 0, 0, 6.28); ctx.stroke(); ctx.restore();
+  }
+}
 function drawSword(bob = 0) {
   if (!swordOn() || mode === 'dead') return;
   const { hand, heat, stretch, R } = swordPose(drawDt, bob);
@@ -2907,6 +2965,7 @@ function update(dt) {
   if (aimJoy) { manual = true; const dx = aimJoy.x - aimJoy.ox, dy = aimJoy.y - aimJoy.oy; if (Math.hypot(dx, dy) > 8) aim = Math.atan2(dy, dx); }
   mouseT -= dt;
   if (!manual && mouseAim && mouseT > 0) { const px = VW / 2 + (P.x - cam.x) * ZOOM, py = VH / 2 + (P.y - cam.y) * ZOOM; aim = Math.atan2(mouseAim.y - py, mouseAim.x - px); manual = true; }
+  if (swordDrag && swordDrag.on && swordOn()) { manual = true; aim = swordDrag.a; }
   P.manual = manual;
   const target = nearest(P.x, P.y, 440);
   if (manual) P.face = Math.cos(aim) < 0 ? -1 : 1;
@@ -3412,6 +3471,7 @@ function render() {
   for (const it of items) drawTome(it);
   drawParts(false);
 
+  drawSwordAim();
   const actors = enemies.map(e => ({ y: e.y, f: () => drawEnemy(e) }));
   actors.push({ y: P.y + 10, f: drawPlayer });
   pushStructActors(actors);

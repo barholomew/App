@@ -575,14 +575,12 @@ body.menu-mode #hint,
 .swordbtn.ready { box-shadow: 0 5px 0 var(--ink), 0 0 22px #ffcf3f, 0 0 40px #ff5d3b; }
 .swordbtn .cdt { font-size: 20px; }
 .swordbtn svg { width: 38px; height: 38px; }
-.gauntbtn { background: radial-gradient(circle at 50% 50%, #2a1846 40%, transparent 41%), conic-gradient(from var(--rb, 0deg), #ff4d5e, #ff9a3d, #ffe45c, #5dff8f, #4dc3ff, #b47dff, #ff4d5e); animation: rbspin 3s linear infinite; }
-@property --rb { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-@keyframes rbspin { to { --rb: 360deg; } }
+.gauntbtn { background: radial-gradient(circle at 35% 30%, #5a4f72, #1e1830 72%); }
 .gauntbtn .kico, .grabbtn .kico { position: relative; z-index: 1; display: grid; place-items: center; }
 .gauntbtn .kico img { width: 50px; height: 50px; }
 .gauntbtn.hit .kico { animation: kflick .2s cubic-bezier(.2, 1.6, .4, 1); }
-.grabbtn { position: fixed; z-index: 2; right: calc(max(20px, env(safe-area-inset-right, 0px)) + 94px); bottom: calc(env(safe-area-inset-bottom, 0px) + 146px); width: 62px; height: 62px; background: radial-gradient(circle at 50% 50%, #2a1846 44%, transparent 45%), conic-gradient(from var(--rb, 0deg), #b47dff, #4dc3ff, #5dff8f, #ffe45c, #ff9a3d, #ff4d5e, #b47dff); animation: rbspin 4s linear infinite reverse; }
-.grabbtn.combo { box-shadow: 0 5px 0 var(--ink), 0 0 26px #ffffff, 0 0 44px #b47dff; transform: scale(1.12); transition: transform .12s; }
+.grabbtn { position: fixed; z-index: 2; right: calc(max(20px, env(safe-area-inset-right, 0px)) + 94px); bottom: calc(env(safe-area-inset-bottom, 0px) + 146px); width: 62px; height: 62px; background: radial-gradient(circle at 35% 30%, #4a4062, #18132a 72%); }
+.grabbtn.combo { box-shadow: 0 5px 0 var(--ink), 0 0 22px #ffffff; transform: scale(1.12); transition: transform .12s; }
 .grabbtn .kico img { width: 40px; height: 40px; }
 .grabbtn .cdt { font-size: 18px; }
 .grabbtn.ready { box-shadow: 0 5px 0 var(--ink), 0 0 18px #ffffff; }
@@ -3884,7 +3882,7 @@ let gauntIconURL = null, grabIconURL = null;
 function gauntImg(size = 40) {
   if (!gauntIconURL) {
     const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d');
-    RAINBOW.forEach((col, i) => { g.globalAlpha = .28; g.fillStyle = col; g.beginPath(); g.arc(48, 48, 44 - i * 6, 0, 6.28); g.fill(); }); g.globalAlpha = 1;
+    const fl = g.createRadialGradient(48, 48, 2, 48, 48, 42); fl.addColorStop(0, 'rgba(255,255,255,.4)'); fl.addColorStop(1, 'rgba(180,160,255,0)'); g.fillStyle = fl; g.fillRect(0, 0, 96, 96);
     g.save(); g.translate(36, 58); g.rotate(-.5); g.scale(2.1, 2.1); paintGauntlet(g, .8, true, 200); g.restore();
     g.save(); g.translate(58, 40); g.rotate(-.9); g.scale(2.3, 2.3); paintGauntlet(g, 1, false, 320); g.restore();
     gauntIconURL = c.toDataURL();
@@ -3895,7 +3893,7 @@ function grabImg(size = 40) {
   if (!grabIconURL) {
     const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d');
     g.lineCap = 'round';
-    [[22, 30, 8], [14, 48, 10], [22, 66, 8]].forEach(([x, y, w], i) => { g.strokeStyle = RAINBOW[i * 2]; g.lineWidth = w * .6; g.globalAlpha = .8; g.beginPath(); g.moveTo(x - 10, y); g.lineTo(x + 18, y); g.stroke(); });
+    [[22, 30, 8], [14, 48, 10], [22, 66, 8]].forEach(([x, y, w], i) => { g.strokeStyle = '#ffffff'; g.lineWidth = w * .6; g.globalAlpha = .8; g.beginPath(); g.moveTo(x - 10, y); g.lineTo(x + 18, y); g.stroke(); });
     g.globalAlpha = 1; g.save(); g.translate(58, 48); g.scale(2.6, 2.6); paintGauntlet(g, 1, false, 280); g.restore();
     grabIconURL = c.toDataURL();
   }
@@ -4168,7 +4166,14 @@ const swordSfx = (() => {
     for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; cur[i] = Math.tanh(x * 3.2) * .9; }
     shaper.curve = cur; shaper.connect(B()); return shaper;
   };
-  const out = (node, send, dist) => { node.connect(dist ? drive() : B()); if (send) { const g = AC.createGain(); g.gain.value = send; node.connect(g); g.connect(rv()); } };
+  let shaper2 = null;
+  const drive2 = () => {
+    if (shaper2) return shaper2;
+    shaper2 = AC.createWaveShaper(); const n = 1024, cur = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; cur[i] = Math.tanh(x * 9) * .8; }
+    shaper2.curve = cur; shaper2.oversample = '2x'; shaper2.connect(B()); return shaper2;
+  };
+  const out = (node, send, dist) => { node.connect(dist === 2 ? drive2() : dist ? drive() : B()); if (send) { const g = AC.createGain(); g.gain.value = send; node.connect(g); g.connect(rv()); } };
   // pitched voice
   const osc = (type, f1, f2, dur, vol, o = {}) => {
     const t = AC.currentTime + (o.delay || 0), v = AC.createOscillator(), g = AC.createGain();
@@ -4313,54 +4318,67 @@ const swordSfx = (() => {
     },
     gauntSwing() {
       if (!ok()) return; const p = vary();
-      nz(.1, .5, 'bandpass', 480 * p, 2300 * p, 1.4, { attack: .008, sweep: .07 });  // air
-      osc('square', 150 * p, 60, .07, .09);                                         // knuckle snap
-      nz(.06, .1, 'highpass', 6500, 0, .7, { delay: .01 });                         // chaos crackle
+      nz(.11, .38, 'bandpass', 380 * p, 2700 * p, 1.6, { attack: .005, sweep: .08 });  // fast air rip
+      osc('square', 200 * p, 55, .09, .07, { dist: 2 });                              // gritty knuckle snap
+      nz(.035, .22, 'highpass', 2600, 0, .8, { delay: .025 });                         // crack
+      osc('sine', 115 * p, 42, .13, .18, { delay: .025 });                              // weight behind it
     },
     gauntThud() {
       if (!ok()) return; const p = vary();
-      osc('sine', 160 * p, 46, .17, .42); nz(.08, .38, 'lowpass', 1300, 200, .8); osc('triangle', 330 * p, 120, .05, .1);
+      osc('sine', 145 * p, 36, .24, .65);                                              // body blow
+      nz(.1, .55, 'lowpass', 1700, 170, .9);                                           // thump
+      osc('sawtooth', 230 * p, 65, .09, .14, { dist: 2 });                             // crunch
+      nz(.06, .32, 'bandpass', 1900 * p, 600, 3, { delay: .004, dist: true });         // bone-crack
     },
     gauntReflect() {
       if (!ok()) return; const p = vary();
-      // a ringing clang as the bullet is batted away, then a rising ping
-      nz(.03, .45, 'highpass', 3000, 0, .8);
-      [1850, 2620, 3480, 4310].forEach((f, i) => osc(i % 2 ? 'sine' : 'triangle', f * p, f * p * .99, [.5, .4, .3, .22][i], [.07, .05, .035, .02][i], { send: .6 }));
-      osc('sine', 1300 * p, 2600 * p, .14, .05, { delay: .03, send: .4 });
+      // a vicious metal clang and a zinging ricochet
+      nz(.03, .6, 'highpass', 2800, 0, .8);
+      osc('square', 1450 * p, 1400 * p, .22, .05, { dist: 2, send: .4 });
+      [1850, 2620, 3480, 4310].forEach((f, i) => osc(i % 2 ? 'sine' : 'triangle', f * p, f * p * .99, [.5, .4, .3, .22][i], [.09, .065, .045, .03][i], { send: .6 }));
+      osc('sawtooth', 900 * p, 3400 * p, .13, .05, { dist: true, delay: .02 });
     },
     grabDash() {
       if (!ok()) return; const p = vary();
-      nz(.22, .4, 'bandpass', 300 * p, 3200 * p, 1.3, { attack: .015, sweep: .15 });
-      osc('sawtooth', 80, 240, .2, .05, { dist: true });
-      nz(.16, .1, 'highpass', 5200, 0, .7, { attack: .02 });
+      nz(.25, .6, 'bandpass', 240 * p, 3800 * p, 1.4, { attack: .01, sweep: .16 });   // roaring lunge
+      osc('sawtooth', 58, 190, .22, .14, { dist: 2 });                                 // engine growl
+      nz(.2, .16, 'highpass', 4500, 0, .7, { attack: .02 });
     },
     grabCatch() {
       if (!ok()) return;
-      osc('sine', 115, 52, .2, .4); nz(.09, .34, 'lowpass', 900, 150, .8);
-      for (let i = 0; i < 4; i++) nz(.025, .1, 'bandpass', rand(3000, 5200), 0, 8, { delay: .02 + i * .03 }); // chain-like rattle
+      osc('sine', 125, 40, .26, .65); nz(.1, .55, 'lowpass', 1100, 140, .8);           // heavy clamp
+      osc('square', 320, 90, .06, .13, { dist: 2 });
+      osc('triangle', 1900, 1850, .2, .07, { send: .4 });                              // iron clank
+      for (let i = 0; i < 5; i++) nz(.025, .18, 'bandpass', rand(3000, 5600), 0, 8, { delay: .02 + i * .028 }); // chain rattle
+    },
+    grabCharge() {
+      if (!ok()) return; const d = GAUNT.holdTime;
+      // a growling, detuned wind-up that climbs into the hit
+      osc('sawtooth', 68, 330, d, .09, { dist: 2, attack: .02 });
+      osc('sawtooth', 69.5, 336, d, .065, { dist: 2, attack: .02 });
+      nz(d, .22, 'bandpass', 300, 5200, 4, { attack: .04 });
+    },
+    chaosPunch(v = 1) {
+      if (!ok()) return;
+      // a distorted power-chord stab on top of a huge sub drop: the hit you feel
+      [82.4, 123.5, 164.8].forEach(f => osc('sawtooth', f, f * .96, .5, .1 * v, { dist: 2, attack: .003 }));
+      osc('sine', 72, 24, .75, .6 * v, { glide: .55 });
+      nz(.04, .6 * v, 'highpass', 3000, 0, .8);
+      nz(.16, .45 * v, 'bandpass', 950, 200, 2.5, { dist: true });
+      nz(.5, .18 * v, 'bandpass', 2200, 280, 1, { send: .6 });
+      for (let i = 0; i < 6; i++) nz(.03, .16 * v, 'highpass', 7000, 0, .7, { delay: rand(0, .3) });   // debris crackles
     },
     comboTick() {
       if (!ok()) return;
-      osc('square', 880, 1760, .06, .12); osc('sine', 1760, 1760, .12, .09, { delay: .05, send: .4 });
+      // a hard double click: the combo is locked in
+      osc('square', 600, 1300, .05, .05, { dist: 2 }); osc('square', 900, 1900, .05, .045, { delay: .06, dist: 2 });
     },
     rainbowChime(big) {
       if (!ok()) return;
       // a bright rising arpeggio that rings out over the impact
       const notes = [523.3, 659.3, 784, 1046.5, 1318.5, 1568];
-      notes.forEach((f, i) => osc(i % 2 ? 'triangle' : 'sine', f, f, big ? .9 : .6, (big ? .05 : .035) * (1 - i * .08), { delay: .06 + i * .035, send: .7 }));
+      notes.forEach((f, i) => osc(i % 2 ? 'triangle' : 'sine', f, f, big ? .6 : .4, (big ? .03 : .02) * (1 - i * .08), { delay: .06 + i * .035, send: .7 }));
       if (big) { nz(.9, .12, 'highpass', 6000, 9000, .7, { attack: .1, send: .8 }); osc('sine', 220, 110, .8, .08, { delay: .05, send: .5 }); }
-    },
-    grabCharge() {
-      if (!ok()) return; const d = GAUNT.holdTime;
-      osc('sawtooth', 90, 430, d, .06, { dist: true, attack: .02 });
-      osc('sine', 600, 1900, d, .025, { send: .4 });
-      nz(d, .12, 'bandpass', 400, 4500, 3, { attack: .05 });
-    },
-    chaosPunch(v = 1) {
-      if (!ok()) return;
-      osc('sawtooth', 62, 28, .6, .12 * v, { dist: true, glide: .5 });
-      nz(.5, .2 * v, 'bandpass', 2200, 280, 1, { send: .6 });
-      for (let i = 0; i < 6; i++) nz(.03, .14, 'highpass', 7000, 0, .7, { delay: rand(0, .3) });   // electric crackles
     },
     knifeRicochet(n) {
       if (!ok()) return; const p = vary() * (1 + n * .08);

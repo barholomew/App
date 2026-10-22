@@ -459,6 +459,11 @@ button { font: inherit; color: inherit; }
 .abtn small { position: absolute; left: 50%; bottom: -22px; transform: translateX(-50%); white-space: nowrap; font: 900 12px var(--font-body); color: #fff; text-shadow: var(--outline-sm); }
 .abtn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink), inset 0 -6px 0 #00000026; }
 .abtn.ready { animation: bump .35s cubic-bezier(.3, 1.8, .5, 1); }
+.pixart { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+.sicon .pixart { width: 42px !important; height: 42px !important; }
+.tile.pix, .abico.pix { background: color-mix(in srgb, var(--c) 28%, #fff8e6); }
+.wandico.pix { display: grid; place-items: center; box-shadow: inset 0 0 14px color-mix(in srgb, var(--glow) 45%, transparent); }
+.wandico.pix::before, .wandico.pix::after { display: none; }
 .abico { grid-row: span 3; flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--c); border: 3px solid var(--ink); box-shadow: inset 0 -5px 0 #00000026, inset 0 4px 0 #ffffff55; }
 .abico svg { width: 24px; height: 24px; }
 .row-item .abico, .slotbox .abico { grid-row: auto; }
@@ -1248,7 +1253,7 @@ const ABILITIES = [
     icon: 'M5 0h3v1H5zM4 1h3v1H4zM3 2h3v1H3zM2 3h6v1H2zM5 4h2v1H5zM4 5h2v1H4zM3 6h2v1H3zM2 7h2v1H2zM2 8h1v1H2z', use() { return abStorm(); } },
 ];
 const abSvg = A => `<svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="${A.icon}"/></svg>`;
-const abIcon = A => `<span class="abico" style="--c:${A.c}">${abSvg(A)}</span>`;
+const abIcon = A => `<span class="abico pix" style="--c:${A.c}">${ART[A.id] ? pixArt(A.id, ART[A.id].pal, 32) : abSvg(A)}</span>`;
 if (!Array.isArray(META.abilities)) META.abilities = ['dash'];
 if (!Array.isArray(META.abEquip)) META.abEquip = ['dash'];
 const curWand = () => WANDS.find(w => w.id === META.wand) || WANDS[0];
@@ -1521,8 +1526,257 @@ function toast(msg) {
   const t = $('toast'); t.textContent = msg; t.hidden = false; retrigger(t, 'show');
   clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2600);
 }
-const wandIcon = w => `<span class="wandico" style="--shaft:${w.shaft};--band:${w.band};--tip:${w.tip};--glow:${w.glow || w.tip}"></span>`;
-const relicIcon = r => `<span class="tile" style="--c:${r.c}">${r.glyph}</span>`;
+// 16x16 pixel art for Shop icons. Each letter is a colour from the palette, "." is see-through.
+const ART = {
+  clover: { pal: {"k": "#1f3b2a", "g": "#3fd99a", "d": "#24a86f", "l": "#a8f5cf", "s": "#2f7a45"}, rows: [
+    '................',
+    '...kkk....kkk...',
+    '..kglgk..kglgk..',
+    '..kggggkkggggk..',
+    '..kdgggkkgggdk..',
+    '...kddgkkgddk...',
+    '....kkkggkkk....',
+    '...kkkkggkkkk...',
+    '..kglggkkgglgk..',
+    '..kggggkkggggk..',
+    '..kdgggk.kgggdk.',
+    '...kddk.ks.kddk.',
+    '....kk..ks..kk..',
+    '.......ks.......',
+    '......ks........',
+    '......k.........',
+  ] },
+  pouch: { pal: {"k": "#3b2410", "b": "#a8682a", "d": "#7a4a1c", "l": "#d99a4e", "y": "#ffcf3f", "o": "#e8a317", "w": "#fff6c2", "r": "#c0392b"}, rows: [
+    '................',
+    '.....kkkkkk.....',
+    '......kyyk......',
+    '.....krrrrk.....',
+    '......kddk......',
+    '....kkbbbbkk....',
+    '...kblbbbbdbk...',
+    '..kblbbbbbbdbk..',
+    '..kbbbkkkkbbbk..',
+    '..kbbkywyykbdk..',
+    '..kbbkyoyokbdk..',
+    '..kbbbkkkkbddk..',
+    '..kdbbbbbbbddk..',
+    '...kddddddddk...',
+    '....kkkkkkkk....',
+    '................',
+  ] },
+  feather: { pal: {"k": "#14365a", "c": "#38c6ff", "l": "#bdf0ff", "d": "#1d8fc4", "w": "#ffffff"}, rows: [
+    '...........kkk..',
+    '..........kllck.',
+    '.........kllcdk.',
+    '........kllccdk.',
+    '.......kllcwcdk.',
+    '......kllcwcdk..',
+    '.....kllcwcdk...',
+    '....kllcwcdk....',
+    '...kllcwcdk.....',
+    '...klcwcdk......',
+    '..klcwcdk.......',
+    '..kcwcdk........',
+    '.kkwkkk.........',
+    '.kwk............',
+    'kwk.............',
+    'kk..............',
+  ] },
+  moon: { pal: {"k": "#2a1f5c", "p": "#9b7bff", "l": "#d6c8ff", "d": "#6a4bc4", "r": "#ff5d73", "s": "#ffffff", "g": "#c9c9d6"}, rows: [
+    '................',
+    '....kkkkk.......',
+    '...kllppkk......',
+    '..klppppk.......',
+    '.klpppdk....s...',
+    '.kppppk....sss..',
+    'kpppdk......s...',
+    'kpppdk..........',
+    'kpppdk..........',
+    'kppppdk.........',
+    '.kppppdkkkk.kk..',
+    '.kdppppppdkkrrk.',
+    '..kddppppkgkrrk.',
+    '...kkdddkggkkk..',
+    '.....kkk.kk.....',
+    '................',
+  ] },
+  heart: { pal: {"k": "#3b1a2c", "r": "#ff5d73", "l": "#ffb3c1", "d": "#c0304a", "m": "#8a92a6", "n": "#c9cfdb"}, rows: [
+    '................',
+    '..kkkk....kkkk..',
+    '.kllrrk..kmmmmk.',
+    'kllrrrrkkmnnmmmk',
+    'klrrrrrrkmnmmmmk',
+    'krrrrrrrkmmmmmdk',
+    'krrrrrrrkmmmmmdk',
+    'krrrrrrrkmmmmddk',
+    '.krrrrrrkmmmddk.',
+    '..krrrrrkmmddk..',
+    '...kdrrrkmddk...',
+    '....kdrrkddk....',
+    '.....kdrkdk.....',
+    '......kkkk......',
+    '.......kk.......',
+    '................',
+  ] },
+  bubble: { pal: {"k": "#1d4f6e", "b": "#9fe6ff", "l": "#e8fbff", "d": "#5cc0e8", "w": "#ffffff", "p": "#ff8fc8"}, rows: [
+    '................',
+    '.....kkkkkk.....',
+    '...kkbbbbbbkk...',
+    '..kbwwbbbbbbbk..',
+    '.kbwwbbbbbbbbdk.',
+    '.kbwbbbbbbbbbdk.',
+    'kbbbbbbbbbbbbbdk',
+    'kbbbbbblbbbbbbdk',
+    'kbbbbbllbbbbbbdk',
+    'kbbbbbbbbbbbbddk',
+    'kbbbbbbbbbbbbddk',
+    '.kbbbbbbbbbbddk.',
+    '.kdbbbbbbbbbddk.',
+    '..kddbbbbbdddk..',
+    '...kkdddddddk...',
+    '.....kkkkkk.....',
+  ] },
+  dash: { pal: {"k": "#14365a", "c": "#38c6ff", "l": "#bdf0ff", "w": "#ffffff", "d": "#1d8fc4"}, rows: [
+    '................',
+    '................',
+    '.......kk...kk..',
+    '......kwck.kwck.',
+    '.kkk...kwck.kwck',
+    'kllk....kwck.kwc',
+    '.kkkkk...kwcckwc',
+    'kllllk...kwcckwc',
+    '.kkkkk...kwck.kw',
+    'kllk....kwck.kwc',
+    '.kkk...kwck.kwck',
+    '......kwck.kwck.',
+    '.......kk...kk..',
+    '................',
+    '................',
+    '................',
+  ] },
+  nova: { pal: {"k": "#5a1a0a", "o": "#ff9a3d", "y": "#ffcf3f", "w": "#fff6c2", "r": "#ff5d3b"}, rows: [
+    '.......kk.......',
+    '..k....kyk....k.',
+    '..kok..kyk..kok.',
+    '...kokkyykkok...',
+    '....kooyyook....',
+    '..kkoyywwyookk..',
+    'kkyyyywwwwyyyykk',
+    'kyyywwwwwwwwyyyk',
+    '.kkoyywwwwyyokk.',
+    '...kooyywyook...',
+    '...koookyookok..',
+    '..kok.kyyk..kok.',
+    '..kk...kyk...kk.',
+    '.......kyk......',
+    '.......kk.......',
+    '................',
+  ] },
+  heal: { pal: {"k": "#1f3b2a", "g": "#3fd99a", "d": "#24a86f", "p": "#ff8fc8", "l": "#ffd1e6", "y": "#ffcf3f", "w": "#ffffff"}, rows: [
+    '................',
+    '......kkkk......',
+    '.....kpllpk.....',
+    '..kkkkpppkkkk...',
+    '.kpllkkyykkllpk.',
+    '.kpppkywyykpppk.',
+    '..kkpkyyyykpkk..',
+    '..kplpkyykplpk..',
+    '..kpppkkkkpppk..',
+    '...kkkk..kkkk...',
+    '.......kg.......',
+    '.....kkgk.......',
+    '....kggdk..kk...',
+    '.....kkgk.kggk..',
+    '.......kgkgdk...',
+    '.......kkkkk....',
+  ] },
+  freeze: { pal: {"k": "#1d4f6e", "b": "#9fe6ff", "w": "#ffffff", "d": "#5cc0e8", "y": "#ffcf3f", "g": "#c9a227"}, rows: [
+    '................',
+    '...kkkkkkkkkk...',
+    '...kyyyyyyyyk...',
+    '...kkkkkkkkkk...',
+    '....kbwwwwbk....',
+    '....kbbwwbbk....',
+    '.....kbwwbk.....',
+    '......kwbk......',
+    '......kbwk......',
+    '.....kbddbk.....',
+    '....kbbwbbbk....',
+    '....kbwwwwbk....',
+    '...kkkkkkkkkk...',
+    '...kyyyyyyyyk...',
+    '...kkkkkkkkkk...',
+    '................',
+  ] },
+  meteor: { pal: {"k": "#3b1a10", "r": "#ff5d3b", "o": "#ff9a3d", "y": "#ffcf3f", "s": "#6b5a52", "l": "#9a857a", "d": "#4a3a33"}, rows: [
+    '..............k.',
+    '.............kyk',
+    '..........k.kyok',
+    '.........kyk.kok',
+    '......k.kyoykkk.',
+    '.....kyk.kroyk..',
+    '....kyoykkrook..',
+    '......kkkkkook..',
+    '.....ksslskrk...',
+    '....kslllsskk...',
+    '...kssllsssdk...',
+    '...kssssssddk...',
+    '...ksssssddk....',
+    '....kdssdddk....',
+    '.....kkkkkk.....',
+    '................',
+  ] },
+  storm: { pal: {"k": "#2f2a3d", "c": "#8a8fa6", "l": "#c9cdd9", "d": "#5b6075", "y": "#ffe45c", "w": "#fff6c2"}, rows: [
+    '................',
+    '.....kkkk.......',
+    '...kkllllkkk....',
+    '..kllllcllllk...',
+    '.kllcccccclllk..',
+    'kllccccccccccck.',
+    'kcccccccccccccdk',
+    '.kdddddddddddkk.',
+    '..kkkkkykkkkk...',
+    '......kywk......',
+    '.....kywk.......',
+    '....kyyyyk......',
+    '.......kyk......',
+    '......kyk.......',
+    '......kk........',
+    '................',
+  ] },
+  wand: { pal: {}, rows: [
+    '..........kkk...',
+    '.........ktttk..',
+    '........kttwttk.',
+    '........ktttttk.',
+    '........kkttttk.',
+    '.......kbbkttk..',
+    '......kbbbkkk...',
+    '.....khsbk......',
+    '....khsk........',
+    '...khsk.........',
+    '..khsk..........',
+    '.khsk...........',
+    'khsk............',
+    'kkk.............',
+    '................',
+    '................',
+  ] },
+};
+const artCache = {};
+function pixArt(key, pal = ART[key].pal, size = 34) {
+  const id = key + JSON.stringify(pal);
+  if (!artCache[id]) {
+    const c = document.createElement('canvas'); c.width = c.height = 16;
+    const g = c.getContext('2d');
+    ART[key].rows.forEach((r, y) => [...r].forEach((ch, x) => { if (pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
+    artCache[id] = c.toDataURL();
+  }
+  return `<img class="pixart" src="${artCache[id]}" alt="" style="width:${size}px;height:${size}px">`;
+}
+const wandArt = (w, size) => pixArt('wand', { k: '#2d1f4f', s: w.shaft, h: w.hi, b: w.band, t: w.tip, w: '#ffffff' }, size);
+const wandIcon = w => `<span class="wandico pix" style="--glow:${w.glow || w.tip}">${wandArt(w, 34)}</span>`;
+const relicIcon = r => ART[r.id] ? `<span class="tile pix" style="--c:${r.c}">${pixArt(r.id)}</span>` : `<span class="tile" style="--c:${r.c}">${r.glyph}</span>`;
 const gemTag = n => `<i class="gem sm"></i>${n}`;
 let storeTab = 'wands';
 function storeList(tab) {
@@ -1621,7 +1875,7 @@ function renderInventory() {
   $('loadout').innerHTML = slots.join('');
   $('invWands').innerHTML = WANDS.filter(x => META.wands.includes(x.id)).map(x => {
     return `<div class="row-item two">${wandIcon(x)}<div><b>${x.name}</b><span class="d">${x.desc}</span></div></div>`;
-  }).join('') + (META.wands.length < WANDS.length ? '<div class="empty-note">Get more wands in the Shop with gems from bosses.<button class="act" data-goto="store">Open the Shop</button></div>' : '');
+  }).join('') + (META.wands.length < WANDS.length ? '<div class="empty-note">Get more wands in the Shop with gems or gold.<button class="act" data-goto="store">Open the Shop</button></div>' : '');
   const ownedR = RELICS.filter(r => META.relics.includes(r.id));
   $('invRelics').innerHTML = ownedR.length ? ownedR.map(r => {
     const on = META.equip.includes(r.id);
@@ -2750,7 +3004,7 @@ function updateSword(dt) {
 function syncWeapon() {
   $('swordBtn').hidden = !swordOn();
   const b = $('swapBtn'); b.hidden = !(S && S.sword);
-  b.querySelector('.swapico').innerHTML = useSword ? wandIconSvg() : swordImg(34);
+  b.querySelector('.swapico').innerHTML = useSword ? wandArt(curWand(), 32) : swordImg(34);
   b.querySelector('small').textContent = useSword ? 'Wand' : 'Sword';
   b.setAttribute('aria-label', useSword ? 'Switch to your wand' : 'Switch to the Giant Sword');
 }

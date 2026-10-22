@@ -2878,6 +2878,7 @@ let swordCharge = null, swordReady = false;
 function updateSword(dt) {
   if (!S.sword) return;
   swordT = Math.max(0, swordT - dt);
+  SW.fire = Math.max(0, SW.fire - dt);
   if (swing) { swing.t += dt; updateSwingHits(); if (swing && swing.t >= SWORD.swingTime + .2) swing = null; }
   if (swordCharge !== null) {
     swordCharge += dt;
@@ -3037,6 +3038,12 @@ function landSwordHit(e, w) {
     swordSfx.impactSmall(killed, w.landed);
   }
   if (killed) swordSfx.slice(w.landed);
+  // a big hit (charged, or a kill) sets the blade on fire for a few seconds
+  if (first && (w.charged || killed)) {
+    const dur = w.charged ? 3.2 : 1.8;
+    if (SW.fire <= .2) sfx('ignite');
+    SW.fire = Math.max(SW.fire, dur); SW.fireMax = Math.max(SW.fire, 1);
+  }
 }
 
 /* ---------- Hexfire Dagger ---------- */
@@ -3373,18 +3380,19 @@ const PRISM = {
   beamDps: 4,           // each of the six thin beams
   fusedDps: 72,         // the fused laser (pierces everything in the line)
   tick: .1,             // damage is dealt in small ticks
-  turn: 3.2, turnFused: 1.9, // how fast the beam swings toward your aim (radians/sec); it lags on purpose
+  follow: 38,           // how tightly the beam follows your aim (higher = snappier); it's smoothed so it never jitters
   moveMul: .4,          // you walk slower while firing
   zoom: .13, lean: 55,  // camera punch-in while firing
 };
 const RAINBOW = ['#ff4d5e', '#ff9a3d', '#ffe45c', '#5dff8f', '#4dc3ff', '#b47dff'];
-const PR = { on: false, t: 0, cd: 0, cdFull: 1, ang: 0, tick: 0, zk: 0, fusedAt: 0, flash: 0, hits: [] };
+const PR = { on: false, t: 0, cd: 0, cdFull: 1, ang: 0, av: 0, side: 1, sideS: 1, lock: null, tick: 0, zk: 0, fusedAt: 0, flash: 0, hits: [] };
 function prismReset() { prismStop(false); PR.cd = 0; PR.zk = 0; PR.flash = 0; }
 const prismZoomK = () => { const z = PR.zk || 0; return z * z * (3 - 2 * z); };
 function prismPress() {
   if (mode !== 'play' || !prismOn() || PR.on) return;
   if (PR.cd > 0) { sfx('nope'); retrigger($('prismBtn'), 'nope'); return; }
-  PR.on = true; PR.t = 0; PR.tick = 0; PR.fused = false; PR.ang = aimAngleFor(PRISM.range);
+  PR.on = true; PR.t = 0; PR.tick = 0; PR.fused = false; PR.av = 0; PR.lock = null;
+  PR.ang = aimAngleFor(PRISM.range); PR.side = PR.sideS = Math.cos(PR.ang) < 0 ? -1 : 1; PR.ang = prismWant();
   swordSfx.prismStart();
 }
 function prismRelease() { if (PR.on) prismStop(true); }
@@ -3397,9 +3405,20 @@ function prismStop(withCooldown) {
   if (fused) { addShake(3); for (let i = 0; i < 18; i++) { const o = prismOrigin(), a = rand(0, 6.28), sp = rand(60, 220); parts.push({ x: o.x, y: o.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .5, max: .5, size: rand(2, 4), color: pick(RAINBOW), kind: 'star', glow: true }); } }
 }
 // where the prism floats: out in front of the hand, along the beam
+// The prism floats out on the side you face. The side only flips once the beam is clearly
+// pointing the other way, and it glides across, so the beam never jumps.
 function prismOrigin() {
-  const side = Math.cos(PR.ang) < 0 ? -1 : 1;
-  return { x: P.x + side * 30 + Math.cos(PR.ang) * 12, y: P.y - 2 + Math.sin(PR.ang) * 10, side };
+  return { x: P.x + PR.sideS * 30 + Math.cos(PR.ang) * 12, y: P.y - 2 + Math.sin(PR.ang) * 10, side: PR.side };
+}
+// where the beam wants to point: your drag or manual aim, otherwise a locked-on target
+function prismWant() {
+  if (swordDrag && swordDrag.on) return swordDrag.a;
+  if (P.manual || !SET.autoAim) return aim;
+  const L = PR.lock;
+  if (!L || L.dead || !enemies.includes(L) || Math.hypot(L.x - P.x, L.y - P.y) > PRISM.range + 60) PR.lock = nearest(P.x, P.y, PRISM.range);
+  if (!PR.lock) return PR.ang;
+  const o = prismOrigin();
+  return Math.atan2(PR.lock.y - o.y, PR.lock.x - o.x);
 }
 // angle of each of the six beams: a spinning cone that tightens to nothing as they fuse
 function beamAngles() {
@@ -3421,11 +3440,14 @@ function updatePrism(dt) {
     for (let i = 0; i < 26; i++) { const a = rand(0, 6.28), sp = rand(120, 380); parts.push({ x: o.x, y: o.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .45, max: .45, size: rand(2, 4), color: pick(RAINBOW), kind: 'spark', glow: true, fr: .02 }); }
     zaps.push({ ring: true, x1: o.x, y1: o.y, r: 70, life: .3, max: .3, color: '#ffffff', w: 6 });
   }
-  // the beam swings toward your aim with a heavy, deliberate lag
-  const want = aimAngleFor(PRISM.range);
-  const turn = (fused ? PRISM.turnFused : PRISM.turn) * dt;
-  PR.ang += Math.max(-turn, Math.min(turn, angDiff(want, PR.ang)));
-  P.face = Math.cos(PR.ang) < 0 ? -1 : 1; // stand sideways, facing the beam
+  // the beam follows your aim on a smooth spring: quick to respond, no jitter, no overshoot
+  const want = prismWant(), k = fused ? PRISM.follow : PRISM.follow * 1.6, damp = 2 * Math.sqrt(k);
+  PR.av += (angDiff(want, PR.ang) * k - PR.av * damp) * dt;
+  PR.ang += PR.av * dt;
+  const c = Math.cos(PR.ang);
+  if (c > .25) PR.side = 1; else if (c < -.25) PR.side = -1;
+  PR.sideS += (PR.side - PR.sideS) * Math.min(1, dt * 10);
+  P.face = PR.side; // stand sideways, facing the beam
   swordSfx.prismLevel(Math.min(1, PR.t / PRISM.fuseTime), fused);
   if (SET.shake && fused) shake = Math.max(shake, 1.6);
   // damage ticks
@@ -4270,7 +4292,7 @@ function swordImg(size = 40) {
   return `<img src="${swordIconURL}" alt="" style="width:${size}px;height:${size}px;display:block">`;
 }
 // Sword pose: a spring keeps every move smooth (idle sway, wind-up, swing, settle back)
-const SW = { ang: -Math.PI / 2, vel: 0, side: 1, reach: 0, draw: 0, trail: [], lastDir: -1 };
+const SW = { ang: -Math.PI / 2, vel: 0, side: 1, reach: 0, draw: 0, trail: [], lastDir: -1, fire: 0, fireMax: 1 };
 const angDiff = (a, b) => ((a - b + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
 let drawDt = 0; // time since the last drawn frame (0 while paused or frozen)
 function swordPose(dt, bob) {
@@ -4361,6 +4383,27 @@ function drawSwordAim() {
     ctx.beginPath(); ctx.ellipse(e.x, e.y + e.r * .7, e.r + 6, (e.r + 6) * .45, 0, 0, 6.28); ctx.stroke(); ctx.restore();
   }
 }
+// Flames licking up off the blade: teardrop tongues that always rise toward the top of the screen
+function flameTongue(x, y, h, w, seed, a) {
+  const sway = Math.sin(T * 9 + seed) * w * .5, f = .75 + Math.sin(T * 23 + seed * 3) * .25;
+  [['#ff3b1f', 1, .55], ['#ff8a2a', .72, .8], ['#ffd44a', .45, .95], ['#fff3c4', .2, .9]].forEach(([c, k, al]) => {
+    const H = h * k * f, W = w * (k * .7 + .3);
+    ctx.globalAlpha = al * a; ctx.fillStyle = c; ctx.beginPath();
+    ctx.moveTo(x - W, y); ctx.quadraticCurveTo(x - W * .9, y - H * .55, x + sway, y - H); ctx.quadraticCurveTo(x + W * .9, y - H * .5, x + W, y);
+    ctx.quadraticCurveTo(x, y + W * .7, x - W, y); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+function swordFlames(hx, hy, burn, stretch) {
+  const ux = Math.cos(SW.ang), uy = Math.sin(SW.ang);
+  for (let i = 0; i < 7; i++) {
+    const d = (20 + i * 10.5) * stretch, x = hx + ux * d, y = hy + uy * d;
+    const tip = i / 6, h = (19 + tip * 10) * (.5 + burn * .5), w = 6.5 + (1 - Math.abs(tip - .5)) * 2.5;
+    flameTongue(x, y, h, w, i * 1.7, .85 * burn);
+  }
+  if (Math.random() < .7 * burn) { const d = rand(20, 86) * stretch; parts.push({ x: hx + ux * d + rand(-4, 4), y: hy + uy * d + rand(-4, 4), vx: rand(-20, 20), vy: rand(-110, -50), life: rand(.35, .6), max: .6, size: rand(1.5, 3), color: pick(['#ffd44a', '#ff8a2a', '#ff3b1f']), kind: 'dot', glow: true, fr: .4 }); }
+  if (Math.random() < .12 * burn) { const d = rand(30, 80); parts.push({ x: hx + ux * d, y: hy + uy * d - 10, vx: rand(-10, 10), vy: rand(-40, -20), life: .9, max: .9, size: rand(5, 8), color: '#5b5068', kind: 'smoke' }); }
+}
 function drawSword(bob = 0) {
   if (!swordOn() || mode === 'dead') return;
   const { hand, heat, stretch, R } = swordPose(drawDt, bob);
@@ -4387,9 +4430,11 @@ function drawSword(bob = 0) {
   ctx.save(); ctx.translate(hx, hy); ctx.rotate(SW.ang + Math.PI / 2);
   const pop = SW.draw < 1 ? 1 - Math.pow(1 - SW.draw, 3) : 1;
   ctx.scale(pop, stretch * pop); ctx.translate(0, -3);
-  glow(0, -46, 40 + heat * 30, '#ff5d3b', .2 + heat * .45);
-  paintSword(ctx, heat);
+  const burn = Math.min(1, SW.fire / .6); // flames fade out over the last moments
+  glow(0, -46, 40 + heat * 30 + burn * 26, '#ff5d3b', .2 + Math.max(heat, burn * .8) * .45);
+  paintSword(ctx, Math.max(heat, burn));
   ctx.restore();
+  if (burn > 0) swordFlames(hx, hy, burn, stretch);
   if (swing && Math.random() < .8) parts.push({ x: hx + Math.cos(SW.ang) * 70, y: hy + Math.sin(SW.ang) * 70, vx: rand(-40, 40), vy: rand(-80, -20), life: .4, max: .4, size: rand(2, 5), color: pick(['#ff7a2a', '#ffcf3f']), glow: true });
 }
 
@@ -4443,7 +4488,7 @@ function update(dt) {
   } else if (P.moving) {
     aim = Math.atan2(my, mx); if (Math.abs(mx) > .1) P.face = Math.sign(mx);
   }
-  if (PR.on) P.face = Math.cos(PR.ang) < 0 ? -1 : 1; // sideways toward the beam while firing
+  if (PR.on) P.face = PR.side; // sideways toward the beam while firing
   castT = Math.max(0, castT - dt); P.castFx = Math.max(0, (P.castFx || 0) - dt);
   if (weapon === 'wand' && castT <= 0 && (manual || (target && SET.autoAim))) { cast(target); castT = SPELLS[cur].cd / S.rate; }
 

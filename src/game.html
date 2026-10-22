@@ -2983,10 +2983,14 @@ function landSwordHit(e, w) {
 const KNIFE = {
   speed: 1500,          // flight speed: very fast
   range: 560,           // how far it flies before sticking in the ground
-  dmg: 34,              // damage per dagger (grows with waves and power-ups like the sword)
-  cooldown: .26,        // seconds between throws; hold the button to keep throwing
-  critBonus: .1,        // extra crit chance on top of yours
-  burnTime: 2.5, burnDps: 7,
+  dmg: 24,              // damage per dagger (grows with waves and power-ups like the sword)
+  cooldown: .34,        // seconds between throws; hold the button to keep throwing
+  critBonus: .04,       // extra crit chance on top of yours
+  burnTime: 2, burnDps: 4,
+  ricochets: 2,         // bounces to the next monster after a hit
+  bounceRange: 230,     // how far it looks for the next monster
+  bounceDmg: .65,       // each bounce does this much of the previous hit
+  spin: 32,             // spin speed in the air (radians per second)
   stickTime: 2.2,       // how long a dagger stays stuck in a monster
   knock: 170,
 };
@@ -2995,13 +2999,24 @@ let knives = [], drops = [], decals = [], splats = [], knifeT = 0, knifeHold = f
 const KN = { show: 1, wait: 0, flick: 0 }; // dagger in hand: visible amount, time until it re-forms, throw flick
 function knifePress() { if (mode !== 'play' || !knifeOn()) return; knifeHold = true; if (knifeT <= 0) throwKnife(); }
 function knifeRelease() { knifeHold = false; }
-const knifeAimAngle = () => aimAngleFor(KNIFE.range);
+// The dagger leaves from the hand, so aim from there: aiming from the body centre made it
+// fly parallel to the true line and clip the edge of the target.
+const knifeHand = side => ({ x: P.x + side * 19, y: P.y + 6 });
+function knifeTarget() { return (!swordDrag || !swordDrag.on) && !P.manual && SET.autoAim ? nearest(P.x, P.y, KNIFE.range) : null; }
+// which hand throws, and the angle from that hand (both decided together so they always agree)
+function knifeShot() {
+  const t = knifeTarget();
+  if (!t) { const a = aimAngleFor(KNIFE.range); return { a, side: Math.cos(a) < 0 ? -1 : 1 }; }
+  const side = t.x < P.x ? -1 : 1, h = knifeHand(side);
+  return { a: Math.atan2(t.y - h.y, t.x - h.x), side };
+}
+const knifeAimAngle = () => knifeShot().a;
 function throwKnife() {
   knifeT = KNIFE.cooldown;
-  const a = knifeAimAngle(), side = Math.cos(a) < 0 ? -1 : 1;
+  const { a, side } = knifeShot();
   P.face = side;
-  const hx = P.x + side * 19, hy = P.y + 6;
-  knives.push({ st: 'fly', x: hx, y: hy, px: hx, py: hy, a, vx: Math.cos(a) * KNIFE.speed, vy: Math.sin(a) * KNIFE.speed, dist: 0, t: 0, trail: [] });
+  const { x: hx, y: hy } = knifeHand(side);
+  knives.push({ st: 'fly', x: hx, y: hy, px: hx, py: hy, a, rot: a, spinDir: side, vx: Math.cos(a) * KNIFE.speed, vy: Math.sin(a) * KNIFE.speed, dist: 0, t: 0, trail: [], hit: new Set(), bounces: 0, dmgMul: 1 });
   KN.show = 0; KN.wait = .07; KN.flick = 1;
   kick.x -= Math.cos(a) * 3; kick.y -= Math.sin(a) * 3;
   retrigger($('knifeBtn'), 'thrown');
@@ -3009,11 +3024,11 @@ function throwKnife() {
   if (SET.fx === 'lots') for (let i = 0; i < 5; i++) parts.push({ x: hx, y: hy, vx: Math.cos(a + rand(-.5, .5)) * rand(60, 200), vy: Math.sin(a + rand(-.5, .5)) * rand(60, 200), life: .25, max: .25, size: rand(2, 4), color: pick([PURPLE.hot, PURPLE.pink, PURPLE.light]), kind: 'dot', glow: true });
 }
 // first enemy the segment p0 -> p1 passes through, and where along it (0..1)
-function sweepHit(x0, y0, x1, y1) {
+function sweepHit(x0, y0, x1, y1, skip) {
   const dx = x1 - x0, dy = y1 - y0, L2 = dx * dx + dy * dy || 1;
   let best = null, bt = 2;
   for (const e of enemies) {
-    if (e.dead) continue;
+    if (e.dead || (skip && skip.has(e))) continue;
     const t = Math.max(0, Math.min(1, ((e.x - x0) * dx + (e.y - y0) * dy) / L2));
     const cx = x0 + dx * t, cy = y0 + dy * t, r = e.r + 5;
     if ((e.x - cx) ** 2 + (e.y - cy) ** 2 <= r * r && t < bt) { bt = t; best = e; }
@@ -3029,7 +3044,8 @@ function updateKnife(dt) {
     k.t += dt;
     if (k.st === 'fly') {
       const nx = k.x + k.vx * dt, ny = k.y + k.vy * dt;
-      const h = sweepHit(k.x, k.y, nx, ny);
+      k.rot += KNIFE.spin * k.spinDir * dt;
+      const h = sweepHit(k.x, k.y, nx, ny, k.hit);
       k.trail.unshift({ x: k.x, y: k.y }); if (k.trail.length > 7) k.trail.pop();
       if (Math.random() < .9) parts.push({ x: k.x + rand(-3, 3), y: k.y + rand(-3, 3), vx: -k.vx * .04 + rand(-20, 20), vy: -k.vy * .04 - rand(20, 60), life: rand(.18, .32), max: .32, size: rand(2.5, 5), color: pick([PURPLE.hot, PURPLE.pink, PURPLE.mid]), kind: 'dot', glow: true, fr: .05 });
       if (h) {
@@ -3068,7 +3084,7 @@ function popKnife(k, e) {
 }
 function knifeHit(k, e) {
   const a = k.a, ux = Math.cos(a), uy = Math.sin(a);
-  const power = KNIFE.dmg * S.dmg * playerDmgMul() * (1 + (wave - 1) * .12);
+  const power = KNIFE.dmg * S.dmg * playerDmgMul() * (1 + (wave - 1) * .12) * (k.dmgMul || 1);
   const crit = Math.random() < S.crit + KNIFE.critBonus;
   const n0 = texts.length;
   hurt(e, power * (crit ? 2 : 1), PURPLE.light, crit);
@@ -3077,10 +3093,27 @@ function knifeHit(k, e) {
   e.hs = killed ? .1 : .07;
   if (!killed) { e.burn = KNIFE.burnTime; e.burnDps = KNIFE.burnDps * S.dmg; e.burnCol = PURPLE.hot; }
   if (!e.T.boss) { e.kx += ux * KNIFE.knock; e.ky += uy * KNIFE.knock; }
-  // the dagger sinks in: its tip sits just inside the monster
   const ox = Math.max(-e.r * .6, Math.min(e.r * .6, k.x - e.x)), oy = Math.max(-e.r * .6, Math.min(e.r * .6, k.y - e.y));
-  k.e = e; k.ox = ox - ux * 4; k.oy = oy - uy * 4; k.t = 0; k.trail = [];
-  if (killed) { k.x = e.x + k.ox; k.y = e.y + k.oy; popKnife(k, e); } else k.st = 'stuck';
+  k.hit.add(e);
+  // ricochet: bounce off toward the closest monster this dagger hasn't hit yet
+  let next = null;
+  if (k.bounces < KNIFE.ricochets) {
+    let bd = KNIFE.bounceRange ** 2;
+    for (const o of enemies) { if (o.dead || k.hit.has(o)) continue; const d = (o.x - k.x) ** 2 + (o.y - k.y) ** 2; if (d < bd) { bd = d; next = o; } }
+  }
+  if (next) {
+    const na = Math.atan2(next.y - k.y, next.x - k.x), sp = KNIFE.speed * .85;
+    k.bounces++; k.dmgMul = (k.dmgMul || 1) * KNIFE.bounceDmg;
+    k.a = na; k.vx = Math.cos(na) * sp; k.vy = Math.sin(na) * sp; k.spinDir *= -1;
+    k.dist = KNIFE.range - KNIFE.bounceRange - 60; k.trail = [];
+    k.x -= ux * 6; k.y -= uy * 6;
+    for (let i = 0; i < 7; i++) { const sa = na + rand(-1.2, 1.2) + Math.PI * (Math.random() < .5 ? 1 : 0); parts.push({ x: k.x, y: k.y, vx: Math.cos(sa) * rand(160, 380), vy: Math.sin(sa) * rand(160, 380), life: .16, max: .16, size: rand(1.5, 2.5), color: pick(['#ffffff', PURPLE.light]), kind: 'spark', glow: true, fr: .01 }); }
+    swordSfx.knifeRicochet(k.bounces);
+  } else {
+    // no one left to bounce to: the dagger sinks in, its tip just inside the monster
+    k.e = e; k.ox = ox - ux * 4; k.oy = oy - uy * 4; k.t = 0; k.trail = [];
+    if (killed) { k.x = e.x + k.ox; k.y = e.y + k.oy; popKnife(k, e); } else k.st = 'stuck';
+  }
   // keep at most 3 daggers in one monster
   const mine = knives.filter(o => o.st === 'stuck' && o.e === e);
   if (mine.length > 3) { mine[0].st = 'fade'; mine[0].t = 0; mine[0].life = .2; }
@@ -3180,7 +3213,12 @@ function drawKnives() {
       }
       ctx.globalAlpha = 1;
       glow(k.x, k.y, 30, PURPLE.hot, .5);
-      ctx.save(); ctx.translate(k.x, k.y); ctx.rotate(k.a); ctx.scale(1.15, 1.15); ctx.translate(-12, 0); paintKnife(ctx, 1); ctx.restore();
+      // spinning blade, with two faint ghosts trailing the spin for motion blur
+      for (let g = 2; g >= 0; g--) {
+        ctx.save(); ctx.globalAlpha = g ? .22 / g : 1;
+        ctx.translate(k.x, k.y); ctx.rotate(k.rot - g * .42 * k.spinDir); ctx.scale(1.15, 1.15); ctx.translate(-3, 0); paintKnife(ctx, 1); ctx.restore();
+      }
+      ctx.globalAlpha = 1;
     } else {
       const fade = k.st === 'fade' || k.st === 'ground' ? Math.max(0, 1 - Math.max(0, k.t - (k.life - .35)) / .35) : 1;
       if (fade <= 0) continue;
@@ -3245,9 +3283,9 @@ function drawSplats() {
 function drawKnifeAim() {
   if (!knifeOn() || mode !== 'play') return;
   const a = knifeAimAngle(), active = knifeHold || (swordDrag && swordDrag.on);
-  const tgt = (!swordDrag || !swordDrag.on) && !P.manual && SET.autoAim ? nearest(P.x, P.y, KNIFE.range) : null;
-  const len = tgt ? Math.hypot(tgt.x - P.x, tgt.y - P.y) - tgt.r - 6 : KNIFE.range;
-  const x0 = P.x + Math.cos(a) * 26, y0 = P.y + 6 + Math.sin(a) * 26, x1 = P.x + Math.cos(a) * len, y1 = P.y + 6 + Math.sin(a) * len;
+  const tgt = knifeTarget(), h = knifeHand(knifeShot().side);
+  const len = tgt ? Math.hypot(tgt.x - h.x, tgt.y - h.y) - tgt.r - 6 : KNIFE.range;
+  const x0 = h.x + Math.cos(a) * 12, y0 = h.y + Math.sin(a) * 12, x1 = h.x + Math.cos(a) * len, y1 = h.y + Math.sin(a) * len;
   ctx.save(); ctx.lineCap = 'round';
   ctx.globalAlpha = active ? .85 : .5;
   ctx.setLineDash([3, 9]); ctx.lineDashOffset = -T * 60; ctx.lineWidth = 3; ctx.strokeStyle = PURPLE.light;
@@ -3487,6 +3525,14 @@ const swordSfx = (() => {
         osc('sine', 145 * p, 42, .24, 0.544);
         nz(.13, 0.224, 'bandpass', 320, 950, 5, { delay: .05, sweep: .1 });           // squish
       }
+    },
+    knifeRicochet(n) {
+      if (!ok()) return; const p = vary() * (1 + n * .08);
+      // a bright metallic ping as the blade glances off
+      osc('triangle', 2900 * p, 2100 * p, .09, .16, { send: .45 });
+      osc('sine', 4300 * p, 4100 * p, .16, .06, { send: .6 });
+      nz(.05, .42, 'bandpass', 5200 * p, 2600, 4, { sweep: .04 });
+      nz(.12, .3, 'bandpass', 1400 * p, 3400 * p, 2, { attack: .01, delay: .01 });
     },
     knifeTink() {
       if (!ok()) return; const p = vary();

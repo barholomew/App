@@ -668,25 +668,6 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
   </div>
 </div>
 
-<div class="overlay sunny" id="menu" hidden>
-  <div class="clouds" aria-hidden="true"><i></i><i></i><i></i></div>
-  <div class="modal">
-    <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button></div>
-    <h2>Pick your wand</h2>
-    <p>You use one wand for the whole run. Buy more wands in the Shop with gems from bosses.</p>
-    <div class="note" id="abNote"></div>
-    <div class="grid2" id="spellPick"></div>
-    <div class="howto">
-      <div><i style="--c: var(--aqua)"></i>Drag on the left side to move, drag on the right side to aim</div>
-      <div><i style="--c: var(--sun)"></i>When you're not aiming, your wand auto-aims at the closest monster</div>
-      <div><i style="--c: var(--pink)"></i>Tap the round buttons to use abilities (Space and E on a keyboard)</div>
-      <div><i style="--c: var(--berry)"></i>Explore to find buildings with chests full of loot</div>
-      <div><i style="--c: var(--mint)"></i>Got the Giant Sword? Tap Switch to swap between sword and wand</div>
-      <div><i style="--c: var(--grape)"></i>Every 10 waves night falls and monsters get stronger</div>
-    </div>
-  </div>
-</div>
-
 <div class="overlay sunny" id="settings" hidden>
   <div class="clouds" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="modal">
@@ -703,12 +684,10 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <div class="awning" aria-hidden="true"></div>
     <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button><span class="wallet"><span class="stars" aria-label="Gems"><i class="gem"></i><span id="storeGems">0</span></span><span class="stars" aria-label="Gold"><i class="coin"></i><span id="storeGold">0</span></span></span></div>
     <div class="shophello"><h2>Shop</h2></div>
-    <p>Spend gems from bosses or gold from your runs on new wands, abilities, relics and weapons. Tap an item to see more.</p>
+    <p>Spend gems from bosses or gold from your runs on new weapons and abilities. Tap an item to see more.</p>
     <div class="tabs" role="tablist">
-      <button role="tab" data-stab="wands">Wands<small id="cntWands"></small></button>
-      <button role="tab" data-stab="abilities">Abilities<small id="cntAbilities"></small></button>
-      <button role="tab" data-stab="relics">Relics<small id="cntRelics"></small></button>
       <button role="tab" data-stab="weapons">Weapons<small id="cntWeapons"></small></button>
+      <button role="tab" data-stab="abilities">Abilities<small id="cntAbilities"></small></button>
     </div>
     <p id="storeTabNote"></p>
     <div class="sgrid" id="storeGrid"></div>
@@ -723,16 +702,14 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
   <div class="modal">
     <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button></div>
     <h2>Inventory</h2>
-    <p>Equip up to 2 abilities and 2 relics. They help you in every run.</p>
+    <p>Equip up to 2 abilities. Your weapons are always ready.</p>
     <div class="loadout" id="loadout"></div>
-    <h3 class="sub">Your wands</h3>
-    <p>You pick one of these each time you press Play.</p>
+    <h3 class="sub">Your weapons</h3>
+    <p>Tap Switch during a run to swap between them.</p>
     <div class="stack" id="invWands"></div>
     <h3 class="sub">Your abilities</h3>
     <p>Abilities are the round buttons in the corner. Tap one to use it, then it recharges.</p>
     <div class="stack" id="invAbilities"></div>
-    <h3 class="sub">Your relics</h3>
-    <div class="stack" id="invRelics"></div>
   </div>
 </div>
 
@@ -1216,27 +1193,19 @@ const GEMS_BY_BOSS = { boss: 5, lich: 8, titan: 10, queen: 12 };
 const saveSet = () => store.set('wgSettings', SET), saveMeta = () => store.set('wgMeta', META);
 const WANDS = [
   { id: 'oak', spell: 0, name: 'Fire Wand', desc: 'Shoots Fireballs that set monsters on fire', price: 0, shaft: '#8a5a2b', hi: '#c08a4a', band: '#ffcf3f', tip: '#ff8a3d' },
-  { id: 'frost', spell: 1, name: 'Frost Wand', desc: 'Fires rapid Frost Shards that slow monsters', price: 5, shaft: '#4aa3c6', hi: '#bdf0ff', band: '#ffffff', tip: '#7fdcff' },
-  { id: 'storm', spell: 2, name: 'Storm Wand', desc: 'Chain Bolts that zap 2 more monsters', price: 10, shaft: '#c98f16', hi: '#ffe27a', band: '#fff6c2', tip: '#ffe45c' },
-  { id: 'arcane', spell: 3, name: 'Arcane Wand', desc: 'Three magic orbs that chase their target', price: 15, shaft: '#6a4bc4', hi: '#c77dff', band: '#ff8fc8', tip: '#c77dff' },
 ];
-// Old cosmetic wands from earlier versions are refunded as gems.
-const OLD_WANDS = { ember: 5, crystal: 10, golden: 15, rainbow: 25 };
+// Wands and relics that were removed are refunded as gems.
+const OLD_WANDS = { ember: 5, crystal: 10, golden: 15, rainbow: 25, frost: 5, storm: 10, arcane: 15 };
+const OLD_RELICS = { clover: 5, pouch: 5, feather: 8, moon: 8, heart: 10, bubble: 15 };
 (() => {
   let refund = 0;
   META.wands = (META.wands || ['oak']).filter(id => { if (OLD_WANDS[id]) { refund += OLD_WANDS[id]; return false; } return true; });
   if (!META.wands.includes('oak')) META.wands.unshift('oak');
+  (META.relics || []).forEach(id => { refund += OLD_RELICS[id] || 0; });
+  META.relics = []; META.equip = [];
   if (refund) { META.gems += refund; META.refunded = refund; saveMeta(); }
-  if (!WANDS.some(w => w.id === META.wand)) META.wand = 'oak';
+  META.wand = 'oak';
 })();
-const RELICS = [
-  { id: 'clover', glyph: 'LCK', c: '#3fd99a', name: 'Lucky Clover', desc: '+5% crit chance', price: 5, apply() { S.crit += .05; } },
-  { id: 'pouch', glyph: 'GLD', c: '#ffcf3f', name: 'Coin Pouch', desc: 'Coins have a 30% chance to count double', price: 5, apply() { S.coinLuck += .3; } },
-  { id: 'feather', glyph: 'MOV', c: '#38c6ff', name: 'Wind Feather', desc: '+8% move speed', price: 8, apply() { S.move *= 1.08; } },
-  { id: 'moon', glyph: 'MAG', c: '#9b7bff', name: 'Moon Magnet', desc: '+50% gem and coin pickup range', price: 8, apply() { S.magnet *= 1.5; } },
-  { id: 'heart', glyph: 'HP', c: '#ff8fc8', name: 'Iron Heart', desc: '+25 max health', price: 10, apply() { addMaxHp(25); } },
-  { id: 'bubble', glyph: 'SHD', c: '#9fe6ff', name: 'Bubble Charm', desc: 'Start every wave with a Mana Shield', price: 15, apply() { S.waveShield = true; } },
-];
 const ABILITIES = [
   { id: 'dash', name: 'Dash', c: '#38c6ff', cd: 4, price: 0, desc: 'Zip forward and slip through monsters without getting hurt.',
     icon: 'M1 2h2v1H1zM2 3h2v1H2zM3 4h2v2H3zM2 6h2v1H2zM1 7h2v1H1zM5 2h2v1H5zM6 3h2v1H6zM7 4h2v2H7zM6 6h2v1H6zM5 7h2v1H5z',
@@ -1271,7 +1240,6 @@ if (!Array.isArray(META.weapons)) META.weapons = [];
 function applyLoadout() {
   if (META.weapons.includes('sword')) S.sword = true;
   if (META.weapons.includes('knife')) S.knife = true;
-  META.equip.forEach(id => { const r = RELICS.find(x => x.id === id); if (r) r.apply(); });
 }
 
 /* ---------- audio ---------- */
@@ -1431,25 +1399,7 @@ function buildLogo(el) {
   let k = 0;
   el.innerHTML = ['Wizard', 'Grove'].map(w => [...w].map(ch => `<span style="--i:${k};color:${HAPPY[k++ % HAPPY.length]}">${ch}</span>`).join('')).join('<br>');
 }
-function buildMenu() {
-  const eqA = META.abEquip.map(id => ABILITIES.find(a => a.id === id)).filter(Boolean).map(a => a.name);
-  $('abNote').textContent = eqA.length ? `Your abilities: ${eqA.join(' and ')}. Change them in your Inventory.` : 'No abilities equipped. Add some in your Inventory.';
-  $('spellPick').innerHTML = WANDS.map((w, i) => {
-    const sp = SPELLS[w.spell], owned = META.wands.includes(w.id);
-    return `<button class="card spell enter ${owned ? '' : 'lockedw'}" data-w="${w.id}" style="${orbStyle(sp)};--i:${i}" ${owned ? '' : 'aria-disabled="true"'}>
-      ${wandIcon(w)}<b>${w.name}</b><span>${w.desc}</span>
-      <div class="chips">${owned
-        ? `<em class="chip">${sp.dmg}${sp.count ? ' x' + sp.count : ''} DMG</em><em class="chip">${(1 / sp.cd).toFixed(1)}/SEC</em>`
-        : `<em class="chip cost">${w.price} gems in Shop</em>`}</div>
-    </button>`;
-  }).join('');
-  $('spellPick').querySelectorAll('button').forEach(b => b.onclick = () => {
-    const w = WANDS.find(x => x.id === b.dataset.w);
-    if (!META.wands.includes(w.id)) { sfx('nope'); retrigger(b, 'nope'); toast(`Buy the ${w.name} in the Shop first (${w.price} gems)`); return; }
-    META.wand = w.id; saveMeta(); startGame(w.spell);
-  });
-}
-const SCREENS = ['loading', 'title', 'menu', 'settings', 'store', 'inventory', 'guide', 'records'];
+const SCREENS = ['loading', 'title', 'settings', 'store', 'inventory', 'guide', 'records'];
 function showScreen(id) {
   SCREENS.forEach(x => { $(x).hidden = x !== id; });
   if ($(id)) $(id).scrollTop = 0;
@@ -1457,7 +1407,6 @@ function showScreen(id) {
 function go(id) {
   sfx('click'); closeSheet();
   if (id === 'title') renderTitle();
-  if (id === 'menu') buildMenu();
   if (id === 'inventory') renderInventory();
   if (id === 'store') { closeSheet(); renderStore(true); }
   if (id === 'guide') renderGuide();
@@ -1466,7 +1415,7 @@ function go(id) {
   showScreen(id);
 }
 document.querySelectorAll('[data-to]').forEach(b => b.onclick = () => go(b.dataset.to));
-$('playBtn').onclick = () => { initAudio(); go('menu'); };
+$('playBtn').onclick = () => { initAudio(); META.wand = 'oak'; startGame(0); };
 $('invBtn').onclick = () => go('inventory');
 $('storeBtn').onclick = () => go('store');
 $('setBtn').onclick = () => go('settings');
@@ -1535,114 +1484,6 @@ function toast(msg) {
 }
 // 16x16 pixel art for Shop icons. Each letter is a colour from the palette, "." is see-through.
 const ART = {
-  clover: { pal: {"k": "#1f3b2a", "g": "#3fd99a", "d": "#24a86f", "l": "#a8f5cf", "s": "#2f7a45"}, rows: [
-    '................',
-    '...kkk....kkk...',
-    '..kglgk..kglgk..',
-    '..kggggkkggggk..',
-    '..kdgggkkgggdk..',
-    '...kddgkkgddk...',
-    '....kkkggkkk....',
-    '...kkkkggkkkk...',
-    '..kglggkkgglgk..',
-    '..kggggkkggggk..',
-    '..kdgggk.kgggdk.',
-    '...kddk.ks.kddk.',
-    '....kk..ks..kk..',
-    '.......ks.......',
-    '......ks........',
-    '......k.........',
-  ] },
-  pouch: { pal: {"k": "#3b2410", "b": "#a8682a", "d": "#7a4a1c", "l": "#d99a4e", "y": "#ffcf3f", "o": "#e8a317", "w": "#fff6c2", "r": "#c0392b"}, rows: [
-    '................',
-    '.....kkkkkk.....',
-    '......kyyk......',
-    '.....krrrrk.....',
-    '......kddk......',
-    '....kkbbbbkk....',
-    '...kblbbbbdbk...',
-    '..kblbbbbbbdbk..',
-    '..kbbbkkkkbbbk..',
-    '..kbbkywyykbdk..',
-    '..kbbkyoyokbdk..',
-    '..kbbbkkkkbddk..',
-    '..kdbbbbbbbddk..',
-    '...kddddddddk...',
-    '....kkkkkkkk....',
-    '................',
-  ] },
-  feather: { pal: {"k": "#14365a", "c": "#38c6ff", "l": "#bdf0ff", "d": "#1d8fc4", "w": "#ffffff"}, rows: [
-    '...........kkk..',
-    '..........kllck.',
-    '.........kllcdk.',
-    '........kllccdk.',
-    '.......kllcwcdk.',
-    '......kllcwcdk..',
-    '.....kllcwcdk...',
-    '....kllcwcdk....',
-    '...kllcwcdk.....',
-    '...klcwcdk......',
-    '..klcwcdk.......',
-    '..kcwcdk........',
-    '.kkwkkk.........',
-    '.kwk............',
-    'kwk.............',
-    'kk..............',
-  ] },
-  moon: { pal: {"k": "#2a1f5c", "p": "#9b7bff", "l": "#d6c8ff", "d": "#6a4bc4", "r": "#ff5d73", "s": "#ffffff", "g": "#c9c9d6"}, rows: [
-    '................',
-    '....kkkkk.......',
-    '...kllppkk......',
-    '..klppppk.......',
-    '.klpppdk....s...',
-    '.kppppk....sss..',
-    'kpppdk......s...',
-    'kpppdk..........',
-    'kpppdk..........',
-    'kppppdk.........',
-    '.kppppdkkkk.kk..',
-    '.kdppppppdkkrrk.',
-    '..kddppppkgkrrk.',
-    '...kkdddkggkkk..',
-    '.....kkk.kk.....',
-    '................',
-  ] },
-  heart: { pal: {"k": "#3b1a2c", "r": "#ff5d73", "l": "#ffb3c1", "d": "#c0304a", "m": "#8a92a6", "n": "#c9cfdb"}, rows: [
-    '................',
-    '..kkkk....kkkk..',
-    '.kllrrk..kmmmmk.',
-    'kllrrrrkkmnnmmmk',
-    'klrrrrrrkmnmmmmk',
-    'krrrrrrrkmmmmmdk',
-    'krrrrrrrkmmmmmdk',
-    'krrrrrrrkmmmmddk',
-    '.krrrrrrkmmmddk.',
-    '..krrrrrkmmddk..',
-    '...kdrrrkmddk...',
-    '....kdrrkddk....',
-    '.....kdrkdk.....',
-    '......kkkk......',
-    '.......kk.......',
-    '................',
-  ] },
-  bubble: { pal: {"k": "#1d4f6e", "b": "#9fe6ff", "l": "#e8fbff", "d": "#5cc0e8", "w": "#ffffff", "p": "#ff8fc8"}, rows: [
-    '................',
-    '.....kkkkkk.....',
-    '...kkbbbbbbkk...',
-    '..kbwwbbbbbbbk..',
-    '.kbwwbbbbbbbbdk.',
-    '.kbwbbbbbbbbbdk.',
-    'kbbbbbbbbbbbbbdk',
-    'kbbbbbblbbbbbbdk',
-    'kbbbbbllbbbbbbdk',
-    'kbbbbbbbbbbbbddk',
-    'kbbbbbbbbbbbbddk',
-    '.kbbbbbbbbbbddk.',
-    '.kdbbbbbbbbbddk.',
-    '..kddbbbbbdddk..',
-    '...kkdddddddk...',
-    '.....kkkkkk.....',
-  ] },
   dash: { pal: {"k": "#14365a", "c": "#38c6ff", "l": "#bdf0ff", "w": "#ffffff", "d": "#1d8fc4"}, rows: [
     '................',
     '................',
@@ -1783,34 +1624,26 @@ function pixArt(key, pal = ART[key].pal, size = 34) {
 }
 const wandArt = (w, size) => pixArt('wand', { k: '#2d1f4f', s: w.shaft, h: w.hi, b: w.band, t: w.tip, w: '#ffffff' }, size);
 const wandIcon = w => `<span class="wandico pix" style="--glow:${w.glow || w.tip}">${wandArt(w, 34)}</span>`;
-const relicIcon = r => ART[r.id] ? `<span class="tile pix" style="--c:${r.c}">${pixArt(r.id)}</span>` : `<span class="tile" style="--c:${r.c}">${r.glyph}</span>`;
 const gemTag = n => `<i class="gem sm"></i>${n}`;
-let storeTab = 'wands';
+let storeTab = 'weapons';
 function storeList(tab) {
-  if (tab === 'wands') return WANDS.map(w => {
-    const sp = SPELLS[w.spell];
-    return { kind: 'w', it: w, owned: META.wands.includes(w.id), color: sp.color, icon: wandIcon(w), cat: 'Wand',
-      facts: [`${sp.dmg}${sp.count ? ' x' + sp.count : ''} damage`, `${(1 / sp.cd).toFixed(1)} casts per second`] };
-  });
   if (tab === 'abilities') return ABILITIES.map(A => ({ kind: 'a', it: A, owned: META.abilities.includes(A.id), color: A.c, icon: abIcon(A), cat: 'Ability',
     facts: [`Recharges in ${A.cd} seconds`, 'Equip up to 2'] }));
-  if (tab === 'weapons') return WEAPONS.map(w => ({ kind: 'g', it: w, owned: META.weapons.includes(w.id), color: w.c, icon: weaponIcon(w), cat: 'Weapon',
-    facts: w.facts || ['Ready at the start of every run'] }));
-  return RELICS.map(r => ({ kind: 'r', it: r, owned: META.relics.includes(r.id), color: r.c, icon: relicIcon(r), cat: 'Relic', facts: ['Works every run', 'Equip up to 2'] }));
+  // weapons: the Fire Wand you always have, then the big weapons
+  const w = WANDS[0], sp = SPELLS[w.spell];
+  return [{ kind: 'w', it: w, owned: true, color: sp.color, icon: wandIcon(w), cat: 'Weapon',
+      facts: ['Always yours', `${sp.dmg} damage`, `${(1 / sp.cd).toFixed(1)} casts per second`] },
+    ...WEAPONS.map(g => ({ kind: 'g', it: g, owned: META.weapons.includes(g.id), color: g.c, icon: weaponIcon(g), cat: 'Weapon', facts: g.facts || ['Ready at the start of every run'] }))];
 }
 const STORE_NOTES = {
-  wands: 'Each wand shoots a different spell. You pick one wand before every run.',
   abilities: 'Abilities are buttons you tap during a run. They recharge after each use.',
-  relics: 'Relics give you a bonus in every run, without tapping anything.',
-  weapons: 'Big weapons you keep forever. You start every run with them.',
+  weapons: 'Weapons you keep forever. In a run, tap Switch to swap between the ones you own.',
 };
 function renderStore(enter = true) {
   $('storeGems').textContent = META.gems; $('storeGold').textContent = META.gold || 0;
   $('infoKing').src = SPR.boss.n.toDataURL();
   const count = (list) => `${list.filter(x => x.owned).length} of ${list.length} owned`;
-  $('cntWands').textContent = count(storeList('wands'));
   $('cntAbilities').textContent = count(storeList('abilities'));
-  $('cntRelics').textContent = count(storeList('relics'));
   $('cntWeapons').textContent = count(storeList('weapons'));
   document.querySelectorAll('[data-stab]').forEach(b => b.setAttribute('aria-selected', b.dataset.stab === storeTab));
   $('storeTabNote').textContent = STORE_NOTES[storeTab];
@@ -1827,7 +1660,7 @@ document.querySelectorAll('[data-stab]').forEach(b => b.onclick = () => { storeT
 function closeSheet() { $('sheet').hidden = true; }
 $('sheet').onclick = e => { if (e.target === $('sheet')) closeSheet(); };
 function equippedText(x) {
-  if (x.kind === 'w') return 'You can pick it when you press Play.';
+  if (x.kind === 'w') return 'You always have it. It is your starting weapon.';
   if (x.kind === 'g') return 'Owned. You start every run with it.';
   const eq = x.kind === 'a' ? META.abEquip : META.equip;
   return eq.includes(x.it.id) ? 'Equipped. It is ready for your next run.' : 'Owned. Equip it in your Inventory.';
@@ -1857,10 +1690,8 @@ function openSheet(x) {
     if (cur === 'gold') { if ((META.gold || 0) < gp) return; META.gold -= gp; }
     else { if (META.gems < it.price) return; META.gems -= it.price; }
     let msg = `${it.name} bought!`;
-    if (x.kind === 'w') { META.wands.push(it.id); msg += ' Pick it when you press Play.'; }
-    else if (x.kind === 'a') { META.abilities.push(it.id); if (META.abEquip.length < 2) { META.abEquip.push(it.id); msg = `${it.name} bought and equipped!`; } else msg += ' Swap it in from your Inventory.'; }
+    if (x.kind === 'a') { META.abilities.push(it.id); if (META.abEquip.length < 2) { META.abEquip.push(it.id); msg = `${it.name} bought and equipped!`; } else msg += ' Swap it in from your Inventory.'; }
     else if (x.kind === 'g') { META.weapons.push(it.id); msg = `${it.name} bought! You will start every run with it.`; }
-    else { META.relics.push(it.id); if (META.equip.length < 2) { META.equip.push(it.id); msg = `${it.name} bought and equipped!`; } else msg += ' Swap it in from your Inventory.'; }
     saveMeta(); sfx('buy'); confetti(30); toast(msg);
     x.owned = true; openSheet(x); renderStore(false);
   };
@@ -1874,20 +1705,11 @@ function renderInventory() {
     slots.push(A ? `<div class="slotbox"><small>Ability ${i + 1}</small>${abIcon(A)}<b>${A.name}</b></div>`
       : `<div class="slotbox empty"><small>Ability ${i + 1}</small><span class="tile" style="--c:#efe9f5">+</span><b>Empty</b></div>`);
   }
-  for (let i = 0; i < 2; i++) {
-    const r = RELICS.find(x => x.id === META.equip[i]);
-    slots.push(r ? `<div class="slotbox"><small>Relic ${i + 1}</small>${relicIcon(r)}<b>${r.name}</b></div>`
-      : `<div class="slotbox empty"><small>Relic ${i + 1}</small><span class="tile" style="--c:#efe9f5">+</span><b>Empty</b></div>`);
-  }
   $('loadout').innerHTML = slots.join('');
-  $('invWands').innerHTML = WANDS.filter(x => META.wands.includes(x.id)).map(x => {
-    return `<div class="row-item two">${wandIcon(x)}<div><b>${x.name}</b><span class="d">${x.desc}</span></div></div>`;
-  }).join('') + (META.wands.length < WANDS.length ? '<div class="empty-note">Get more wands in the Shop with gems or gold.<button class="act" data-goto="store">Open the Shop</button></div>' : '');
-  const ownedR = RELICS.filter(r => META.relics.includes(r.id));
-  $('invRelics').innerHTML = ownedR.length ? ownedR.map(r => {
-    const on = META.equip.includes(r.id);
-    return `<div class="row-item ${on ? 'on' : ''}">${relicIcon(r)}<div><b>${r.name}</b><span class="d">${r.desc}</span></div>${on ? `<button class="act plain" data-eqr="${r.id}">Remove</button>` : `<button class="act" data-eqr="${r.id}">Equip</button>`}</div>`;
-  }).join('') : '<div class="empty-note">You don\'t have any relics yet. Beat bosses to earn gems, then buy relics in the Shop.<button class="act" data-goto="store">Open the Shop</button></div>';
+  const ownedG = WEAPONS.filter(g => META.weapons.includes(g.id));
+  $('invWands').innerHTML = [`<div class="row-item two">${wandIcon(w)}<div><b>${w.name}</b><span class="d">${w.desc}</span></div></div>`,
+    ...ownedG.map(g => `<div class="row-item two">${weaponIcon(g)}<div><b>${g.name}</b><span class="d">${g.desc}</span></div></div>`)].join('')
+    + (ownedG.length < WEAPONS.length ? '<div class="empty-note">Get more weapons in the Shop with gems or gold.<button class="act" data-goto="store">Open the Shop</button></div>' : '');
   const ownedA = ABILITIES.filter(A => META.abilities.includes(A.id));
   $('invAbilities').innerHTML = ownedA.map(A => {
     const on = META.abEquip.includes(A.id);
@@ -1898,16 +1720,6 @@ function renderInventory() {
     if (META.abEquip.includes(id)) { META.abEquip = META.abEquip.filter(x => x !== id); toast(`${A.name} removed`); }
     else if (META.abEquip.length >= 2) { const out = ABILITIES.find(x => x.id === META.abEquip.shift()); META.abEquip.push(id); toast(`Swapped ${out.name} for ${A.name}`); }
     else { META.abEquip.push(id); toast(`${A.name} equipped`); }
-    saveMeta(); sfx('click'); renderInventory();
-  });
-  document.querySelectorAll('#inventory [data-eqw]').forEach(b => b.onclick = () => {
-    META.wand = b.dataset.eqw; saveMeta(); sfx('click'); toast(`${curWand().name} equipped`); renderInventory();
-  });
-  document.querySelectorAll('#inventory [data-eqr]').forEach(b => b.onclick = () => {
-    const id = b.dataset.eqr, it = RELICS.find(x => x.id === id);
-    if (META.equip.includes(id)) { META.equip = META.equip.filter(x => x !== id); toast(`${it.name} removed`); }
-    else if (META.equip.length >= 2) { const out = RELICS.find(x => x.id === META.equip.shift()); META.equip.push(id); toast(`Swapped ${out.name} for ${it.name}`); }
-    else { META.equip.push(id); toast(`${it.name} equipped`); }
     saveMeta(); sfx('click'); renderInventory();
   });
   document.querySelectorAll('#inventory [data-goto]').forEach(b => b.onclick = () => go(b.dataset.goto));
@@ -1992,7 +1804,7 @@ function boot() {
   $('tapStart').onclick = () => {
     initAudio(); clearInterval(tipTimer); sfx('wave');
     mode = 'menu'; renderTitle(); showScreen('title');
-    if (META.refunded) { toast(`Wands changed! You got ${META.refunded} gems back for your old wands.`); delete META.refunded; saveMeta(); }
+    if (META.refunded) { toast(`The Shop changed! You got ${META.refunded} gems back for removed wands and relics.`); delete META.refunded; saveMeta(); }
   };
 }
 
@@ -2102,7 +1914,7 @@ $('pauseBtn').onclick = () => togglePause();
 $('resumeBtn').onclick = () => togglePause();
 $('pauseSetBtn').onclick = () => { sfx('click'); settingsFrom = 'pause'; renderSettings(); $('pause').hidden = true; $('settings').hidden = false; $('settings').scrollTop = 0; };
 $('quitBtn').onclick = () => { $('pause').hidden = true; const g = bankGold(); toMenu('title'); if (g > 0) toast(`+${g} gold saved for the Shop`); };
-$('againBtn').onclick = () => { $('dead').hidden = true; toMenu('menu'); };
+$('againBtn').onclick = () => { $('dead').hidden = true; startGame(0); };
 $('deadMenuBtn').onclick = () => { $('dead').hidden = true; toMenu('title'); };
 $('soundBtn').onclick = () => { const on = !(SET.sfx || SET.music); SET.sfx = SET.music = on; saveSet(); initAudio(); paintSound(); sfx('click'); };
 function toMenu(screen) { mode = 'menu'; resetRun(0); buildSpellbar(); go(screen); }
@@ -3062,6 +2874,29 @@ function aimAngleFor(range) {
   return aim;
 }
 const swordAimAngle = () => aimAngleFor(SWORD.range + 80);
+// Cinematic aim: while you hold or drag the Slash button the wizard slows, the camera
+// leans in toward your aim, black bars slide in and the music dips.
+const CINE = { zoom: .16, slow: .45, lean: 46, bars: .075, ease: 7 };
+let cine = 0, cineHeld = 0;
+function updateCine(dt) {
+  const aiming = swordOn() && mode === 'play' && (swordCharge !== null || (swordDrag && swordDrag.on));
+  cineHeld = aiming ? cineHeld + dt : 0;
+  const want = cineHeld > .1 ? 1 : 0; // a quick tap doesn't trigger it
+  cine += (want - cine) * Math.min(1, dt * (want ? CINE.ease : CINE.ease * 1.6));
+  if (cine < .001) cine = 0;
+  if (musicBus && AC) { try { musicBus.gain.setTargetAtTime(1 - .55 * cine, AC.currentTime, .05); } catch (_) {} }
+}
+const cineEase = () => cine * cine * (3 - 2 * cine);
+function drawCineBars() {
+  const c = cineEase(); if (c <= 0) return;
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const g = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .25, VW / 2, VH / 2, Math.hypot(VW, VH) * .6);
+  g.addColorStop(0, 'rgba(10,4,16,0)'); g.addColorStop(1, `rgba(10,4,16,${.45 * c})`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
+  const h = VH * CINE.bars * c;
+  ctx.fillStyle = '#07040c'; ctx.fillRect(0, 0, VW, h); ctx.fillRect(0, VH - h, VW, h);
+  ctx.restore();
+}
 function swordSlash(charged) {
   if (!swordOn() || swordT > 0) return;
   swordT = charged ? SWORD.chargedCooldown : SWORD.cooldown;
@@ -3452,7 +3287,7 @@ function impactZoom() {
   if (t < IMP.hold) return IMP.zoom;                    // hold while frozen
   return IMP.zoom * Math.exp(-(t - IMP.hold) * 13);     // ease out
 }
-function w2s(x, y) { const z = ZOOM * (1 + impactZoom()); return { x: VW / 2 + kick.x + (x - cam.x) * z, y: VH / 2 + kick.y + (y - cam.y) * z }; }
+function w2s(x, y) { const z = ZOOM * (1 + impactZoom() + CINE.zoom * cineEase()); return { x: VW / 2 + kick.x + (x - cam.x) * z, y: VH / 2 + kick.y + (y - cam.y) * z }; }
 function tickImpact(dt) {
   if (IMP) { IMP.t += dt; if (IMP.t > IMP.life) IMP = null; }
   for (const c of cuts) c.t += dt;
@@ -3845,7 +3680,8 @@ function update(dt) {
   const ml = Math.hypot(mx, my); if (ml > 1) { mx /= ml; my /= ml; }
   P.webT = Math.max(0, (P.webT || 0) - dt);
   const webMul = P.webT > 0 ? .5 : 1;
-  P.x += mx * 150 * S.move * playerSpeedMul() * webMul * dt; P.y += my * 150 * S.move * playerSpeedMul() * webMul * dt;
+  const cineMul = 1 - CINE.slow * cineEase();
+  P.x += mx * 150 * S.move * playerSpeedMul() * webMul * cineMul * dt; P.y += my * 150 * S.move * playerSpeedMul() * webMul * cineMul * dt;
   P.moving = ml > .05; if (P.moving) { P.walk += dt; P.mdx = mx / ml; P.mdy = my / ml; }
   updateAbilities(dt);
   updateSword(dt);
@@ -4119,7 +3955,9 @@ function updateFx(dt) {
   shake = Math.max(0, shake - dt * 40); flash = Math.max(0, flash - dt); flashW = Math.max(0, flashW - dt);
   const kd = Math.pow(.0005, dt); kick.x *= kd; kick.y *= kd;
   dark = nightAmt * .7;
-  cam.x += (P.x - cam.x) * Math.min(1, dt * 8); cam.y += (P.y - cam.y) * Math.min(1, dt * 8);
+  const lean = CINE.lean * cineEase(), la = swordOn() ? swordAimAngle() : 0;
+  const tx = P.x + Math.cos(la) * lean, ty = P.y + Math.sin(la) * lean;
+  cam.x += (tx - cam.x) * Math.min(1, dt * 8); cam.y += (ty - cam.y) * Math.min(1, dt * 8);
 }
 
 /* ---------- render ---------- */
@@ -4338,8 +4176,8 @@ function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.imageSmoothingEnabled = false;
   const sx = shake ? rand(-shake, shake) : 0, sy = shake ? rand(-shake, shake) : 0;
-  tickImpact(rawDt);
-  const zp = ZOOM * (1 + impactZoom());
+  tickImpact(rawDt); updateCine(rawDt);
+  const zp = ZOOM * (1 + impactZoom() + CINE.zoom * cineEase());
   ctx.translate(VW / 2 + sx + kick.x, VH / 2 + sy + kick.y); ctx.scale(zp, zp); ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
   const hw = VW / 2 / ZOOM + 30, hh = VH / 2 / ZOOM + 30;
   drawGround(cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh);
@@ -4470,6 +4308,7 @@ function render() {
   ctx.fillStyle = vignette; ctx.fillRect(0, 0, VW, VH);
   if (flash > 0) { ctx.fillStyle = `rgba(255,93,115,${flash * .45})`; ctx.fillRect(0, 0, VW, VH); }
   if (flashW > 0) { ctx.fillStyle = `rgba(255,255,255,${flashW * .8})`; ctx.fillRect(0, 0, VW, VH); }
+  drawCineBars();
   drawImpact();
   if (mode === 'play' && P.hp / P.maxHp < .3) {
     const g = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .3, VW / 2, VH / 2, Math.max(VW, VH) * .7);

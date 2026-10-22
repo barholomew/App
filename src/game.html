@@ -575,6 +575,12 @@ body.menu-mode #hint,
 .swordbtn.ready { box-shadow: 0 5px 0 var(--ink), 0 0 22px #ffcf3f, 0 0 40px #ff5d3b; }
 .swordbtn .cdt { font-size: 20px; }
 .swordbtn svg { width: 38px; height: 38px; }
+.prismbtn { --c: #3b4a8a; background: radial-gradient(circle at 35% 30%, #6f86d9, #283266 70%); }
+.prismbtn .kico { position: relative; z-index: 1; display: grid; place-items: center; }
+.prismbtn .kico img { width: 50px; height: 50px; }
+.prismbtn .chg { background: conic-gradient(#ff5d5d, #ffcf3f, #7dff9a, #5cc8ff, #b47dff, #ff5d5d) !important; opacity: var(--q, 0); }
+.prismbtn.ready { box-shadow: 0 5px 0 var(--ink), 0 0 22px #9fe6ff, 0 0 40px #b47dff; }
+body.menu-mode .prismbtn { visibility: hidden; }
 .knifebtn { --c: #b357ff; }
 .knifebtn .kico { position: relative; z-index: 1; display: grid; place-items: center; }
 .knifebtn .kico img { width: 46px; height: 46px; }
@@ -628,6 +634,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
 
 <div class="spellbar" id="spellbar"></div>
 <button class="abtn swapbtn" id="swapBtn" hidden aria-label="Switch weapon"><span class="swapico"></span><small>Wand</small></button>
+<button class="abtn swordbtn prismbtn" id="prismBtn" hidden aria-label="Fire the Last Prism"><span class="kico"></span><i class="cdm"></i><i class="chg"></i><span class="cdt"></span><small>Hold to fire</small></button>
 <button class="abtn swordbtn knifebtn" id="knifeBtn" hidden aria-label="Throw the Hexfire Dagger"><span class="kico"></span><i class="cdm"></i><span class="cdt"></span><small>Throw</small></button>
 <button class="abtn swordbtn" id="swordBtn" hidden aria-label="Slash with the Giant Sword"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg><i class="cdm"></i><i class="chg"></i><span class="cdt"></span><small>Tap or hold</small></button>
 <div class="leftbar"><button class="sbtn" id="specialBtn" hidden aria-label="Use special weapon"></button><button class="bagbtn" id="bagBtn" aria-label="Open backpack"><svg viewBox="0 0 12 13" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="M4 0h4v1H4zM3 1h1v2H3zM8 1h1v2H8zM1 2h10v11H1z"/><path fill="#c08a4a" d="M2 3h8v9H2z"/><path fill="#a0632b" d="M2 3h8v3H2z"/><path fill="#2d1f4f" d="M2 6h8v1H2z"/><path fill="#ffcf3f" d="M5 5h2v2H5z"/><path fill="#2d1f4f" d="M3 8h6v4H3z"/><path fill="#d9a35e" d="M4 9h4v2H4z"/></svg><small>Backpack</small><i class="bagbadge" id="bagBadge" hidden></i></button></div>
@@ -1153,7 +1160,8 @@ let cycT = 0, isNight = false, nightAmt = 0, fireLit = false, warnedNight = fals
 let xpEarned = 0, xpSpent = 0, swordT = 0, swing = null, weapon = 'wand';
 const swordOn = () => !!(S && S.sword && weapon === 'sword');
 const knifeOn = () => !!(S && S.knife && weapon === 'knife');
-const ownedWeapons = () => ['wand', ...(S && S.sword ? ['sword'] : []), ...(S && S.knife ? ['knife'] : [])];
+const prismOn = () => !!(S && S.prism && weapon === 'prism');
+const ownedWeapons = () => ['wand', ...(S && S.sword ? ['sword'] : []), ...(S && S.knife ? ['knife'] : []), ...(S && S.prism ? ['prism'] : [])];
 let runSeed = 1, structures = [], chunkSet = new Set(), res = {}, spec = {}, held = null, bombs = [], laserT = 0, laserTick = 0, nearChest = null, chestsRun = 0;
 let abCd = {}, frozenT = 0, meteors = [], strikes = [], dark = 0, bossKills = 0, runGems = 0, combo = 0, comboT = 0, bestCombo = 0, gemChain = 0, gemChainT = 0, freeze = 0, lvlFx = 0;
 let best = 0;
@@ -1234,12 +1242,16 @@ const WEAPONS = [
   // Hexfire Dagger is free for testing; give it a price later
   { id: 'knife', name: 'Hexfire Dagger', price: 0, c: '#b357ff', desc: 'A violet dagger wreathed in purple flame. Throw it lightning fast: it sticks in monsters with a juicy splat and sets them alight.',
     facts: ['Ready at the start of every run', 'Tap: throw a dagger', 'Hold: keep throwing'] },
+  // Last Prism is free for testing; give it a price later
+  { id: 'prism', name: 'Last Prism', price: 0, c: '#9fe6ff', desc: 'A floating crystal that splits light. Hold Fire: six rainbow beams spin out, close in and fuse into one enormous laser. Needs time to recharge.',
+    facts: ['Hold: rainbow beams fuse into one laser', 'Pierces every monster in the line', `Recharges for a few seconds after use`] },
 ];
-const weaponIcon = w => w.id === 'sword' ? `<span class="tile" style="--c:#3b1a22">${swordImg(40)}</span>` : w.id === 'knife' ? `<span class="tile" style="--c:#2a1240">${knifeImg(40)}</span>` : `<span class="abico" style="--c:${w.c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg></span>`;
+const weaponIcon = w => w.id === 'sword' ? `<span class="tile" style="--c:#3b1a22">${swordImg(40)}</span>` : w.id === 'knife' ? `<span class="tile" style="--c:#2a1240">${knifeImg(40)}</span>` : w.id === 'prism' ? `<span class="tile" style="--c:#1b2140">${prismImg(40)}</span>` : `<span class="abico" style="--c:${w.c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg></span>`;
 if (!Array.isArray(META.weapons)) META.weapons = [];
 function applyLoadout() {
   if (META.weapons.includes('sword')) S.sword = true;
   if (META.weapons.includes('knife')) S.knife = true;
+  if (META.weapons.includes('prism')) S.prism = true;
 }
 
 /* ---------- audio ---------- */
@@ -1362,12 +1374,12 @@ addEventListener('keydown', e => {
   if (!e.repeat && (e.code === 'KeyE' || e.code === 'ShiftLeft' || e.code === 'ShiftRight')) useAbility(1);
   if (!e.repeat && (e.code === 'KeyF' || e.code === 'Enter') && mode === 'play' && nearChest) openChest(nearChest);
   if (!e.repeat && e.code === 'KeyR') useSpecial();
-  if (!e.repeat && e.code === 'KeyX') { if (knifeOn()) knifePress(); else swordPress(); }
+  if (!e.repeat && e.code === 'KeyX') { if (knifeOn()) knifePress(); else if (prismOn()) prismPress(); else swordPress(); }
   if (!e.repeat && (e.code === 'KeyC' || e.code === 'Tab')) { switchWeapon(); e.preventDefault(); }
   if (!e.repeat && (e.code === 'KeyB' || e.code === 'KeyI')) toggleBag();
   if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
 });
-addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'KeyX') { swordRelease(); knifeRelease(); } });
+addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'KeyX') { swordRelease(); knifeRelease(); prismRelease(); } });
 let joy = null, aimJoy = null, mouseAim = null, mouseT = 0;
 const JR = 56;
 cv.addEventListener('pointerdown', e => {
@@ -1894,7 +1906,7 @@ function startGame(i) {
   initAudio(); keepAwake(); sfx('click');
   resetRun(i); applyLoadout();
   [...SCREENS, 'dead', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
-  $('warmPill').hidden = true; lastCyc = ''; weapon = S.sword ? 'sword' : S.knife ? 'knife' : 'wand'; syncWeapon(); IMP = null; cuts = []; knives = []; drops = []; decals = []; splats = []; knifeT = 0; knifeHold = false; KN.show = 1; swordSfx.charge(false); swordCharge = null; swordReady = false; joy = null; aimJoy = null;
+  $('warmPill').hidden = true; lastCyc = ''; weapon = S.sword ? 'sword' : S.knife ? 'knife' : S.prism ? 'prism' : 'wand'; prismReset(); syncWeapon(); IMP = null; cuts = []; knives = []; drops = []; decals = []; splats = []; knifeT = 0; knifeHold = false; KN.show = 1; swordSfx.charge(false); swordCharge = null; swordReady = false; joy = null; aimJoy = null;
   buildSpellbar(); buildSpecialBtn(); $('bagBadge').hidden = true;
   $('hint').hidden = true; tipStep = -1; movedT = 0;
   let seen = false; try { seen = localStorage.getItem('wgTips') === '1'; } catch (e) {}
@@ -1903,7 +1915,7 @@ function startGame(i) {
   startWave(1);
 }
 function togglePause() {
-  knifeHold = false;
+  knifeHold = false; prismStop(true);
   if (swordCharge !== null) { swordCharge = null; swordReady = false; swordSfx.charge(false); }
   if (mode === 'bag') { toggleBag(); return; }
   if (!$('settings').hidden) return;
@@ -2159,7 +2171,7 @@ function bankGold() {
   return add;
 }
 function die() {
-  mode = 'dead'; joy = null; freeze = 0; sfx('die'); swordCharge = null; swordReady = false; swordSfx.charge(false);
+  mode = 'dead'; joy = null; freeze = 0; sfx('die'); prismStop(false); swordCharge = null; swordReady = false; swordSfx.charge(false);
   for (let i = 0; i < 50; i++) { const a = Math.random() * 6.28, s = rand(60, 300); parts.push({ x: P.x, y: P.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.6, 1.2), max: 1.2, size: rand(4, 8), color: pick(['#5a7fd6', '#a7c7ff', '#ffcf3f']), kind: 'star', glow: true }); }
   zaps.push({ ring: true, x1: P.x, y1: P.y, r: 120, life: .5, max: .5, color: '#ffffff', w: 6 });
   const isBest = wave > best;
@@ -2628,6 +2640,18 @@ $('knifeBtn').addEventListener('pointermove', e => {
   if (Math.hypot(dx, dy) > 14) { swordDrag.on = true; swordDrag.a = Math.atan2(dy, dx); }
 });
 ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => $('knifeBtn').addEventListener(ev, () => { knifeRelease(); swordDrag = null; }));
+$('prismBtn').onpointerdown = e => {
+  e.stopPropagation(); e.preventDefault();
+  try { $('prismBtn').setPointerCapture(e.pointerId); } catch (_) {}
+  swordDrag = { id: e.pointerId, ox: e.clientX, oy: e.clientY, on: false, a: aim };
+  prismPress();
+};
+$('prismBtn').addEventListener('pointermove', e => {
+  if (!swordDrag || e.pointerId !== swordDrag.id) return;
+  const dx = e.clientX - swordDrag.ox, dy = e.clientY - swordDrag.oy;
+  if (Math.hypot(dx, dy) > 14) { swordDrag.on = true; swordDrag.a = Math.atan2(dy, dx); }
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => $('prismBtn').addEventListener(ev, () => { prismRelease(); swordDrag = null; }));
 $('specialBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); useSpecial(); };
 $('openBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); if (nearChest) openChest(nearChest); };
 $('bagBtn').onclick = () => toggleBag();
@@ -2838,11 +2862,14 @@ const WEAPON_INFO = {
   wand: { name: 'Wand', label: 'WAND', icon: () => wandArt(curWand(), 32), color: () => SPELLS[cur].color },
   sword: { name: 'Sword', label: 'SWORD', icon: () => swordImg(34), color: () => '#ff9a5c' },
   knife: { name: 'Dagger', label: 'DAGGER', icon: () => knifeImg(34), color: () => '#c77dff' },
+  prism: { name: 'Prism', label: 'LAST PRISM', icon: () => prismImg(34), color: () => '#9fe6ff' },
 };
 const nextWeapon = () => { const o = ownedWeapons(); return o[(o.indexOf(weapon) + 1) % o.length]; };
 function syncWeapon() {
   $('swordBtn').hidden = !swordOn();
   $('knifeBtn').hidden = !knifeOn();
+  $('prismBtn').hidden = !prismOn();
+  const pico = $('prismBtn').querySelector('.kico'); if (!pico.firstChild) pico.innerHTML = prismImg(48);
   const kico = $('knifeBtn').querySelector('.kico'); if (!kico.firstChild) kico.innerHTML = knifeImg(46);
   const b = $('swapBtn'), n = nextWeapon(), I = WEAPON_INFO[n];
   b.hidden = !(S && ownedWeapons().length > 1);
@@ -2852,7 +2879,7 @@ function syncWeapon() {
 }
 function switchWeapon() {
   if (mode !== 'play' || ownedWeapons().length < 2) return;
-  swordCharge = null; swordReady = false; swing = null; swordSfx.charge(false); knifeHold = false;
+  swordCharge = null; swordReady = false; swing = null; swordSfx.charge(false); knifeHold = false; prismStop(false);
   weapon = nextWeapon(); SW.draw = 0; KN.show = 0; KN.wait = 0; syncWeapon(); sfx('click'); retrigger($('swapBtn'), 'ready');
   const I = WEAPON_INFO[weapon];
   texts.push({ x: P.x, y: P.y - 50, text: I.label, life: .8, max: .8, color: I.color(), size: 15, vx: 0, vy: -40 });
@@ -2884,7 +2911,7 @@ function updateCine(dt) {
   const want = cineHeld > .1 ? 1 : 0; // a quick tap doesn't trigger it
   cine += (want - cine) * Math.min(1, dt * (want ? CINE.ease : CINE.ease * 1.6));
   if (cine < .001) cine = 0;
-  if (musicBus && AC) { try { musicBus.gain.setTargetAtTime(1 - .55 * cine, AC.currentTime, .05); } catch (_) {} }
+  if (musicBus && AC) { try { musicBus.gain.setTargetAtTime(1 - .55 * Math.max(cine, PR.zk || 0), AC.currentTime, .05); } catch (_) {} }
 }
 const cineEase = () => cine * cine * (3 - 2 * cine);
 function drawCineBars() {
@@ -3303,6 +3330,196 @@ function drawKnifeAim() {
   ctx.restore();
 }
 
+/* ---------- Last Prism ---------- */
+const PRISM = {
+  fuseTime: 1.8,        // seconds for the six beams to spin in and fuse
+  maxTime: 4.2,         // longest you can fire in one go
+  cooldown: 7,          // recharge after a full blast
+  shortCooldown: 2.5,   // recharge if you let go before the beams fused
+  range: 640,
+  beamDps: 4,           // each of the six thin beams
+  fusedDps: 72,         // the fused laser (pierces everything in the line)
+  tick: .1,             // damage is dealt in small ticks
+  turn: 3.2, turnFused: 1.9, // how fast the beam swings toward your aim (radians/sec); it lags on purpose
+  moveMul: .4,          // you walk slower while firing
+  zoom: .13, lean: 55,  // camera punch-in while firing
+};
+const RAINBOW = ['#ff4d5e', '#ff9a3d', '#ffe45c', '#5dff8f', '#4dc3ff', '#b47dff'];
+const PR = { on: false, t: 0, cd: 0, cdFull: 1, ang: 0, tick: 0, zk: 0, fusedAt: 0, flash: 0, hits: [] };
+function prismReset() { prismStop(false); PR.cd = 0; PR.zk = 0; PR.flash = 0; }
+const prismZoomK = () => { const z = PR.zk || 0; return z * z * (3 - 2 * z); };
+function prismPress() {
+  if (mode !== 'play' || !prismOn() || PR.on) return;
+  if (PR.cd > 0) { sfx('nope'); retrigger($('prismBtn'), 'nope'); return; }
+  PR.on = true; PR.t = 0; PR.tick = 0; PR.fused = false; PR.ang = aimAngleFor(PRISM.range);
+  swordSfx.prismStart();
+}
+function prismRelease() { if (PR.on) prismStop(true); }
+function prismStop(withCooldown) {
+  if (!PR.on) return;
+  const fused = PR.t >= PRISM.fuseTime;
+  PR.on = false;
+  if (withCooldown) { PR.cd = PR.cdFull = fused ? PRISM.cooldown : PRISM.shortCooldown; }
+  swordSfx.prismStop(fused);
+  if (fused) { addShake(3); for (let i = 0; i < 18; i++) { const o = prismOrigin(), a = rand(0, 6.28), sp = rand(60, 220); parts.push({ x: o.x, y: o.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .5, max: .5, size: rand(2, 4), color: pick(RAINBOW), kind: 'star', glow: true }); } }
+}
+// where the prism floats: out in front of the hand, along the beam
+function prismOrigin() {
+  const side = Math.cos(PR.ang) < 0 ? -1 : 1;
+  return { x: P.x + side * 30 + Math.cos(PR.ang) * 12, y: P.y - 2 + Math.sin(PR.ang) * 10, side };
+}
+// angle of each of the six beams: a spinning cone that tightens to nothing as they fuse
+function beamAngles() {
+  const k = Math.min(1, PR.t / PRISM.fuseTime), spread = Math.pow(1 - k, 1.6) * 1.05, spin = PR.t * (5 + k * 9);
+  return RAINBOW.map((c, i) => PR.ang + spread * Math.sin(spin + i * Math.PI / 3));
+}
+function updatePrism(dt) {
+  if (PR.cd > 0) { PR.cd = Math.max(0, PR.cd - dt); if (PR.cd === 0 && prismOn()) { retrigger($('prismBtn'), 'ready'); } }
+  PR.zk += ((PR.on ? 1 : 0) - PR.zk) * Math.min(1, dt * (PR.on ? 5 : 7));
+  PR.flash = Math.max(0, PR.flash - dt * 3);
+  if (!PR.on) return;
+  if (!prismOn() || mode !== 'play') { prismStop(true); return; }
+  PR.t += dt;
+  const fused = PR.t >= PRISM.fuseTime;
+  if (fused && !PR.fused) {
+    PR.fused = true; PR.flash = 1; addShake(8); freeze = Math.max(freeze, .05);
+    swordSfx.prismFuse();
+    const o = prismOrigin();
+    for (let i = 0; i < 26; i++) { const a = rand(0, 6.28), sp = rand(120, 380); parts.push({ x: o.x, y: o.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .45, max: .45, size: rand(2, 4), color: pick(RAINBOW), kind: 'spark', glow: true, fr: .02 }); }
+    zaps.push({ ring: true, x1: o.x, y1: o.y, r: 70, life: .3, max: .3, color: '#ffffff', w: 6 });
+  }
+  // the beam swings toward your aim with a heavy, deliberate lag
+  const want = aimAngleFor(PRISM.range);
+  const turn = (fused ? PRISM.turnFused : PRISM.turn) * dt;
+  PR.ang += Math.max(-turn, Math.min(turn, angDiff(want, PR.ang)));
+  P.face = Math.cos(PR.ang) < 0 ? -1 : 1; // stand sideways, facing the beam
+  swordSfx.prismLevel(Math.min(1, PR.t / PRISM.fuseTime), fused);
+  if (SET.shake && fused) shake = Math.max(shake, 1.6);
+  // damage ticks
+  PR.tick -= dt;
+  if (PR.tick <= 0) {
+    PR.tick += PRISM.tick;
+    const o = prismOrigin(), mult = S.dmg * playerDmgMul() * (1 + (wave - 1) * .12);
+    const beams = fused ? [{ a: PR.ang, w: 16, d: PRISM.fusedDps }] : beamAngles().map(a => ({ a, w: 5, d: PRISM.beamDps }));
+    for (const B of beams) {
+      const ux = Math.cos(B.a), uy = Math.sin(B.a);
+      for (const e of enemies) {
+        if (e.dead) continue;
+        const dx = e.x - o.x, dy = e.y - o.y, along = dx * ux + dy * uy;
+        if (along < 0 || along > PRISM.range + e.r) continue;
+        if (Math.abs(dx * uy - dy * ux) > B.w + e.r) continue;
+        const dmg = B.d * PRISM.tick * mult;
+        hurt(e, dmg, '#ffffff', false, true);
+        if (!e.dead) e.flash = (e.prismFl = ((e.prismFl || 0) + 1) % 3) === 0 ? .05 : 0;
+        e.prismAcc = (e.prismAcc || 0) + dmg;
+        if (Math.random() < (fused ? .8 : .3)) parts.push({ x: e.x + rand(-e.r, e.r) * .6, y: e.y + rand(-e.r, e.r) * .6, vx: rand(-90, 90) + ux * 80, vy: rand(-120, 20) + uy * 80, life: .3, max: .3, size: rand(2, 4), color: pick(RAINBOW), kind: 'star', glow: true });
+        if (fused && !e.T.boss) { e.kx += ux * 22; e.ky += uy * 22; }
+      }
+    }
+    // combine the little ticks into one readable number per monster
+    if (SET.numbers) for (const e of enemies) if (e.prismAcc && (e.prismNumT = (e.prismNumT || 0) - PRISM.tick) <= 0) {
+      e.prismNumT = .35;
+      texts.push({ x: e.x + rand(-8, 8), y: e.y - e.r - 6, text: Math.max(1, Math.round(e.prismAcc)), life: .6, max: .6, color: pick(RAINBOW), size: fused ? 16 : 12, vx: rand(-20, 20), vy: -80 });
+      e.prismAcc = 0;
+    }
+  }
+  if (PR.t >= PRISM.maxTime) prismStop(true);
+}
+
+/* ---------- prism drawing ---------- */
+// A triangular crystal: pale glass faces, a bright edge and a slowly turning rainbow sheen
+function paintPrism(g, t, glowAmt) {
+  const R = 15;
+  const pts = [0, 1, 2].map(i => { const a = -Math.PI / 2 + i * Math.PI * 2 / 3; return [Math.cos(a) * R, Math.sin(a) * R]; });
+  g.fillStyle = '#16183a'; g.beginPath(); pts.forEach(([x, y], i) => { const ox = x * 1.22, oy = y * 1.22; i ? g.lineTo(ox, oy) : g.moveTo(ox, oy); }); g.closePath(); g.fill();
+  // three faces, each catching a different colour
+  for (let i = 0; i < 3; i++) {
+    const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % 3];
+    const c = RAINBOW[Math.floor(t * 3 + i * 2) % 6];
+    g.fillStyle = i === 0 ? '#d9f6ff' : i === 1 ? '#7fc4ff' : '#6a6dff';
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(x1, y1); g.lineTo(x2, y2); g.closePath(); g.fill();
+    g.globalAlpha = .55; g.fillStyle = c; g.fill(); g.globalAlpha = 1;
+  }
+  g.strokeStyle = '#ffffff'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); g.lineTo(0, 0); g.lineTo(pts[1][0], pts[1][1]); g.moveTo(0, 0); g.lineTo(pts[2][0], pts[2][1]); g.stroke();
+  g.fillStyle = '#ffffff'; g.globalAlpha = .6 + glowAmt * .4; g.beginPath(); g.arc(0, 0, 2.5 + glowAmt * 2.5, 0, 6.28); g.fill(); g.globalAlpha = 1;
+  g.fillStyle = '#ffffff'; g.fillRect(pts[0][0] - 1, pts[0][1] + 3, 2, 4);
+}
+let prismIconURL = null;
+function prismImg(size = 40) {
+  if (!prismIconURL) {
+    const c = document.createElement('canvas'); c.width = c.height = 96;
+    const g = c.getContext('2d');
+    // a little rainbow fan behind the crystal
+    RAINBOW.forEach((col, i) => { g.strokeStyle = col; g.globalAlpha = .7; g.lineWidth = 5; g.beginPath(); const a = -.55 + i * .22; g.moveTo(48, 50); g.lineTo(48 + Math.cos(a) * 60, 50 + Math.sin(a) * 60); g.stroke(); });
+    g.globalAlpha = 1;
+    const fl = g.createRadialGradient(44, 50, 2, 44, 50, 30); fl.addColorStop(0, 'rgba(255,255,255,.7)'); fl.addColorStop(1, 'rgba(160,220,255,0)'); g.fillStyle = fl; g.fillRect(0, 0, 96, 96);
+    g.translate(42, 52); g.scale(2.4, 2.4); paintPrism(g, .2, 1);
+    prismIconURL = c.toDataURL();
+  }
+  return `<img src="${prismIconURL}" alt="" style="width:${size}px;height:${size}px;display:block">`;
+}
+function drawPrismHeld(bob) {
+  if (!prismOn() || mode === 'dead') return;
+  const firing = PR.on;
+  // idle: the prism hovers over the open hand; firing: it floats out in front, along the beam
+  let x, y;
+  if (firing) { const o = prismOrigin(); x = o.x; y = o.y - bob; }
+  else { x = P.x + SW.side * 31; y = P.y - 4 - bob + Math.sin(T * 3) * 2.5; }
+  const k = firing ? Math.min(1, PR.t / PRISM.fuseTime) : 0;
+  glow(x, y, 26 + k * 30 + PR.flash * 40, firing ? '#dff6ff' : '#9fe6ff', .35 + k * .4 + PR.flash * .4);
+  ctx.save(); ctx.translate(x, y);
+  ctx.rotate(firing ? PR.ang + Math.PI / 2 : Math.sin(T * 1.5) * .15);
+  const pulse = (firing ? 1 : .85) + (firing ? Math.sin(T * 30) * .04 * k : 0);
+  ctx.scale(pulse, pulse);
+  paintPrism(ctx, T * (firing ? 4 : 1), k);
+  ctx.restore();
+  if (!firing && Math.random() < .15) parts.push({ x: x + rand(-10, 10), y: y + rand(-10, 10), vx: rand(-10, 10), vy: rand(-30, -10), life: .5, max: .5, size: rand(1.5, 3), color: pick(RAINBOW), kind: 'star', glow: true });
+}
+function drawPrismBeams() {
+  if (!PR.on || !prismOn()) return;
+  const o = prismOrigin(), k = Math.min(1, PR.t / PRISM.fuseTime), grow = Math.min(1, PR.t / .25);
+  const L = PRISM.range * grow;
+  ctx.save(); ctx.lineCap = 'round';
+  ctx.globalCompositeOperation = 'screen';
+  if (!PR.fused) {
+    // six coloured beams spiralling inward
+    beamAngles().forEach((a, i) => {
+      const ex = o.x + Math.cos(a) * L, ey = o.y + Math.sin(a) * L, col = RAINBOW[i];
+      ctx.strokeStyle = col; ctx.globalAlpha = .35; ctx.lineWidth = 10 + k * 6; ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.globalAlpha = .95; ctx.lineWidth = 3 + k * 2; ctx.stroke();
+      ctx.strokeStyle = '#ffffff'; ctx.globalAlpha = .6; ctx.lineWidth = 1.2; ctx.stroke();
+      if (Math.random() < .5) parts.push({ x: o.x + Math.cos(a) * rand(30, L), y: o.y + Math.sin(a) * rand(30, L), vx: rand(-20, 20), vy: rand(-30, 10), life: .25, max: .25, size: rand(1.5, 3), color: col, kind: 'dot', glow: true });
+    });
+  } else {
+    // the fused laser: a white-hot core wrapped in shifting rainbow bands
+    const a = PR.ang, ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux;
+    const ex = o.x + ux * L, ey = o.y + uy * L, w = 13 + Math.sin(T * 40) * 1.5 + PR.flash * 10;
+    ctx.globalAlpha = .35; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = w * 2.6; ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = '#1a1030'; ctx.globalAlpha = .35; ctx.lineWidth = w * 2.15; ctx.stroke();
+    // six colour bands side by side, slowly cycling and widening toward the end
+    for (let i = 0; i < 6; i++) {
+      const off = (i - 2.5) * w * .3, col = RAINBOW[(i + Math.floor(T * 10)) % 6], wob = Math.sin(T * 14 + i * 1.3) * 1.2;
+      ctx.strokeStyle = col; ctx.globalAlpha = .95; ctx.lineWidth = w * .34;
+      ctx.beginPath(); ctx.moveTo(o.x + nx * off * .5, o.y + ny * off * .5); ctx.lineTo(ex + nx * (off * 1.25 + wob), ey + ny * (off * 1.25 + wob)); ctx.stroke();
+    }
+    ctx.strokeStyle = '#ffffff'; ctx.globalAlpha = .95; ctx.lineWidth = w * .42; ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.globalCompositeOperation = 'screen';
+    // energy ripples running down the beam
+    for (let i = 0; i < 6; i++) {
+      const d = ((T * 900 + i * L / 6) % L), px = o.x + ux * d, py = o.y + uy * d, rr = w * (1.1 + Math.sin(T * 20 + i) * .2);
+      ctx.globalAlpha = .5; ctx.fillStyle = RAINBOW[i]; ctx.beginPath(); ctx.ellipse(px, py, rr * .5, rr, a, 0, 6.28); ctx.fill();
+    }
+    // flare where the beam ends
+    ctx.globalAlpha = .85; glow(ex, ey, 60, '#ffffff', .6);
+    spikyStar(ctx, ex, ey, 34 + Math.sin(T * 30) * 5, 9, 8, T * 3); ctx.fillStyle = '#ffffff'; ctx.fill();
+    if (Math.random() < .9) parts.push({ x: ex + rand(-10, 10), y: ey + rand(-10, 10), vx: rand(-160, 160), vy: rand(-160, 160), life: .3, max: .3, size: rand(2, 4), color: pick(RAINBOW), kind: 'spark', glow: true });
+  }
+  // bright bloom on the prism itself
+  ctx.globalAlpha = 1; glow(o.x, o.y, 34 + k * 26, '#ffffff', .5 + k * .4);
+  ctx.restore();
+}
+
 /* ---------- impact frame ---------- */
 // Timeline of one big sword hit (real time, so it keeps playing while the game is frozen):
 //   0 - neg      inverted black-and-white "impact frame", radial speed lines, starburst, slash streak
@@ -3325,7 +3542,7 @@ function impactZoom() {
   if (t < IMP.hold) return IMP.zoom;                    // hold while frozen
   return IMP.zoom * Math.exp(-(t - IMP.hold) * 13);     // ease out
 }
-function w2s(x, y) { const z = ZOOM * (1 + impactZoom() + CINE.zoom * cineEase()); return { x: VW / 2 + kick.x + (x - cam.x) * z, y: VH / 2 + kick.y + (y - cam.y) * z }; }
+function w2s(x, y) { const z = ZOOM * (1 + impactZoom() + CINE.zoom * cineEase() + PRISM.zoom * prismZoomK()); return { x: VW / 2 + kick.x + (x - cam.x) * z, y: VH / 2 + kick.y + (y - cam.y) * z }; }
 function tickImpact(dt) {
   if (IMP) { IMP.t += dt; if (IMP.t > IMP.life) IMP = null; }
   for (const c of cuts) c.t += dt;
@@ -3525,6 +3742,50 @@ const swordSfx = (() => {
         osc('sine', 145 * p, 42, .24, 0.544);
         nz(.13, 0.224, 'bandpass', 320, 950, 5, { delay: .05, sweep: .1 });           // squish
       }
+    },
+    // Last Prism: a shimmering chord that rises while the beams converge, then a roaring laser
+    prismStart() {
+      if (!ok()) return; if (S_.pr) S_.prismStop(false, true);
+      const t = AC.currentTime, out = AC.createGain(), f = AC.createBiquadFilter();
+      out.gain.setValueAtTime(.0001, t); out.gain.linearRampToValueAtTime(.018, t + .15);
+      f.type = 'lowpass'; f.frequency.setValueAtTime(700, t); f.Q.value = 4; f.connect(out); out.connect(B());
+      const rs = AC.createGain(); rs.gain.value = .35; out.connect(rs); rs.connect(rv());
+      const vs = [220, 277.2, 329.6, 440, 554.4].map((fr, i) => { const o = AC.createOscillator(); o.type = i % 2 ? 'triangle' : 'sine'; o.frequency.value = fr; o.detune.value = rand(-8, 8); o.connect(f); o.start(t); return o; });
+      const nsrc = AC.createBufferSource(); nsrc.buffer = noiseBuf; nsrc.loop = true; const nf = AC.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 5000; nf.Q.value = 2; const ng = AC.createGain(); ng.gain.value = .25; nsrc.connect(nf); nf.connect(ng); ng.connect(f); nsrc.start(t);
+      osc('sine', 1800, 3600, .25, .03, { send: .5 });
+      S_.pr = { out, f, vs, nsrc, ng, roar: null, base: [220, 277.2, 329.6, 440, 554.4] };
+    },
+    prismLevel(k, fused) {
+      const P_ = S_.pr; if (!P_ || !AC) return; const t = AC.currentTime;
+      // the chord climbs and the filter opens as the beams converge
+      P_.vs.forEach((o, i) => o.frequency.setTargetAtTime(P_.base[i] * (1 + k * .5), t, .05));
+      P_.f.frequency.setTargetAtTime(700 + k * 3500 + (fused ? 2000 : 0), t, .05);
+      P_.out.gain.setTargetAtTime(fused ? .022 : .014 + k * .012, t, .05);
+      if (fused && !P_.roar) {
+        // the fused laser: detuned saws through a wobbling filter plus a low hum
+        const g = AC.createGain(), lf = AC.createBiquadFilter(), lfo = AC.createOscillator(), lg = AC.createGain();
+        g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.032, t + .08);
+        lf.type = 'lowpass'; lf.frequency.value = 1400; lf.Q.value = 3; lf.connect(g); g.connect(B());
+        lfo.frequency.value = 13; lg.gain.value = 500; lfo.connect(lg); lg.connect(lf.frequency); lfo.start(t);
+        const saws = [110, 110.7, 165, 220.4].map(fr => { const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = fr; o.connect(lf); o.start(t); return o; });
+        const sub = AC.createOscillator(); sub.type = 'sine'; sub.frequency.value = 55; const sg = AC.createGain(); sg.gain.value = .6; sub.connect(sg); sg.connect(g); sub.start(t);
+        P_.roar = { g, saws, sub, lfo };
+      }
+    },
+    prismFuse() {
+      if (!ok()) return;
+      nz(.05, .4, 'highpass', 2600, 0, .8);
+      osc('sine', 140, 40, .45, .45, { glide: .35 });
+      nz(.6, .22, 'bandpass', 600, 4000, 1.2, { attack: .01, send: .6, sweep: .3 });
+      [1320, 1980, 2640].forEach((fr, i) => osc('sine', fr, fr, .9, .02, { delay: i * .02, send: .8 }));
+    },
+    prismStop(fused, quick) {
+      const P_ = S_.pr; if (!P_ || !AC) { S_.pr = null; return; } S_.pr = null;
+      const t = AC.currentTime, rel = quick ? .03 : .18;
+      P_.out.gain.cancelScheduledValues(t); P_.out.gain.setValueAtTime(P_.out.gain.value, t); P_.out.gain.exponentialRampToValueAtTime(.0001, t + rel);
+      P_.vs.forEach(o => { o.frequency.setTargetAtTime(o.frequency.value * .5, t, .08); o.stop(t + rel + .05); }); P_.nsrc.stop(t + rel + .05);
+      if (P_.roar) { const r = P_.roar; r.g.gain.cancelScheduledValues(t); r.g.gain.setValueAtTime(r.g.gain.value, t); r.g.gain.exponentialRampToValueAtTime(.0001, t + rel + .1); r.saws.forEach(o => { o.frequency.setTargetAtTime(40, t, .1); o.stop(t + rel + .15); }); r.sub.stop(t + rel + .15); r.lfo.stop(t + rel + .15); }
+      if (!quick && ok()) { osc('sine', fused ? 900 : 600, 120, .35, .05, { send: .5 }); if (fused) nz(.4, .1, 'lowpass', 2000, 200, .7, { send: .4 }); }
     },
     knifeRicochet(n) {
       if (!ok()) return; const p = vary() * (1 + n * .08);
@@ -3726,12 +3987,13 @@ function update(dt) {
   const ml = Math.hypot(mx, my); if (ml > 1) { mx /= ml; my /= ml; }
   P.webT = Math.max(0, (P.webT || 0) - dt);
   const webMul = P.webT > 0 ? .5 : 1;
-  const cineMul = 1 - CINE.slow * cineEase();
+  const cineMul = (1 - CINE.slow * cineEase()) * (PR.on ? PRISM.moveMul : 1);
   P.x += mx * 150 * S.move * playerSpeedMul() * webMul * cineMul * dt; P.y += my * 150 * S.move * playerSpeedMul() * webMul * cineMul * dt;
   P.moving = ml > .05; if (P.moving) { P.walk += dt; P.mdx = mx / ml; P.mdy = my / ml; }
   updateAbilities(dt);
   updateSword(dt);
   updateKnife(dt);
+  updatePrism(dt);
   updateCycle(dt);
   updateWorld(dt);
   updateTips(dt);
@@ -3749,7 +4011,7 @@ function update(dt) {
   if (aimJoy) { manual = true; const dx = aimJoy.x - aimJoy.ox, dy = aimJoy.y - aimJoy.oy; if (Math.hypot(dx, dy) > 8) aim = Math.atan2(dy, dx); }
   mouseT -= dt;
   if (!manual && mouseAim && mouseT > 0) { const px = VW / 2 + (P.x - cam.x) * ZOOM, py = VH / 2 + (P.y - cam.y) * ZOOM; aim = Math.atan2(mouseAim.y - py, mouseAim.x - px); manual = true; }
-  if (swordDrag && swordDrag.on && (swordOn() || knifeOn())) { manual = true; aim = swordDrag.a; }
+  if (swordDrag && swordDrag.on && (swordOn() || knifeOn() || prismOn())) { manual = true; aim = swordDrag.a; }
   P.manual = manual;
   const target = nearest(P.x, P.y, 440);
   if (manual) P.face = Math.cos(aim) < 0 ? -1 : 1;
@@ -3761,6 +4023,7 @@ function update(dt) {
   } else if (P.moving) {
     aim = Math.atan2(my, mx); if (Math.abs(mx) > .1) P.face = Math.sign(mx);
   }
+  if (PR.on) P.face = Math.cos(PR.ang) < 0 ? -1 : 1; // sideways toward the beam while firing
   castT = Math.max(0, castT - dt); P.castFx = Math.max(0, (P.castFx || 0) - dt);
   if (weapon === 'wand' && castT <= 0 && (manual || (target && SET.autoAim))) { cast(target); castT = SPELLS[cur].cd / S.rate; }
 
@@ -4001,7 +4264,7 @@ function updateFx(dt) {
   shake = Math.max(0, shake - dt * 40); flash = Math.max(0, flash - dt); flashW = Math.max(0, flashW - dt);
   const kd = Math.pow(.0005, dt); kick.x *= kd; kick.y *= kd;
   dark = nightAmt * .7;
-  const lean = CINE.lean * cineEase(), la = swordOn() ? swordAimAngle() : 0;
+  const lean = CINE.lean * cineEase() + PRISM.lean * prismZoomK(), la = PR.on || PR.zk > .01 ? PR.ang : swordOn() ? swordAimAngle() : 0;
   const tx = P.x + Math.cos(la) * lean, ty = P.y + Math.sin(la) * lean;
   cam.x += (tx - cam.x) * Math.min(1, dt * 8); cam.y += (ty - cam.y) * Math.min(1, dt * 8);
 }
@@ -4140,6 +4403,7 @@ function drawPlayer() {
   }
   drawSword(bob);
   drawKnifeHeld(bob);
+  drawPrismHeld(bob);
   if (P.warm) glow(P.x, P.y + 10, 46, '#ff9a3d', .35 + Math.sin(T * 6) * .08);
   if (weapon !== 'wand') return;
   const tip = wandTip(), sp = SPELLS[cur];
@@ -4223,7 +4487,7 @@ function render() {
   ctx.imageSmoothingEnabled = false;
   const sx = shake ? rand(-shake, shake) : 0, sy = shake ? rand(-shake, shake) : 0;
   tickImpact(rawDt); updateCine(rawDt);
-  const zp = ZOOM * (1 + impactZoom() + CINE.zoom * cineEase());
+  const zp = ZOOM * (1 + impactZoom() + CINE.zoom * cineEase() + PRISM.zoom * prismZoomK());
   ctx.translate(VW / 2 + sx + kick.x, VH / 2 + sy + kick.y); ctx.scale(zp, zp); ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
   const hw = VW / 2 / ZOOM + 30, hh = VH / 2 / ZOOM + 30;
   drawGround(cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh);
@@ -4286,6 +4550,7 @@ function render() {
   drawParts(true);
   drawCuts();
   drawKnives();
+  drawPrismBeams();
   drawDrops();
   drawSplats();
   for (const z of zaps) {
@@ -4397,6 +4662,13 @@ function hud() {
     b.classList.toggle('ready', swordReady);
   }
   if (knifeOn() && mode === 'play') $('knifeBtn').style.setProperty('--p', Math.min(1, knifeT / KNIFE.cooldown));
+  if (prismOn() && mode === 'play') {
+    const b = $('prismBtn');
+    b.style.setProperty('--p', PR.cd > 0 ? Math.min(1, PR.cd / PR.cdFull) : 0);
+    b.style.setProperty('--q', PR.on ? Math.min(1, PR.t / PRISM.fuseTime) : 0);
+    const t = PR.cd > 0 ? Math.ceil(PR.cd) + '' : '', c = b.querySelector('.cdt'); if (c.textContent !== t) c.textContent = t;
+    b.classList.toggle('ready', PR.on && PR.t >= PRISM.fuseTime);
+  }
   if (mode !== 'menu' && mode !== 'loading') {
     const c = cycleInfo(), txt = (c.night ? 'Day in ' : 'Night in ') + fmtClock(c.left);
     const cls = c.night ? 'night' : (c.left <= DAYNIGHT.arrowWarning ? 'soon' : '');

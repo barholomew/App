@@ -2442,7 +2442,7 @@ function die() {
     $('deadGems').textContent = runGems ? `+${runGems} gems earned` : 'Beat a boss to earn gems';
     $('deadGold').textContent = `+${goldWon} gold for the Shop`;
     $('deadBest').hidden = !isBest;
-    $('deadBestLine').textContent = realmOn() ? 'Level up, grab better weapons and try again!' : isBest ? '' : `Your best is wave ${best}. You can beat it!`;
+    $('deadBestLine').textContent = realmOn() ? 'Grab better weapons in the Shop and try again!' : isBest ? '' : `Your best is wave ${best}. You can beat it!`;
     $('deadBestLine').hidden = isBest;
     $('dead').hidden = false;
     if (isBest) confetti(60);
@@ -2829,7 +2829,7 @@ function openChest(ch) {
     texts.push({ x: ch.x, y: ch.y - 60, text: SPECIALS[k].name.toUpperCase() + '!', life: 1.4, max: 1.4, color: SPECIALS[k].c, size: 18, vx: 0, vy: -40 });
   };
   if (Math.random() < roll.spChance) giveSpecial();
-  if (ch.rarity === 'epic') { giveSpecial(); pendingLv++; lines.push('a free level up'); }
+  if (ch.rarity === 'epic') giveSpecial();
   banner(`${R.name} chest!`, lines.join(' · '), ch.rarity === 'epic' ? 'magic' : ch.rarity === 'rare' ? '' : 'good');
   retrigger($('bagBtn'), 'bump'); $('bagBadge').hidden = false;
 }
@@ -5122,7 +5122,9 @@ function update(dt) {
     }
   }
   gems = gems.filter(g => !g.got);
-  while (xp >= xpNeed) { xp -= xpNeed; level++; pendingLv++; xpNeed = xpForLevel(level); }
+  let lvUp = false;
+  while (xp >= xpNeed) { xp -= xpNeed; level++; xpNeed = xpForLevel(level); lvUp = true; }
+  if (lvUp) levelBurst();
 
   for (const it of items) {
     it.t += dt;
@@ -5142,7 +5144,6 @@ function update(dt) {
   items = items.filter(i => !i.got);
 
   updateFx(dt);
-  if (pendingLv > 0 && lvlFx <= 0) { lvlFx = .55; levelBurst(); }
 }
 function updateFx(dt) {
   for (const p of parts) {

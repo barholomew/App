@@ -901,20 +901,6 @@ window.addEventListener('unhandledrejection', function (e) { try { e.preventDefa
 (() => {
 "use strict";
 const WIZ = new Image(); WIZ.src = "__WIZARD__";
-const HAT_ART = `
-..........oo..
-.........obho.
-........obbo..
-.......obhbo..
-.......obbbo..
-......obhbbbo.
-......obbybbo.
-.....obbyyybo.
-.....obhbybbbo
-....oddddddddo
-obbhhbbbbbbbbo
-.oooooooooooo.`;
-const HAT_POS = { x: 10, y: -24 }; // where the hat sits on the 82x80 wizard image (image pixels)
 const WIZ_FIST = new Image(); WIZ_FIST.src = "__WIZARD_FIST__"; // same wizard without the staff, so he can grip the sword
 const GRASS = new Image(); GRASS.src = "__GRASS__";
 
@@ -1545,7 +1531,7 @@ $('setBtn').onclick = () => go('settings');
 $('guideBtn').onclick = () => go('guide');
 $('recBtn').onclick = () => go('records');
 function renderTitle() {
-  $('heroWiz').src = heroWizURL();
+  $('heroWiz').src = WIZ.src;
   buildLogo($('logo'));
   $('titleGems').textContent = META.gems; $('titleGold').textContent = META.gold || 0;
   $('titleBest').hidden = !META.realm;
@@ -1921,7 +1907,7 @@ function renderRecords() {
 /* loading screen */
 function boot() {
   mode = 'loading'; showScreen('loading');
-  $('loadWiz').src = heroWizURL(); buildLogo($('loadLogo'));
+  $('loadWiz').src = WIZ.src; buildLogo($('loadLogo'));
   const tips = [
     'Tip: drag on the left side to move, and on the right side to aim',
     'Tip: on a computer, move with WASD and aim with the mouse',
@@ -2394,7 +2380,7 @@ function damagePlayer(d) {
     return;
   }
   const taken = Math.max(Math.ceil(d * .3), Math.round(d - S.armor));
-  P.hp -= taken; P.inv = .75; P.hurtT = .22; addShake(10); flash = .35; freeze = Math.max(freeze, .08);
+  P.hp -= taken; P.inv = .75; addShake(10); flash = .35; freeze = Math.max(freeze, .08);
   combo = 0;
   texts.push({ x: P.x, y: P.y - 30, text: '-' + taken, life: 1, max: 1, color: '#ff5d73', size: 22, vx: 0, vy: -60 });
   retrigger($('hpMeter'), 'hurt');
@@ -4883,8 +4869,6 @@ function update(dt) {
   const cineMul = (1 - CINE.slow * cineEase()) * (PR.on ? PRISM.moveMul : 1) * (GT.grab ? 0 : 1);
   P.x += mx * 150 * S.move * playerSpeedMul() * webMul * cineMul * dt; P.y += my * 150 * S.move * playerSpeedMul() * webMul * cineMul * dt;
   P.moving = ml > .05; if (P.moving) { P.walk += dt; P.mdx = mx / ml; P.mdy = my / ml; }
-  P.hurtT = Math.max(0, (P.hurtT || 0) - dt);
-  if (P.moving) { P.stepT = (P.stepT || 0) - dt; if (P.stepT <= 0) { P.stepT = .21; for (let i = 0; i < 2; i++) parts.push({ x: P.x + rand(-8, 8) - (P.mdx || 0) * 6, y: P.y + 26, vx: -(P.mdx || 0) * rand(20, 50) + rand(-10, 10), vy: rand(-18, -6), life: .35, max: .35, size: rand(4, 6), color: '#d9cfae', kind: 'smoke' }); } }
   updateAbilities(dt);
   updateSword(dt);
   updateKnife(dt);
@@ -5312,19 +5296,6 @@ function drawEnemy(e) {
     ctx.fillStyle = '#ff5d73'; ctx.fillRect(e.x - bw / 2, by, bw * Math.max(0, e.hp / e.maxHp), 3);
   }
 }
-const HAT_IMG = sprite(HAT_ART, { o: '#1b1433', b: '#3b3a9e', h: '#6260d6', d: '#ffcf3f', y: '#fff1a8' }, false);
-const HAT_RED = tint(HAT_IMG, '#ff4d5e');
-const wizRedCache = new Map();
-function wizRed(img) { let c = wizRedCache.get(img); if (!c) { c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight; const g = c.getContext('2d'); g.drawImage(img, 0, 0); g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(255,60,80,.7)'; g.fillRect(0, 0, c.width, c.height); wizRedCache.set(img, c); } return c; }
-// the title screen wizard wears the hat too
-let heroURL = null;
-function heroWizURL() {
-  if (heroURL) return heroURL;
-  if (!WIZ.complete || !WIZ.naturalWidth) return WIZ.src;
-  const c = document.createElement('canvas'); c.width = 82; c.height = 80 + 26; const g = c.getContext('2d');
-  g.imageSmoothingEnabled = false; g.drawImage(WIZ, 0, 26); g.drawImage(HAT_IMG, HAT_POS.x, 26 + HAT_POS.y, 56, 48);
-  return heroURL = c.toDataURL();
-}
 function drawPlayer() {
   if (mode === 'dead') return;
   const s = .74, w = 82 * s, h = 80 * s;
@@ -5332,22 +5303,11 @@ function drawPlayer() {
   const squash = P.moving ? 1 + Math.sin(P.walk * 22) * .03 : 1;
   shadow(P.x, P.y + h / 2 - 6, 18);
   const blink = P.inv > 0 && Math.floor(P.inv * 16) % 2 === 0;
-  // lean into the direction he's running
-  P.lean = (P.lean || 0) + ((P.moving ? (P.mdx || 0) * .09 : 0) - (P.lean || 0)) * Math.min(1, (drawDt || .016) * 10);
   ctx.save(); if (blink) ctx.globalAlpha = .45;
-  ctx.translate(P.x, P.y + h / 2 - bob); ctx.rotate(P.lean); ctx.scale(P.face / squash, squash);
+  ctx.translate(P.x, P.y + h / 2 - bob); ctx.scale(P.face / squash, squash);
   const img = weapon !== 'wand' && WIZ_FIST.complete && WIZ_FIST.naturalWidth ? WIZ_FIST : WIZ;
-  const hurt = (P.hurtT || 0) > 0;
-  if (img.complete && img.naturalWidth) { try { ctx.drawImage(hurt ? wizRed(img) : img, -w / 2, -h, w, h); } catch (e) {} }
-  // the hat: sits on the hood, wobbles with each step and trails behind when he runs
-  const hs = s * 4, hx = -w / 2 + HAT_POS.x * s, hy = -h + HAT_POS.y * s, hw = 14 * hs, hh = 12 * hs;
-  const px = hx + hw * .5, py = hy + hh * .85;
-  const wob = Math.sin(T * 2.2) * .03 + (P.moving ? Math.sin(P.walk * 11) * .05 : 0) - Math.abs(P.lean) * 1.4;
-  ctx.translate(px, py); ctx.rotate(wob); ctx.translate(-px, -py);
-  ctx.drawImage(hurt ? HAT_RED : HAT_IMG, hx, hy, hw, hh);
+  if (img.complete && img.naturalWidth) { try { ctx.drawImage(img, -w / 2, -h, w, h); } catch (e) {} }
   ctx.restore();
-  // a twinkle off the hat's star now and then
-  if (Math.random() < .03) parts.push({ x: P.x + P.face * (-w / 2 + (HAT_POS.x + 37) * s), y: P.y + h / 2 - bob - h + (HAT_POS.y + 28) * s, vx: rand(-10, 10), vy: rand(-30, -10), life: .5, max: .5, size: rand(2, 3.5), color: '#fff1a8', kind: 'star', glow: true });
   if (S.shield > 0) {
     ctx.save();
     glow(P.x, P.y, 46, '#9fe6ff', .25);

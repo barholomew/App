@@ -575,6 +575,15 @@ body.menu-mode #hint,
 .swordbtn.ready { box-shadow: 0 5px 0 var(--ink), 0 0 22px #ffcf3f, 0 0 40px #ff5d3b; }
 .swordbtn .cdt { font-size: 20px; }
 .swordbtn svg { width: 38px; height: 38px; }
+.gauntbtn { background: radial-gradient(circle at 35% 30%, #ff5d7a, #7a0f2e 72%); }
+.gauntbtn .kico, .grabbtn .kico { position: relative; z-index: 1; display: grid; place-items: center; }
+.gauntbtn .kico img { width: 50px; height: 50px; }
+.gauntbtn.hit .kico { animation: kflick .2s cubic-bezier(.2, 1.6, .4, 1); }
+.grabbtn { position: fixed; z-index: 2; right: calc(max(20px, env(safe-area-inset-right, 0px)) + 94px); bottom: calc(env(safe-area-inset-bottom, 0px) + 146px); width: 62px; height: 62px; background: radial-gradient(circle at 35% 30%, #c43a8f, #3a0a2a 72%); }
+.grabbtn .kico img { width: 40px; height: 40px; }
+.grabbtn .cdt { font-size: 18px; }
+.grabbtn.ready { box-shadow: 0 5px 0 var(--ink), 0 0 18px #ff4df0; }
+body.menu-mode .gauntbtn, body.menu-mode .grabbtn { visibility: hidden; }
 .prismbtn { --c: #3b4a8a; background: radial-gradient(circle at 35% 30%, #6f86d9, #283266 70%); }
 .prismbtn .kico { position: relative; z-index: 1; display: grid; place-items: center; }
 .prismbtn .kico img { width: 50px; height: 50px; }
@@ -634,6 +643,8 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
 
 <div class="spellbar" id="spellbar"></div>
 <button class="abtn swapbtn" id="swapBtn" hidden aria-label="Switch weapon"><span class="swapico"></span><small>Wand</small></button>
+<button class="abtn swordbtn gauntbtn" id="gauntBtn" hidden aria-label="Rebound punch"><span class="kico"></span><i class="cdm"></i><span class="cdt"></span><small>Rebound</small></button>
+<button class="abtn grabbtn" id="grabBtn" hidden aria-label="Chaos grab"><span class="kico"></span><i class="cdm"></i><span class="cdt"></span><small>Grab</small></button>
 <button class="abtn swordbtn prismbtn" id="prismBtn" hidden aria-label="Fire the Last Prism"><span class="kico"></span><i class="cdm"></i><i class="chg"></i><span class="cdt"></span><small>Hold to fire</small></button>
 <button class="abtn swordbtn knifebtn" id="knifeBtn" hidden aria-label="Throw the Hexfire Dagger"><span class="kico"></span><i class="cdm"></i><span class="cdt"></span><small>Throw</small></button>
 <button class="abtn swordbtn" id="swordBtn" hidden aria-label="Slash with the Giant Sword"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg><i class="cdm"></i><i class="chg"></i><span class="cdt"></span><small>Tap or hold</small></button>
@@ -1161,7 +1172,8 @@ let xpEarned = 0, xpSpent = 0, swordT = 0, swing = null, weapon = 'wand';
 const swordOn = () => !!(S && S.sword && weapon === 'sword');
 const knifeOn = () => !!(S && S.knife && weapon === 'knife');
 const prismOn = () => !!(S && S.prism && weapon === 'prism');
-const ownedWeapons = () => ['wand', ...(S && S.sword ? ['sword'] : []), ...(S && S.knife ? ['knife'] : []), ...(S && S.prism ? ['prism'] : [])];
+const gauntOn = () => !!(S && S.gaunt && weapon === 'gaunt');
+const ownedWeapons = () => ['wand', ...(S && S.sword ? ['sword'] : []), ...(S && S.knife ? ['knife'] : []), ...(S && S.prism ? ['prism'] : []), ...(S && S.gaunt ? ['gaunt'] : [])];
 let runSeed = 1, structures = [], chunkSet = new Set(), res = {}, spec = {}, held = null, bombs = [], laserT = 0, laserTick = 0, nearChest = null, chestsRun = 0;
 let abCd = {}, frozenT = 0, meteors = [], strikes = [], dark = 0, bossKills = 0, runGems = 0, combo = 0, comboT = 0, bestCombo = 0, gemChain = 0, gemChainT = 0, freeze = 0, lvlFx = 0;
 let best = 0;
@@ -1245,13 +1257,17 @@ const WEAPONS = [
   // Last Prism is free for testing; give it a price later
   { id: 'prism', name: 'Last Prism', price: 0, c: '#9fe6ff', desc: 'A floating crystal that splits light. Hold Fire: six rainbow beams spin out, close in and fuse into one enormous laser. Needs time to recharge.',
     facts: ['Hold: rainbow beams fuse into one laser', 'Pierces every monster in the line', `Recharges for a few seconds after use`] },
+  // Chaos Gauntlets are free for testing; give them a price later
+  { id: 'gaunt', name: 'Chaos Gauntlets', price: 0, c: '#ff2d55', desc: 'Two iron gauntlets crackling with chaos. Rebound punches the space in front of you, knocking monsters back and sending their bullets flying back at them. Grab dashes to a monster, seizes it and launches it with a devastating punch.',
+    facts: ['Rebound: close punch that reflects bullets', 'Grab: dash, seize and launch a monster', 'Grab recharges in 5 seconds'] },
 ];
-const weaponIcon = w => w.id === 'sword' ? `<span class="tile" style="--c:#3b1a22">${swordImg(40)}</span>` : w.id === 'knife' ? `<span class="tile" style="--c:#2a1240">${knifeImg(40)}</span>` : w.id === 'prism' ? `<span class="tile" style="--c:#1b2140">${prismImg(40)}</span>` : `<span class="abico" style="--c:${w.c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg></span>`;
+const weaponIcon = w => w.id === 'sword' ? `<span class="tile" style="--c:#3b1a22">${swordImg(40)}</span>` : w.id === 'knife' ? `<span class="tile" style="--c:#2a1240">${knifeImg(40)}</span>` : w.id === 'prism' ? `<span class="tile" style="--c:#1b2140">${prismImg(40)}</span>` : w.id === 'gaunt' ? `<span class="tile" style="--c:#2a0a16">${gauntImg(40)}</span>` : `<span class="abico" style="--c:${w.c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg></span>`;
 if (!Array.isArray(META.weapons)) META.weapons = [];
 function applyLoadout() {
   if (META.weapons.includes('sword')) S.sword = true;
   if (META.weapons.includes('knife')) S.knife = true;
   if (META.weapons.includes('prism')) S.prism = true;
+  if (META.weapons.includes('gaunt')) S.gaunt = true;
 }
 
 /* ---------- audio ---------- */
@@ -1374,7 +1390,8 @@ addEventListener('keydown', e => {
   if (!e.repeat && (e.code === 'KeyE' || e.code === 'ShiftLeft' || e.code === 'ShiftRight')) useAbility(1);
   if (!e.repeat && (e.code === 'KeyF' || e.code === 'Enter') && mode === 'play' && nearChest) openChest(nearChest);
   if (!e.repeat && e.code === 'KeyR') useSpecial();
-  if (!e.repeat && e.code === 'KeyX') { if (knifeOn()) knifePress(); else if (prismOn()) prismPress(); else swordPress(); }
+  if (!e.repeat && e.code === 'KeyX') { if (knifeOn()) knifePress(); else if (prismOn()) prismPress(); else if (gauntOn()) gauntParry(); else swordPress(); }
+  if (!e.repeat && e.code === 'KeyV' && gauntOn()) gauntGrab();
   if (!e.repeat && (e.code === 'KeyC' || e.code === 'Tab')) { switchWeapon(); e.preventDefault(); }
   if (!e.repeat && (e.code === 'KeyB' || e.code === 'KeyI')) toggleBag();
   if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
@@ -1906,7 +1923,7 @@ function startGame(i) {
   initAudio(); keepAwake(); sfx('click');
   resetRun(i); applyLoadout();
   [...SCREENS, 'dead', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
-  $('warmPill').hidden = true; lastCyc = ''; weapon = S.sword ? 'sword' : S.knife ? 'knife' : S.prism ? 'prism' : 'wand'; prismReset(); syncWeapon(); IMP = null; cuts = []; knives = []; drops = []; decals = []; splats = []; knifeT = 0; knifeHold = false; KN.show = 1; swordSfx.charge(false); swordCharge = null; swordReady = false; joy = null; aimJoy = null;
+  $('warmPill').hidden = true; lastCyc = ''; weapon = S.sword ? 'sword' : S.knife ? 'knife' : S.prism ? 'prism' : S.gaunt ? 'gaunt' : 'wand'; prismReset(); gauntReset(); syncWeapon(); IMP = null; cuts = []; knives = []; drops = []; decals = []; splats = []; knifeT = 0; knifeHold = false; KN.show = 1; swordSfx.charge(false); swordCharge = null; swordReady = false; joy = null; aimJoy = null;
   buildSpellbar(); buildSpecialBtn(); $('bagBadge').hidden = true;
   $('hint').hidden = true; tipStep = -1; movedT = 0;
   let seen = false; try { seen = localStorage.getItem('wgTips') === '1'; } catch (e) {}
@@ -2148,7 +2165,7 @@ function onHit(s, e) {
   }
 }
 function damagePlayer(d) {
-  if (P.inv > 0 || P.dashT > 0 || mode !== 'play') return;
+  if (P.inv > 0 || P.dashT > 0 || mode !== 'play' || GT.grab) return;
   if (S.shield > 0) {
     S.shield--; P.inv = .6; sfx('block'); freeze = Math.max(freeze, .05);
     texts.push({ x: P.x, y: P.y - 30, text: 'BLOCKED!', life: .9, max: .9, color: '#9fe6ff', size: 18, vx: 0, vy: -50 });
@@ -2171,7 +2188,7 @@ function bankGold() {
   return add;
 }
 function die() {
-  mode = 'dead'; joy = null; freeze = 0; sfx('die'); prismStop(false); swordCharge = null; swordReady = false; swordSfx.charge(false);
+  mode = 'dead'; joy = null; freeze = 0; sfx('die'); prismStop(false); if (GT.grab && GT.grab.e) GT.grab.e.grabbed = false; GT.grab = null; swordCharge = null; swordReady = false; swordSfx.charge(false);
   for (let i = 0; i < 50; i++) { const a = Math.random() * 6.28, s = rand(60, 300); parts.push({ x: P.x, y: P.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.6, 1.2), max: 1.2, size: rand(4, 8), color: pick(['#5a7fd6', '#a7c7ff', '#ffcf3f']), kind: 'star', glow: true }); }
   zaps.push({ ring: true, x1: P.x, y1: P.y, r: 120, life: .5, max: .5, color: '#ffffff', w: 6 });
   const isBest = wave > best;
@@ -2652,6 +2669,19 @@ $('prismBtn').addEventListener('pointermove', e => {
   if (Math.hypot(dx, dy) > 14) { swordDrag.on = true; swordDrag.a = Math.atan2(dy, dx); }
 });
 ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => $('prismBtn').addEventListener(ev, () => { prismRelease(); swordDrag = null; }));
+// Rebound: tap to punch, or drag from the button to aim the punch
+$('gauntBtn').onpointerdown = e => {
+  e.stopPropagation(); e.preventDefault();
+  try { $('gauntBtn').setPointerCapture(e.pointerId); } catch (_) {}
+  swordDrag = { id: e.pointerId, ox: e.clientX, oy: e.clientY, on: false, a: aim, gaunt: true };
+};
+$('gauntBtn').addEventListener('pointermove', e => {
+  if (!swordDrag || e.pointerId !== swordDrag.id) return;
+  const dx = e.clientX - swordDrag.ox, dy = e.clientY - swordDrag.oy;
+  if (Math.hypot(dx, dy) > 14) { swordDrag.on = true; swordDrag.a = Math.atan2(dy, dx); }
+});
+['pointerup', 'pointercancel'].forEach(ev => $('gauntBtn').addEventListener(ev, () => { if (swordDrag && swordDrag.gaunt) { gauntParry(); swordDrag = null; } }));
+$('grabBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); gauntGrab(); };
 $('specialBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); useSpecial(); };
 $('openBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); if (nearChest) openChest(nearChest); };
 $('bagBtn').onclick = () => toggleBag();
@@ -2863,12 +2893,15 @@ const WEAPON_INFO = {
   sword: { name: 'Sword', label: 'SWORD', icon: () => swordImg(34), color: () => '#ff9a5c' },
   knife: { name: 'Dagger', label: 'DAGGER', icon: () => knifeImg(34), color: () => '#c77dff' },
   prism: { name: 'Prism', label: 'LAST PRISM', icon: () => prismImg(34), color: () => '#9fe6ff' },
+  gaunt: { name: 'Gauntlets', label: 'CHAOS GAUNTLETS', icon: () => gauntImg(34), color: () => '#ff2d55' },
 };
 const nextWeapon = () => { const o = ownedWeapons(); return o[(o.indexOf(weapon) + 1) % o.length]; };
 function syncWeapon() {
   $('swordBtn').hidden = !swordOn();
   $('knifeBtn').hidden = !knifeOn();
   $('prismBtn').hidden = !prismOn();
+  $('gauntBtn').hidden = !gauntOn(); $('grabBtn').hidden = !gauntOn();
+  const gico = $('gauntBtn').querySelector('.kico'); if (!gico.firstChild) { gico.innerHTML = gauntImg(48); $('grabBtn').querySelector('.kico').innerHTML = grabImg(40); }
   const pico = $('prismBtn').querySelector('.kico'); if (!pico.firstChild) pico.innerHTML = prismImg(48);
   const kico = $('knifeBtn').querySelector('.kico'); if (!kico.firstChild) kico.innerHTML = knifeImg(46);
   const b = $('swapBtn'), n = nextWeapon(), I = WEAPON_INFO[n];
@@ -2878,7 +2911,7 @@ function syncWeapon() {
   b.setAttribute('aria-label', `Switch to ${I.name}`);
 }
 function switchWeapon() {
-  if (mode !== 'play' || ownedWeapons().length < 2) return;
+  if (mode !== 'play' || ownedWeapons().length < 2 || GT.grab) return;
   swordCharge = null; swordReady = false; swing = null; swordSfx.charge(false); knifeHold = false; prismStop(false);
   weapon = nextWeapon(); SW.draw = 0; KN.show = 0; KN.wait = 0; syncWeapon(); sfx('click'); retrigger($('swapBtn'), 'ready');
   const I = WEAPON_INFO[weapon];
@@ -2911,7 +2944,7 @@ function updateCine(dt) {
   const want = cineHeld > .1 ? 1 : 0; // a quick tap doesn't trigger it
   cine += (want - cine) * Math.min(1, dt * (want ? CINE.ease : CINE.ease * 1.6));
   if (cine < .001) cine = 0;
-  if (musicBus && AC) { try { musicBus.gain.setTargetAtTime(1 - .55 * Math.max(cine, PR.zk || 0), AC.currentTime, .05); } catch (_) {} }
+  if (musicBus && AC) { try { musicBus.gain.setTargetAtTime(1 - .55 * Math.max(cine, PR.zk || 0, GT.zk || 0), AC.currentTime, .05); } catch (_) {} }
 }
 const cineEase = () => cine * cine * (3 - 2 * cine);
 function drawCineBars() {
@@ -3520,6 +3553,348 @@ function drawPrismBeams() {
   ctx.restore();
 }
 
+/* ---------- Chaos Gauntlets ---------- */
+const GAUNT = {
+  parryCd: .5,          // time between Rebound punches
+  parryWindow: .16,     // how long the Rebound area stays active
+  parryRadius: 64,      // size of the Rebound area (small on purpose)
+  parryReach: 30,       // how far in front of you it sits
+  parryDmg: 26, parryKnock: 460,
+  reflectMul: 2.2,      // reflected bullets hit this much harder than they would have hit you
+  reflectSpeed: 1.7,
+  grabCd: 5, grabRange: 300, grabWhiffCd: 1.2,
+  dashSpeed: 1500,      // the lunge toward the grabbed monster
+  holdTime: .26,        // the beat between grab and punch
+  punchDmg: 180,
+  launchSpeed: 1050, launchTime: .5,
+  bowlDmg: 60,          // damage a launched monster does to anything it crashes into
+  zoom: .14, lean: 40,
+};
+const CHAOS = { dark: '#1a0a12', iron: '#565068', ironHi: '#a49bbd', ironLo: '#34304a', plate: '#b0183f', plateHi: '#ff5b7d', red: '#ff2d55', mag: '#ff4df0', hot: '#ffd1e6', deep: '#7a0f2e' };
+const GT = { cd: 0, gcd: 0, gcdFull: 1, parryT: 0, parryA: 0, hitSet: null, reflected: 0, punch: 0, hand: 1, punchA: 0, grab: null, zk: 0, lookA: 0, charge: 0 };
+let flyers = [], shockFx = [], ghosts = [];
+function gauntReset() { if (GT.grab && GT.grab.e) GT.grab.e.grabbed = false; Object.assign(GT, { cd: 0, gcd: 0, parryT: 0, punch: 0, grab: null, zk: 0, charge: 0 }); flyers = []; shockFx = []; ghosts = []; }
+const gauntZoomK = () => { const z = GT.zk || 0; return z * z * (3 - 2 * z); };
+const gMult = () => S.dmg * playerDmgMul() * (1 + (wave - 1) * .12);
+const parryCentre = () => ({ x: P.x + Math.cos(GT.parryA) * GAUNT.parryReach, y: P.y + 4 + Math.sin(GT.parryA) * GAUNT.parryReach });
+
+function gauntParry() {
+  if (mode !== 'play' || !gauntOn() || GT.grab || GT.cd > 0) return;
+  GT.cd = GAUNT.parryCd; GT.parryT = GAUNT.parryWindow; GT.hitSet = new Set(); GT.reflected = 0;
+  GT.parryA = aimAngleFor(GAUNT.parryRadius + 140);
+  GT.hand *= -1; GT.punch = 1; GT.punchA = GT.parryA;
+  P.face = Math.cos(GT.parryA) < 0 ? -1 : 1;
+  const c = parryCentre();
+  shockFx.push({ x: c.x, y: c.y, a: GT.parryA, t: 0, life: .26, bolts: Array.from({ length: 4 }, () => ({ a: rand(-1, 1), seed: rand(0, 99) })) });
+  kick.x += Math.cos(GT.parryA) * 2; kick.y += Math.sin(GT.parryA) * 2;
+  retrigger($('gauntBtn'), 'hit');
+  swordSfx.gauntSwing();
+  parryCheck();
+}
+// Everything inside the Rebound area: monsters get punched, bullets get sent back
+function parryCheck() {
+  const c = parryCentre(), R = GAUNT.parryRadius;
+  let hitAny = false;
+  for (const e of enemies) {
+    if (e.dead || GT.hitSet.has(e) || e.grabbed || e.launched) continue;
+    if ((e.x - c.x) ** 2 + (e.y - c.y) ** 2 > (R + e.r) ** 2) continue;
+    GT.hitSet.add(e); hitAny = true;
+    const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1;
+    const crit = Math.random() < S.crit;
+    hurt(e, GAUNT.parryDmg * gMult() * (crit ? 2 : 1), CHAOS.hot, crit);
+    e.hs = .09;
+    if (!e.T.boss) { e.kx += dx / d * GAUNT.parryKnock; e.ky += dy / d * GAUNT.parryKnock; }
+    for (let i = 0; i < 9; i++) { const a = Math.atan2(dy, dx) + rand(-.8, .8), sp = rand(180, 420); parts.push({ x: e.x - dx / d * e.r * .6, y: e.y - dy / d * e.r * .6, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .22, max: .22, size: rand(2, 3.5), color: pick([CHAOS.red, CHAOS.mag, '#ffffff']), kind: 'spark', glow: true, fr: .01 }); }
+  }
+  for (const b of eshots) {
+    if (b.life <= 0 || (b.x - c.x) ** 2 + (b.y - c.y) ** 2 > (R + b.r + 8) ** 2) continue;
+    b.life = 0; GT.reflected++;
+    // fly back at the closest monster (or straight out along the punch)
+    const t = nearest(b.x, b.y, 520), sp = Math.max(380, Math.hypot(b.vx, b.vy) * GAUNT.reflectSpeed);
+    const a = t ? Math.atan2(t.y - b.y, t.x - b.x) : GT.parryA;
+    shots.push({ x: b.x, y: b.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, spd: sp, age: 0, r: Math.max(6, b.r + 1), dmg: Math.max(10, b.dmg) * GAUNT.reflectMul * S.dmg, sp: { id: 'chaos', color: CHAOS.mag, core: '#ffffff' }, life: 1.6, pierce: 2, hit: new Set() });
+    zaps.push({ ring: true, x1: b.x, y1: b.y, r: 26, life: .18, max: .18, color: '#ffffff', w: 4 });
+    for (let i = 0; i < 8; i++) { const sa = a + rand(-1, 1), v = rand(150, 380); parts.push({ x: b.x, y: b.y, vx: Math.cos(sa) * v, vy: Math.sin(sa) * v, life: .2, max: .2, size: 2, color: pick(['#ffffff', CHAOS.mag]), kind: 'spark', glow: true }); }
+  }
+  if (GT.reflected && !GT.reflectShown) {
+    GT.reflectShown = true; freeze = Math.max(freeze, .07); addShake(4);
+    texts.push({ x: P.x, y: P.y - 52, text: 'REFLECT!', life: .9, max: .9, color: CHAOS.mag, size: 17, vx: 0, vy: -50 });
+    swordSfx.gauntReflect();
+  }
+  if (hitAny) { freeze = Math.max(freeze, .035); if (SET.shake) addShake(3.5); swordSfx.gauntThud(); if (SET.vibrate) { try { navigator.vibrate && navigator.vibrate(12); } catch (_) {} } }
+}
+
+function gauntGrab() {
+  if (mode !== 'play' || !gauntOn() || GT.grab) return;
+  if (GT.gcd > 0) { sfx('nope'); retrigger($('grabBtn'), 'nope'); return; }
+  // pick a monster: the one closest to your aim when you're aiming, otherwise the closest one
+  const aiming = (swordDrag && swordDrag.on) || P.manual;
+  let best = null, bs = 1e9;
+  for (const e of enemies) {
+    if (e.dead || e.launched) continue;
+    const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy);
+    if (d > GAUNT.grabRange + e.r) continue;
+    const off = Math.abs(angDiff(Math.atan2(dy, dx), aim));
+    if (aiming && off > .7) continue;
+    const score = d + (aiming ? off * 200 : 0);
+    if (score < bs) { bs = score; best = e; }
+  }
+  const a = best ? Math.atan2(best.y - P.y, best.x - P.x) : aimAngleFor(200);
+  P.face = Math.cos(a) < 0 ? -1 : 1; GT.lookA = a;
+  if (!best) {
+    // nothing in reach: a short lunge into thin air
+    GT.grab = { ph: 'dash', t: 0, e: null, a, sx: P.x, sy: P.y, tx: P.x + Math.cos(a) * 110, ty: P.y + Math.sin(a) * 110, dur: .12 };
+    GT.gcd = GT.gcdFull = GAUNT.grabWhiffCd;
+  } else {
+    best.grabbed = true;
+    const d = Math.hypot(best.x - P.x, best.y - P.y), stop = best.r + 20;
+    GT.grab = { ph: 'dash', t: 0, e: best, a, sx: P.x, sy: P.y, tx: best.x - Math.cos(a) * stop, ty: best.y - Math.sin(a) * stop, dur: Math.max(.07, (d - stop) / GAUNT.dashSpeed) };
+  }
+  swordSfx.grabDash();
+}
+function updateGaunt(dt) {
+  GT.cd = Math.max(0, GT.cd - dt);
+  if (GT.gcd > 0) { GT.gcd = Math.max(0, GT.gcd - dt); if (GT.gcd === 0 && gauntOn()) retrigger($('grabBtn'), 'ready'); }
+  GT.punch = Math.max(0, GT.punch - dt * 5);
+  GT.zk += ((GT.grab && GT.grab.e ? 1 : 0) - GT.zk) * Math.min(1, dt * (GT.grab ? 9 : 5));
+  if (GT.parryT > 0) { GT.parryT -= dt; parryCheck(); if (GT.parryT <= 0) GT.reflectShown = false; }
+  for (const f of shockFx) f.t += dt;
+  shockFx = shockFx.filter(f => f.t < f.life);
+  for (const g of ghosts) g.t += dt;
+  ghosts = ghosts.filter(g => g.t < g.life);
+  updateGrab(dt);
+  updateFlyers(dt);
+}
+function updateGrab(dt) {
+  const G = GT.grab; if (!G) return;
+  G.t += dt;
+  const e = G.e;
+  if (e && (e.dead || !enemies.includes(e)) && G.ph !== 'recover') { G.ph = 'recover'; G.t = 0; G.e = null; }
+  if (G.ph === 'dash') {
+    const k = Math.min(1, G.t / G.dur), ez = 1 - Math.pow(1 - k, 2);
+    if (e) { const stop = e.r + 20; G.tx = e.x - Math.cos(G.a) * stop; G.ty = e.y - Math.sin(G.a) * stop; }
+    P.x = G.sx + (G.tx - G.sx) * ez; P.y = G.sy + (G.ty - G.sy) * ez;
+    ghosts.push({ x: P.x, y: P.y, face: P.face, t: 0, life: .22 });
+    if (Math.random() < .9) parts.push({ x: P.x + rand(-10, 10), y: P.y + rand(-14, 10), vx: -Math.cos(G.a) * rand(60, 160), vy: -Math.sin(G.a) * rand(60, 160), life: .3, max: .3, size: rand(2, 4), color: pick([CHAOS.red, CHAOS.mag]), kind: 'dot', glow: true });
+    if (k >= 1) {
+      if (!e) { G.ph = 'recover'; G.t = 0; return; }
+      G.ph = 'hold'; G.t = 0; e.hs = GAUNT.holdTime + .05;
+      addShake(3); freeze = Math.max(freeze, .03);
+      swordSfx.grabCatch(); swordSfx.grabCharge();
+      zaps.push({ ring: true, x1: e.x, y1: e.y, r: e.r + 18, life: .2, max: .2, color: CHAOS.mag, w: 4 });
+    }
+  } else if (G.ph === 'hold') {
+    GT.charge = Math.min(1, G.t / GAUNT.holdTime);
+    // reel the monster in a touch while the punching fist winds back
+    const want = e.r + 16;
+    const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1;
+    if (d > want && !e.T.boss) { e.x -= dx / d * Math.min(d - want, 180 * dt); e.y -= dy / d * Math.min(d - want, 180 * dt); }
+    G.a = Math.atan2(e.y - P.y, e.x - P.x); GT.lookA = G.a;
+    // chaos energy rushes into the fist
+    const fx = P.x - Math.cos(G.a) * 6 + P.face * 8, fy = P.y + 6;
+    for (let i = 0; i < 2; i++) { const a = rand(0, 6.28), r = rand(30, 60); parts.push({ x: fx + Math.cos(a) * r, y: fy + Math.sin(a) * r, vx: -Math.cos(a) * r * 6, vy: -Math.sin(a) * r * 6, life: .15, max: .15, size: rand(2, 3), color: pick([CHAOS.mag, CHAOS.red, '#ffffff']), kind: 'spark', glow: true, fr: .5 }); }
+    if (G.t >= GAUNT.holdTime) gauntPunch(G);
+  } else if (G.ph === 'recover') {
+    if (G.t < .1) { P.x -= Math.cos(G.a) * 260 * dt; P.y -= Math.sin(G.a) * 260 * dt; }
+    if (G.t >= .2) { GT.grab = null; GT.charge = 0; if (GT.gcd <= 0) GT.gcd = GT.gcdFull = GAUNT.grabCd; }
+  }
+}
+function gauntPunch(G) {
+  const e = G.e, a = G.a, ux = Math.cos(a), uy = Math.sin(a);
+  e.grabbed = false;
+  const nd = deaths.length;
+  hurt(e, GAUNT.punchDmg * gMult(), CHAOS.hot, true);
+  const n = texts[texts.length - 1]; if (n) { n.size = 32; n.vy = -170; n.life = n.max = 1.1; n.color = CHAOS.hot; }
+  const killed = e.dead;
+  if (killed) deaths.length = nd; // the launched body plays its own ending
+  const cx = e.x - ux * e.r * .5, cy = e.y - uy * e.r * .5;
+  if (!e.T.boss) {
+    e.launched = !killed;
+    flyers.push({ e, x: e.x, y: e.y, vx: ux * GAUNT.launchSpeed, vy: uy * GAUNT.launchSpeed, t: 0, life: GAUNT.launchTime, trail: [], dead: killed, hit: new Set([e]), spin: 0, ring: 0 });
+  } else { e.kx += ux * 520; e.ky += uy * 520; }
+  e.hs = .18;
+  const hold = .15;
+  freeze = Math.max(freeze, hold);
+  startImpact(cx, cy, a, a, true, hold, killed, IMP_PAL.chaos); // streak runs along the punch
+  if (SET.shake) { addShake(15); kick.x += ux * 18; kick.y += uy * 18; }
+  for (let i = 0; i < 26; i++) { const sa = a + rand(-.7, .7), sp = rand(250, 700); parts.push({ x: cx, y: cy, vx: Math.cos(sa) * sp, vy: Math.sin(sa) * sp, life: rand(.2, .4), max: .4, size: rand(2, 4), color: pick([CHAOS.red, CHAOS.mag, '#ffffff', CHAOS.hot]), kind: 'spark', glow: true, fr: .005 }); }
+  zaps.push({ ring: true, x1: cx, y1: cy, r: 80, life: .3, max: .3, color: CHAOS.mag, w: 8 });
+  zaps.push({ ring: true, x1: cx, y1: cy, r: 46, life: .2, max: .2, color: '#ffffff', w: 5 });
+  swordSfx.impact(true, killed, e.T.boss); swordSfx.chaosPunch();
+  if (SET.vibrate) { try { navigator.vibrate && navigator.vibrate([0, 35, 25, 80]); } catch (_) {} }
+  GT.punch = 1; GT.hand = 1; GT.punchA = a; GT.charge = 0;
+  G.ph = 'recover'; G.t = 0;
+  GT.gcd = GT.gcdFull = GAUNT.grabCd;
+}
+// Launched monsters: fly off with a chaos trail and crash into anything in the way
+function updateFlyers(dt) {
+  for (const f of flyers) {
+    const e = f.e;
+    if (!f.dead && (e.dead || !enemies.includes(e))) f.dead = true;
+    f.t += dt;
+    const slow = Math.pow(.08, dt); f.vx *= slow; f.vy *= slow;
+    f.x += f.vx * dt; f.y += f.vy * dt;
+    if (f.dead) f.spin += dt * 18 * Math.sign(f.vx || 1);
+    else { e.x = f.x; e.y = f.y; e.kx = e.ky = 0; }
+    f.trail.unshift({ x: f.x, y: f.y }); if (f.trail.length > 12) f.trail.pop();
+    if ((f.ring -= dt) <= 0) { f.ring = .06; if (Math.hypot(f.vx, f.vy) > 300) zaps.push({ ring: true, x1: f.x, y1: f.y, r: e.r + 10, life: .15, max: .15, color: CHAOS.red, w: 3 }); }
+    if (Math.random() < .9) parts.push({ x: f.x + rand(-e.r, e.r) * .5, y: f.y + rand(-e.r, e.r) * .5, vx: -f.vx * .1 + rand(-30, 30), vy: -f.vy * .1 + rand(-30, 30), life: .3, max: .3, size: rand(2, 4), color: pick([CHAOS.red, CHAOS.mag, CHAOS.hot]), kind: 'dot', glow: true });
+    // crash into other monsters
+    for (const o of enemies) {
+      if (o.dead || f.hit.has(o) || o === e) continue;
+      if ((o.x - f.x) ** 2 + (o.y - f.y) ** 2 > (o.r + e.r) ** 2) continue;
+      f.hit.add(o);
+      hurt(o, GAUNT.bowlDmg * gMult(), CHAOS.hot, false);
+      o.hs = .08;
+      if (!o.T.boss) { const dx = o.x - f.x, dy = o.y - f.y, d = Math.hypot(dx, dy) || 1; o.kx += (dx / d * .6 + f.vx / 1000) * 520; o.ky += (dy / d * .6 + f.vy / 1000) * 520; }
+      freeze = Math.max(freeze, .03); if (SET.shake) addShake(4);
+      zaps.push({ ring: true, x1: o.x, y1: o.y, r: 34, life: .18, max: .18, color: CHAOS.hot, w: 4 });
+      for (let i = 0; i < 10; i++) { const a = rand(0, 6.28), v = rand(120, 360); parts.push({ x: o.x, y: o.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: .25, max: .25, size: rand(2, 3), color: pick([CHAOS.red, '#ffffff']), kind: 'spark', glow: true }); }
+      swordSfx.impactSmall(o.dead, f.hit.size);
+    }
+    if (f.t >= f.life) {
+      f.done = true;
+      if (f.dead) {
+        // the body bursts apart where it lands
+        for (let i = 0; i < 30; i++) { const a = rand(0, 6.28), v = rand(80, 340); parts.push({ x: f.x, y: f.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, g: 500, life: rand(.4, .8), max: .8, size: rand(3, 6), color: pick([e.T.color || '#ffffff', CHAOS.red, CHAOS.mag]), kind: 'confetti', rot: rand(0, 6) }); }
+        zaps.push({ ring: true, x1: f.x, y1: f.y, r: 60, life: .3, max: .3, color: CHAOS.mag, w: 6 });
+        addShake(5); sfx('boom');
+      } else {
+        e.launched = false;
+        for (let i = 0; i < 8; i++) parts.push({ x: f.x + rand(-12, 12), y: f.y + e.r * .6, vx: rand(-40, 40), vy: rand(-40, -10), life: .5, max: .5, size: rand(6, 10), color: '#c9b8a0', kind: 'smoke' });
+      }
+    }
+  }
+  flyers = flyers.filter(f => !f.done);
+}
+
+/* ---------- gauntlet drawing ---------- */
+// One armoured fist pointing along +x: cuff, knuckle plates, spikes and glowing chaos runes
+function paintGauntlet(g, glowAmt, small) {
+  const s = small ? .8 : 1;
+  g.save(); g.scale(s, s);
+  g.fillStyle = CHAOS.dark; g.fillRect(-13, -8, 9, 16);
+  g.fillStyle = CHAOS.iron; g.fillRect(-12, -7, 7, 14);
+  g.fillStyle = CHAOS.ironHi; g.fillRect(-12, -7, 7, 2);
+  g.fillStyle = CHAOS.plate; g.fillRect(-12, 3, 7, 3);
+  g.fillStyle = CHAOS.red; g.fillRect(-10, -1.5, 4, 2.5);
+  g.fillStyle = CHAOS.dark; g.beginPath(); g.moveTo(-5, -10); g.lineTo(8, -9); g.quadraticCurveTo(13, -8, 13, -4); g.lineTo(13, 4); g.quadraticCurveTo(13, 8, 8, 9); g.lineTo(-5, 10); g.closePath(); g.fill();
+  g.fillStyle = CHAOS.iron; g.beginPath(); g.moveTo(-4, -8); g.lineTo(7, -7.5); g.quadraticCurveTo(11, -7, 11, -3.5); g.lineTo(11, 3.5); g.quadraticCurveTo(11, 7, 7, 7.5); g.lineTo(-4, 8); g.closePath(); g.fill();
+  g.fillStyle = CHAOS.plate; g.beginPath(); g.moveTo(-4, -8); g.lineTo(7, -7.5); g.quadraticCurveTo(11, -7, 11, -3.5); g.lineTo(-4, -2.5); g.closePath(); g.fill();
+  g.fillStyle = CHAOS.plateHi; g.fillRect(-3, -7.2, 11, 1.6);
+  g.fillStyle = CHAOS.ironLo; for (let i = 0; i <= 5; i += 2.6) g.fillRect(3, i - .5, 7, 1);
+  // knuckle spikes
+  g.fillStyle = '#c9c0d6'; for (const y of [-5.5, 0, 5.5]) { g.beginPath(); g.moveTo(11, y - 2); g.lineTo(16, y); g.lineTo(11, y + 2); g.closePath(); g.fill(); }
+  // glowing knuckle line
+  g.globalAlpha = .6 + glowAmt * .4; g.fillStyle = glowAmt > .6 ? '#ffffff' : CHAOS.red; g.fillRect(9.5, -6.5, 1.5, 13);
+  g.fillStyle = CHAOS.mag; g.globalAlpha = .45 + glowAmt * .5; g.beginPath(); g.arc(2, -4.8, 1.6 + glowAmt * 1.4, 0, 6.28); g.fill();
+  g.globalAlpha = 1; g.restore();
+}
+function chaosBolt(x1, y1, x2, y2, segs, jag, col, w) {
+  ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x1, y1);
+  const nx = -(y2 - y1), ny = x2 - x1, L = Math.hypot(nx, ny) || 1;
+  for (let i = 1; i < segs; i++) { const k = i / segs, j = rand(-jag, jag); ctx.lineTo(x1 + (x2 - x1) * k + nx / L * j, y1 + (y2 - y1) * k + ny / L * j); }
+  ctx.lineTo(x2, y2); ctx.stroke();
+}
+let gauntIconURL = null, grabIconURL = null;
+function gauntImg(size = 40) {
+  if (!gauntIconURL) {
+    const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d');
+    const fl = g.createRadialGradient(48, 48, 2, 48, 48, 40); fl.addColorStop(0, 'rgba(255,77,240,.55)'); fl.addColorStop(1, 'rgba(255,45,85,0)'); g.fillStyle = fl; g.fillRect(0, 0, 96, 96);
+    g.save(); g.translate(36, 58); g.rotate(-.5); g.scale(2.1, 2.1); paintGauntlet(g, .8, true); g.restore();
+    g.save(); g.translate(58, 40); g.rotate(-.9); g.scale(2.3, 2.3); paintGauntlet(g, 1); g.restore();
+    gauntIconURL = c.toDataURL();
+  }
+  return `<img src="${gauntIconURL}" alt="" style="width:${size}px;height:${size}px;display:block">`;
+}
+function grabImg(size = 40) {
+  if (!grabIconURL) {
+    const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d');
+    g.strokeStyle = '#ffd1e6'; g.lineCap = 'round';
+    [[22, 30, 8], [14, 48, 10], [22, 66, 8]].forEach(([x, y, w]) => { g.lineWidth = w * .6; g.globalAlpha = .8; g.beginPath(); g.moveTo(x - 10, y); g.lineTo(x + 18, y); g.stroke(); });
+    g.globalAlpha = 1; g.save(); g.translate(58, 48); g.scale(2.6, 2.6); paintGauntlet(g, 1); g.restore();
+    grabIconURL = c.toDataURL();
+  }
+  return `<img src="${grabIconURL}" alt="" style="width:${size}px;height:${size}px;display:block">`;
+}
+function drawGauntlets(bob) {
+  if (!gauntOn() || mode === 'dead') return;
+  const side = SW.side, G = GT.grab;
+  // front fist (the one in the sprite's hand) and back fist (held up by the chest)
+  let fa = side > 0 ? 0 : Math.PI, ba = fa;
+  let fx = P.x + side * 20, fy = P.y + 9 - bob, bx = P.x + side * 4, by = P.y + 16 - bob;
+  const ext = Math.pow(GT.punch, .5) * 26, pa = GT.punchA;
+  if (GT.punch > 0) {
+    if (GT.hand > 0) { fx += Math.cos(pa) * ext; fy += Math.sin(pa) * ext; fa = pa; }
+    else { bx += Math.cos(pa) * (ext + 18); by += Math.sin(pa) * (ext + 18); ba = pa; }
+  }
+  let glowF = .3 + Math.sin(T * 6) * .15, glowB = glowF;
+  if (G && G.e && G.ph === 'hold') {
+    // back fist clamps the monster; front fist cocks back, charging
+    const e = G.e, a = G.a;
+    bx = e.x - Math.cos(a) * (e.r + 4); by = e.y - Math.sin(a) * (e.r + 4); ba = a;
+    fx = P.x - Math.cos(a) * 10 * GT.charge + side * 10; fy = P.y + 6 - bob - 4 * GT.charge; fa = a;
+    glowF = .4 + GT.charge * .6;
+    // chaos tether between the clamping fist and the wizard
+    ctx.save(); ctx.globalAlpha = .8;
+    chaosBolt(P.x, P.y, bx, by, 6, 6, CHAOS.mag, 2.5); chaosBolt(P.x, P.y, bx, by, 6, 4, '#ffffff', 1);
+    ctx.restore();
+    glow(fx, fy, 20 + GT.charge * 34, CHAOS.mag, .4 + GT.charge * .5);
+  }
+  const drawOne = (x, y, a, gl, small) => {
+    glow(x, y, small ? 16 : 22, CHAOS.red, .25 + gl * .35);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a); if (Math.cos(a) < 0) ctx.scale(1, -1); paintGauntlet(ctx, gl, small); ctx.restore();
+    if (Math.random() < .08 + gl * .2) { ctx.save(); ctx.globalAlpha = .7; const r = rand(0, 6.28); chaosBolt(x, y, x + Math.cos(r) * 14, y + Math.sin(r) * 14, 3, 3, pick([CHAOS.mag, CHAOS.red]), 1.5); ctx.restore(); }
+  };
+  drawOne(bx, by, ba, glowB, true);
+  drawOne(fx, fy, fa, glowF, false);
+}
+function drawGauntFx() {
+  // dash afterimages
+  if (ghosts.length && WIZ_FIST.complete) {
+    const s = .74, w = 82 * s, h = 80 * s;
+    for (const g of ghosts) {
+      const a = (1 - g.t / g.life) * .4;
+      ctx.save(); ctx.globalAlpha = a; ctx.translate(g.x, g.y + h / 2); ctx.scale(g.face, 1);
+      try { ctx.drawImage(WIZ_FIST, -w / 2, -h, w, h); } catch (_) {}
+      ctx.restore();
+      glow(g.x, g.y, 26, CHAOS.mag, a * .6);
+    }
+  }
+  // Rebound shockwave: a crescent of chaos in front of the fist, cracked with lightning
+  for (const f of shockFx) {
+    const k = f.t / f.life, ez = 1 - Math.pow(1 - k, 3), R = GAUNT.parryRadius * (.55 + .6 * ez), al = 1 - k;
+    ctx.save(); ctx.lineCap = 'round';
+    ctx.globalAlpha = al * .25; ctx.fillStyle = CHAOS.red; ctx.beginPath(); ctx.arc(f.x, f.y, R, 0, 6.28); ctx.fill();
+    [[CHAOS.deep, 14], [CHAOS.red, 9], [CHAOS.mag, 5], ['#ffffff', 2]].forEach(([c, w]) => { ctx.globalAlpha = al; ctx.strokeStyle = c; ctx.lineWidth = w * (1 - k * .5); ctx.beginPath(); ctx.arc(f.x, f.y, R, f.a - 1.25, f.a + 1.25); ctx.stroke(); });
+    ctx.globalAlpha = al * .9;
+    for (const b of f.bolts) { const a = f.a + b.a; chaosBolt(f.x - Math.cos(a) * R * .2, f.y - Math.sin(a) * R * .2, f.x + Math.cos(a) * R * 1.05, f.y + Math.sin(a) * R * 1.05, 4, 5, k < .4 ? '#ffffff' : CHAOS.mag, 1.6); }
+    ctx.restore();
+  }
+  // launched monsters: a tapered chaos trail, afterimages, and a tumbling body if it's already dead
+  for (const f of flyers) {
+    const e = f.e, tr = f.trail;
+    ctx.save(); ctx.lineCap = 'round';
+    for (let i = 0; i < tr.length - 1; i++) {
+      const k = 1 - i / tr.length;
+      ctx.globalAlpha = .75 * k; ctx.strokeStyle = i < 3 ? '#ffffff' : i < 6 ? CHAOS.mag : CHAOS.red; ctx.lineWidth = e.r * 1.6 * k;
+      ctx.beginPath(); ctx.moveTo(tr[i].x, tr[i].y); ctx.lineTo(tr[i + 1].x, tr[i + 1].y); ctx.stroke();
+    }
+    ctx.restore();
+    const ox = e.x, oy = e.y;
+    for (const i of [9, 6, 3]) {
+      const p = tr[i]; if (!p) continue;
+      ctx.save(); ctx.globalAlpha = .18 + (9 - i) * .03; e.x = p.x; e.y = p.y; try { drawEnemy(e); } catch (_) {} ctx.restore();
+    }
+    e.x = ox; e.y = oy;
+    if (f.dead) {
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.spin); ctx.translate(-f.x, -f.y);
+      const sx = e.x, sy = e.y; e.x = f.x; e.y = f.y; try { drawEnemy(e); } catch (_) {} e.x = sx; e.y = sy;
+      ctx.restore();
+    }
+  }
+}
+
 /* ---------- impact frame ---------- */
 // Timeline of one big sword hit (real time, so it keeps playing while the game is frozen):
 //   0 - neg      inverted black-and-white "impact frame", radial speed lines, starburst, slash streak
@@ -3527,13 +3902,17 @@ function drawPrismBeams() {
 //   then         colour returns; lines, star and streak fade, a short zoom blur, the camera eases back
 const REDUCED_MOTION = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; } })();
 let IMP = null, cuts = [], rawDt = 0;
-function startImpact(x, y, ang, tang, charged, hold, killed) {
+const IMP_PAL = {
+  fire: { mid: '255,207,63', edge: '255,90,40', outer: 'rgba(255,59,59,.85)', core: '#ffcf3f', star: '#fff6dc', duo: '#ff2a14' },
+  chaos: { mid: '255,77,240', edge: '255,45,85', outer: 'rgba(122,15,46,.9)', core: '#ff4df0', star: '#ffe6f6', duo: '#d01a8a' },
+};
+function startImpact(x, y, ang, tang, charged, hold, killed, pal = IMP_PAL.fire) {
   const n = SET.fx === 'lots' ? (charged ? 46 : 30) : 16, noFlash = REDUCED_MOTION || !SET.impact;
   const lines = [];
   for (let i = 0; i < n; i++) lines.push({ a: (i + Math.random() * .8) / n * Math.PI * 2, r0: rand(.18, .42), w: rand(.008, .03) * (charged ? 1.3 : 1) });
   IMP = { x, y, ang, tang, charged, killed, t: 0, hold,
     neg: noFlash ? 0 : charged ? .05 : .042, red: noFlash || !charged ? 0 : .05,
-    life: charged ? .5 : .32, zoom: SET.shake ? (charged ? .12 : killed ? .07 : .05) : 0, lines, spin: rand(0, 6.28) };
+    life: charged ? .5 : .32, zoom: SET.shake ? (charged ? .12 : killed ? .07 : .05) : 0, lines, spin: rand(0, 6.28), pal };
 }
 function impactZoom() {
   if (!IMP || !IMP.zoom) return 0;
@@ -3542,7 +3921,7 @@ function impactZoom() {
   if (t < IMP.hold) return IMP.zoom;                    // hold while frozen
   return IMP.zoom * Math.exp(-(t - IMP.hold) * 13);     // ease out
 }
-function w2s(x, y) { const z = ZOOM * (1 + impactZoom() + CINE.zoom * cineEase() + PRISM.zoom * prismZoomK()); return { x: VW / 2 + kick.x + (x - cam.x) * z, y: VH / 2 + kick.y + (y - cam.y) * z }; }
+function w2s(x, y) { const z = ZOOM * (1 + impactZoom() + CINE.zoom * cineEase() + PRISM.zoom * prismZoomK() + GAUNT.zoom * gauntZoomK()); return { x: VW / 2 + kick.x + (x - cam.x) * z, y: VH / 2 + kick.y + (y - cam.y) * z }; }
 function tickImpact(dt) {
   if (IMP) { IMP.t += dt; if (IMP.t > IMP.life) IMP = null; }
   for (const c of cuts) c.t += dt;
@@ -3584,7 +3963,7 @@ function drawImpact() {
     // blood-red duotone
     ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, VW, VH);
     ctx.globalCompositeOperation = 'color-burn'; ctx.fillStyle = '#8a8a8a'; ctx.fillRect(0, 0, VW, VH);
-    ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#ff2a14'; ctx.fillRect(0, 0, VW, VH);
+    ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = I.pal.duo; ctx.fillRect(0, 0, VW, VH);
   } else if (post < .1 && !REDUCED_MOTION) {
     // a short zoom blur out from the hit as colour returns
     const z = 1 + .05 * (1 - post / .1) * (I.charged ? 1.6 : 1);
@@ -3617,9 +3996,9 @@ function drawImpact() {
     else if (inRed) { spikyStar(ctx, c.x, c.y, R * 1.05, R * .34, 12, I.spin); ctx.fillStyle = '#120406'; ctx.fill(); spikyStar(ctx, c.x, c.y, R * .7, R * .22, 12, I.spin + .2); ctx.fillStyle = '#ffffff'; ctx.fill(); }
     else {
       const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, R * 1.3);
-      g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.35, 'rgba(255,207,63,.8)'); g.addColorStop(1, 'rgba(255,90,40,0)');
+      g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.35, `rgba(${I.pal.mid},.8)`); g.addColorStop(1, `rgba(${I.pal.edge},0)`);
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c.x, c.y, R * 1.3, 0, 6.28); ctx.fill();
-      spikyStar(ctx, c.x, c.y, R * .9, R * .25, 10, I.spin + t * 2); ctx.fillStyle = '#fff6dc'; ctx.fill();
+      spikyStar(ctx, c.x, c.y, R * .9, R * .25, 10, I.spin + t * 2); ctx.fillStyle = I.pal.star; ctx.fill();
     }
     ctx.globalAlpha = 1;
   }
@@ -3631,7 +4010,7 @@ function drawImpact() {
     const blade = (len, wid, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-len / 2, 0); ctx.quadraticCurveTo(0, -wid, len / 2, 0); ctx.quadraticCurveTo(0, wid * .35, -len / 2, 0); ctx.fill(); };
     if (inNeg) blade(L, W, '#ffffff');
     else if (inRed) { blade(L * 1.05, W * 1.6, '#120406'); blade(L, W * .8, '#ffffff'); }
-    else { ctx.globalAlpha = stA; blade(L * 1.05, W * 2, 'rgba(255,59,59,.85)'); blade(L, W * 1.2, '#ffcf3f'); blade(L * .95, W * .55, '#ffffff'); }
+    else { ctx.globalAlpha = stA; blade(L * 1.05, W * 2, I.pal.outer); blade(L, W * 1.2, I.pal.core); blade(L * .95, W * .55, '#ffffff'); }
   }
   ctx.restore();
 }
@@ -3786,6 +4165,46 @@ const swordSfx = (() => {
       P_.vs.forEach(o => { o.frequency.setTargetAtTime(o.frequency.value * .5, t, .08); o.stop(t + rel + .05); }); P_.nsrc.stop(t + rel + .05);
       if (P_.roar) { const r = P_.roar; r.g.gain.cancelScheduledValues(t); r.g.gain.setValueAtTime(r.g.gain.value, t); r.g.gain.exponentialRampToValueAtTime(.0001, t + rel + .1); r.saws.forEach(o => { o.frequency.setTargetAtTime(40, t, .1); o.stop(t + rel + .15); }); r.sub.stop(t + rel + .15); r.lfo.stop(t + rel + .15); }
       if (!quick && ok()) { osc('sine', fused ? 900 : 600, 120, .35, .05, { send: .5 }); if (fused) nz(.4, .1, 'lowpass', 2000, 200, .7, { send: .4 }); }
+    },
+    gauntSwing() {
+      if (!ok()) return; const p = vary();
+      nz(.1, .5, 'bandpass', 480 * p, 2300 * p, 1.4, { attack: .008, sweep: .07 });  // air
+      osc('square', 150 * p, 60, .07, .09);                                         // knuckle snap
+      nz(.06, .1, 'highpass', 6500, 0, .7, { delay: .01 });                         // chaos crackle
+    },
+    gauntThud() {
+      if (!ok()) return; const p = vary();
+      osc('sine', 160 * p, 46, .17, .42); nz(.08, .38, 'lowpass', 1300, 200, .8); osc('triangle', 330 * p, 120, .05, .1);
+    },
+    gauntReflect() {
+      if (!ok()) return; const p = vary();
+      // a ringing clang as the bullet is batted away, then a rising ping
+      nz(.03, .45, 'highpass', 3000, 0, .8);
+      [1850, 2620, 3480, 4310].forEach((f, i) => osc(i % 2 ? 'sine' : 'triangle', f * p, f * p * .99, [.5, .4, .3, .22][i], [.07, .05, .035, .02][i], { send: .6 }));
+      osc('sine', 1300 * p, 2600 * p, .14, .05, { delay: .03, send: .4 });
+    },
+    grabDash() {
+      if (!ok()) return; const p = vary();
+      nz(.22, .4, 'bandpass', 300 * p, 3200 * p, 1.3, { attack: .015, sweep: .15 });
+      osc('sawtooth', 80, 240, .2, .05, { dist: true });
+      nz(.16, .1, 'highpass', 5200, 0, .7, { attack: .02 });
+    },
+    grabCatch() {
+      if (!ok()) return;
+      osc('sine', 115, 52, .2, .4); nz(.09, .34, 'lowpass', 900, 150, .8);
+      for (let i = 0; i < 4; i++) nz(.025, .1, 'bandpass', rand(3000, 5200), 0, 8, { delay: .02 + i * .03 }); // chain-like rattle
+    },
+    grabCharge() {
+      if (!ok()) return; const d = GAUNT.holdTime;
+      osc('sawtooth', 90, 430, d, .06, { dist: true, attack: .02 });
+      osc('sine', 600, 1900, d, .025, { send: .4 });
+      nz(d, .12, 'bandpass', 400, 4500, 3, { attack: .05 });
+    },
+    chaosPunch() {
+      if (!ok()) return;
+      osc('sawtooth', 62, 28, .6, .12, { dist: true, glide: .5 });
+      nz(.5, .2, 'bandpass', 2200, 280, 1, { send: .6 });
+      for (let i = 0; i < 6; i++) nz(.03, .14, 'highpass', 7000, 0, .7, { delay: rand(0, .3) });   // electric crackles
     },
     knifeRicochet(n) {
       if (!ok()) return; const p = vary() * (1 + n * .08);
@@ -3987,13 +4406,14 @@ function update(dt) {
   const ml = Math.hypot(mx, my); if (ml > 1) { mx /= ml; my /= ml; }
   P.webT = Math.max(0, (P.webT || 0) - dt);
   const webMul = P.webT > 0 ? .5 : 1;
-  const cineMul = (1 - CINE.slow * cineEase()) * (PR.on ? PRISM.moveMul : 1);
+  const cineMul = (1 - CINE.slow * cineEase()) * (PR.on ? PRISM.moveMul : 1) * (GT.grab ? 0 : 1);
   P.x += mx * 150 * S.move * playerSpeedMul() * webMul * cineMul * dt; P.y += my * 150 * S.move * playerSpeedMul() * webMul * cineMul * dt;
   P.moving = ml > .05; if (P.moving) { P.walk += dt; P.mdx = mx / ml; P.mdy = my / ml; }
   updateAbilities(dt);
   updateSword(dt);
   updateKnife(dt);
   updatePrism(dt);
+  updateGaunt(dt);
   updateCycle(dt);
   updateWorld(dt);
   updateTips(dt);
@@ -4011,7 +4431,7 @@ function update(dt) {
   if (aimJoy) { manual = true; const dx = aimJoy.x - aimJoy.ox, dy = aimJoy.y - aimJoy.oy; if (Math.hypot(dx, dy) > 8) aim = Math.atan2(dy, dx); }
   mouseT -= dt;
   if (!manual && mouseAim && mouseT > 0) { const px = VW / 2 + (P.x - cam.x) * ZOOM, py = VH / 2 + (P.y - cam.y) * ZOOM; aim = Math.atan2(mouseAim.y - py, mouseAim.x - px); manual = true; }
-  if (swordDrag && swordDrag.on && (swordOn() || knifeOn() || prismOn())) { manual = true; aim = swordDrag.a; }
+  if (swordDrag && swordDrag.on && (swordOn() || knifeOn() || prismOn() || gauntOn())) { manual = true; aim = swordDrag.a; }
   P.manual = manual;
   const target = nearest(P.x, P.y, 440);
   if (manual) P.face = Math.cos(aim) < 0 ? -1 : 1;
@@ -4050,7 +4470,7 @@ function update(dt) {
       if (e.burnTick <= 0) { e.burnTick = .4; hurt(e, e.burnDps * .4, '#ff9d5c'); }
       if (e.dead) continue;
     }
-    if (frozenT > 0) continue;
+    if (frozenT > 0 || e.grabbed || e.launched) continue;
     let dx = P.x - e.x, dy = P.y - e.y; const d = Math.hypot(dx, dy) || 1;
     dx /= d; dy /= d;
     const ux = dx, uy = dy;
@@ -4264,7 +4684,7 @@ function updateFx(dt) {
   shake = Math.max(0, shake - dt * 40); flash = Math.max(0, flash - dt); flashW = Math.max(0, flashW - dt);
   const kd = Math.pow(.0005, dt); kick.x *= kd; kick.y *= kd;
   dark = nightAmt * .7;
-  const lean = CINE.lean * cineEase() + PRISM.lean * prismZoomK(), la = PR.on || PR.zk > .01 ? PR.ang : swordOn() ? swordAimAngle() : 0;
+  const lean = CINE.lean * cineEase() + PRISM.lean * prismZoomK() + GAUNT.lean * gauntZoomK(), la = GT.zk > .01 ? GT.lookA : PR.on || PR.zk > .01 ? PR.ang : swordOn() ? swordAimAngle() : 0;
   const tx = P.x + Math.cos(la) * lean, ty = P.y + Math.sin(la) * lean;
   cam.x += (tx - cam.x) * Math.min(1, dt * 8); cam.y += (ty - cam.y) * Math.min(1, dt * 8);
 }
@@ -4404,6 +4824,7 @@ function drawPlayer() {
   drawSword(bob);
   drawKnifeHeld(bob);
   drawPrismHeld(bob);
+  drawGauntlets(bob);
   if (P.warm) glow(P.x, P.y + 10, 46, '#ff9a3d', .35 + Math.sin(T * 6) * .08);
   if (weapon !== 'wand') return;
   const tip = wandTip(), sp = SPELLS[cur];
@@ -4487,7 +4908,7 @@ function render() {
   ctx.imageSmoothingEnabled = false;
   const sx = shake ? rand(-shake, shake) : 0, sy = shake ? rand(-shake, shake) : 0;
   tickImpact(rawDt); updateCine(rawDt);
-  const zp = ZOOM * (1 + impactZoom() + CINE.zoom * cineEase() + PRISM.zoom * prismZoomK());
+  const zp = ZOOM * (1 + impactZoom() + CINE.zoom * cineEase() + PRISM.zoom * prismZoomK() + GAUNT.zoom * gauntZoomK());
   ctx.translate(VW / 2 + sx + kick.x, VH / 2 + sy + kick.y); ctx.scale(zp, zp); ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
   const hw = VW / 2 / ZOOM + 30, hh = VH / 2 / ZOOM + 30;
   drawGround(cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh);
@@ -4551,6 +4972,7 @@ function render() {
   drawCuts();
   drawKnives();
   drawPrismBeams();
+  drawGauntFx();
   drawDrops();
   drawSplats();
   for (const z of zaps) {
@@ -4662,6 +5084,12 @@ function hud() {
     b.classList.toggle('ready', swordReady);
   }
   if (knifeOn() && mode === 'play') $('knifeBtn').style.setProperty('--p', Math.min(1, knifeT / KNIFE.cooldown));
+  if (gauntOn() && mode === 'play') {
+    $('gauntBtn').style.setProperty('--p', Math.min(1, GT.cd / GAUNT.parryCd));
+    const g = $('grabBtn'); g.style.setProperty('--p', GT.gcd > 0 ? Math.min(1, GT.gcd / GT.gcdFull) : 0);
+    const t = GT.gcd > 0 ? Math.ceil(GT.gcd) + '' : '', c = g.querySelector('.cdt'); if (c.textContent !== t) c.textContent = t;
+    g.classList.toggle('ready', GT.gcd <= 0 && !GT.grab);
+  }
   if (prismOn() && mode === 'play') {
     const b = $('prismBtn');
     b.style.setProperty('--p', PR.cd > 0 ? Math.min(1, PR.cd / PR.cdFull) : 0);

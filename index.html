@@ -581,6 +581,12 @@ body.menu-mode #hint,
 .swordbtn.ready { box-shadow: 0 5px 0 var(--ink), 0 0 22px #ffcf3f, 0 0 40px #ff5d3b; }
 .swordbtn .cdt { font-size: 20px; }
 .swordbtn svg { width: 38px; height: 38px; }
+.knifebtn { --c: #b357ff; }
+.knifebtn .kico { position: relative; z-index: 1; display: grid; place-items: center; }
+.knifebtn .kico img { width: 46px; height: 46px; }
+.knifebtn.thrown .kico { animation: kflick .22s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes kflick { 0% { transform: translate(-6px, 6px) rotate(-20deg) scale(.8); } 100% { transform: none; } }
+body.menu-mode .knifebtn { visibility: hidden; }
 .swapbtn { position: fixed; z-index: 2; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 250px); width: 54px; height: 54px; --c: #3b2f66; }
 .swapbtn .swapico { display: grid; place-items: center; }
 .swapbtn .swapico svg { width: 30px; height: 30px; }
@@ -630,6 +636,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
 
 <div class="spellbar" id="spellbar"></div>
 <button class="abtn swapbtn" id="swapBtn" hidden aria-label="Switch weapon"><span class="swapico"></span><small>Wand</small></button>
+<button class="abtn swordbtn knifebtn" id="knifeBtn" hidden aria-label="Throw the Hexfire Dagger"><span class="kico"></span><i class="cdm"></i><span class="cdt"></span><small>Throw</small></button>
 <button class="abtn swordbtn" id="swordBtn" hidden aria-label="Slash with the Giant Sword"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg><i class="cdm"></i><i class="chg"></i><span class="cdt"></span><small>Tap or hold</small></button>
 <div class="leftbar"><button class="sbtn" id="specialBtn" hidden aria-label="Use special weapon"></button><button class="bagbtn" id="bagBtn" aria-label="Open backpack"><svg viewBox="0 0 12 13" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="M4 0h4v1H4zM3 1h1v2H3zM8 1h1v2H8zM1 2h10v11H1z"/><path fill="#c08a4a" d="M2 3h8v9H2z"/><path fill="#a0632b" d="M2 3h8v3H2z"/><path fill="#2d1f4f" d="M2 6h8v1H2z"/><path fill="#ffcf3f" d="M5 5h2v2H5z"/><path fill="#2d1f4f" d="M3 8h6v4H3z"/><path fill="#d9a35e" d="M4 9h4v2H4z"/></svg><small>Backpack</small><i class="bagbadge" id="bagBadge" hidden></i></button></div>
 <button class="btn go" id="openBtn" hidden>Open chest</button>
@@ -1174,8 +1181,10 @@ let bankedGold = 0, gold = 0, totalGold = 0, shopLv = {}, shopNote = '';
 let wave, queue, spawnT, waveState, clearT, kills, time, level, xp, xpNeed, pendingLv;
 let unlocked, cur, castT, aim, shake, flash, flashW, cam, kick;
 let cycT = 0, isNight = false, nightAmt = 0, fireLit = false, warnedNight = false, immT = 0, crackleT = 0;
-let xpEarned = 0, xpSpent = 0, swordT = 0, swing = null, useSword = false;
-const swordOn = () => !!(S && S.sword && useSword);
+let xpEarned = 0, xpSpent = 0, swordT = 0, swing = null, weapon = 'wand';
+const swordOn = () => !!(S && S.sword && weapon === 'sword');
+const knifeOn = () => !!(S && S.knife && weapon === 'knife');
+const ownedWeapons = () => ['wand', ...(S && S.sword ? ['sword'] : []), ...(S && S.knife ? ['knife'] : [])];
 let runSeed = 1, structures = [], chunkSet = new Set(), res = {}, spec = {}, held = null, bombs = [], laserT = 0, laserTick = 0, nearChest = null, chestsRun = 0;
 let abCd = {}, frozenT = 0, meteors = [], strikes = [], dark = 0, bossKills = 0, runGems = 0, combo = 0, comboT = 0, bestCombo = 0, gemChain = 0, gemChainT = 0, freeze = 0, lvlFx = 0;
 let best = 0;
@@ -1259,12 +1268,17 @@ if (!Array.isArray(META.abEquip)) META.abEquip = ['dash'];
 const curWand = () => WANDS.find(w => w.id === META.wand) || WANDS[0];
 const WEAPONS = [
   // Giant Sword is free for testing; set price back to 30 later
-  { id: 'sword', name: 'Giant Sword', price: 0, c: '#ff9a5c', desc: 'A hellfire blade as big as you. Start every run with it: tap Slash for a heavy burning swing, hold it to charge a wave of fire.' },
+  { id: 'sword', name: 'Giant Sword', price: 0, c: '#ff9a5c', desc: 'A hellfire blade as big as you. Start every run with it: tap Slash for a heavy burning swing, hold it to charge a wave of fire.',
+    facts: ['Ready at the start of every run', 'Tap: burning swing', 'Hold: charged fire wave'] },
+  // Hexfire Dagger is free for testing; give it a price later
+  { id: 'knife', name: 'Hexfire Dagger', price: 0, c: '#b357ff', desc: 'A violet dagger wreathed in purple flame. Throw it lightning fast: it sticks in monsters with a juicy splat and sets them alight.',
+    facts: ['Ready at the start of every run', 'Tap: throw a dagger', 'Hold: keep throwing'] },
 ];
-const weaponIcon = w => w.id === 'sword' ? `<span class="tile" style="--c:#3b1a22">${swordImg(40)}</span>` : `<span class="abico" style="--c:${w.c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg></span>`;
+const weaponIcon = w => w.id === 'sword' ? `<span class="tile" style="--c:#3b1a22">${swordImg(40)}</span>` : w.id === 'knife' ? `<span class="tile" style="--c:#2a1240">${knifeImg(40)}</span>` : `<span class="abico" style="--c:${w.c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg></span>`;
 if (!Array.isArray(META.weapons)) META.weapons = [];
 function applyLoadout() {
   if (META.weapons.includes('sword')) S.sword = true;
+  if (META.weapons.includes('knife')) S.knife = true;
   META.equip.forEach(id => { const r = RELICS.find(x => x.id === id); if (r) r.apply(); });
 }
 
@@ -1388,12 +1402,12 @@ addEventListener('keydown', e => {
   if (!e.repeat && (e.code === 'KeyE' || e.code === 'ShiftLeft' || e.code === 'ShiftRight')) useAbility(1);
   if (!e.repeat && (e.code === 'KeyF' || e.code === 'Enter') && mode === 'play' && nearChest) openChest(nearChest);
   if (!e.repeat && e.code === 'KeyR') useSpecial();
-  if (!e.repeat && e.code === 'KeyX') swordPress();
+  if (!e.repeat && e.code === 'KeyX') { if (knifeOn()) knifePress(); else swordPress(); }
   if (!e.repeat && (e.code === 'KeyC' || e.code === 'Tab')) { switchWeapon(); e.preventDefault(); }
   if (!e.repeat && (e.code === 'KeyB' || e.code === 'KeyI')) toggleBag();
   if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
 });
-addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'KeyX') swordRelease(); });
+addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'KeyX') { swordRelease(); knifeRelease(); } });
 let joy = null, aimJoy = null, mouseAim = null, mouseT = 0;
 const JR = 56;
 cv.addEventListener('pointerdown', e => {
@@ -1789,7 +1803,7 @@ function storeList(tab) {
   if (tab === 'abilities') return ABILITIES.map(A => ({ kind: 'a', it: A, owned: META.abilities.includes(A.id), color: A.c, icon: abIcon(A), cat: 'Ability',
     facts: [`Recharges in ${A.cd} seconds`, 'Equip up to 2'] }));
   if (tab === 'weapons') return WEAPONS.map(w => ({ kind: 'g', it: w, owned: META.weapons.includes(w.id), color: w.c, icon: weaponIcon(w), cat: 'Weapon',
-    facts: ['Ready at the start of every run', 'Tap: burning swing', 'Hold: charged fire wave'] }));
+    facts: w.facts || ['Ready at the start of every run'] }));
   return RELICS.map(r => ({ kind: 'r', it: r, owned: META.relics.includes(r.id), color: r.c, icon: relicIcon(r), cat: 'Relic', facts: ['Works every run', 'Equip up to 2'] }));
 }
 const STORE_NOTES = {
@@ -2076,7 +2090,7 @@ function startGame(i) {
   initAudio(); keepAwake(); sfx('click');
   resetRun(i); applyLoadout();
   [...SCREENS, 'dead', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
-  $('warmPill').hidden = true; lastCyc = ''; useSword = !!S.sword; syncWeapon(); IMP = null; cuts = []; swordSfx.charge(false); swordCharge = null; swordReady = false; joy = null; aimJoy = null;
+  $('warmPill').hidden = true; lastCyc = ''; weapon = S.sword ? 'sword' : S.knife ? 'knife' : 'wand'; syncWeapon(); IMP = null; cuts = []; knives = []; drops = []; decals = []; splats = []; knifeT = 0; knifeHold = false; KN.show = 1; swordSfx.charge(false); swordCharge = null; swordReady = false; joy = null; aimJoy = null;
   buildSpellbar(); buildSpecialBtn(); $('bagBadge').hidden = true;
   $('hint').hidden = true; tipStep = -1; movedT = 0;
   let seen = false; try { seen = localStorage.getItem('wgTips') === '1'; } catch (e) {}
@@ -2085,6 +2099,7 @@ function startGame(i) {
   startWave(1);
 }
 function togglePause() {
+  knifeHold = false;
   if (swordCharge !== null) { swordCharge = null; swordReady = false; swordSfx.charge(false); }
   if (mode === 'bag') { toggleBag(); return; }
   if (!$('settings').hidden) return;
@@ -2611,7 +2626,7 @@ const RECIPES = [
   { id: 'potion', name: 'Health Potion', desc: 'Heal 40% of your health', cost: { herb: 6, wood: 3 }, c: '#ff5d73', glyph: 'POT', make() { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .4); } },
   { id: 'shieldc', name: 'Mana Shield', desc: 'Block the next hit', cost: { crystal: 6, stone: 2 }, c: '#38c6ff', glyph: 'SHD', make() { S.shield = Math.min(3, S.shield + 1); }, ok: () => S.shield < 3 },
   { id: 'bombs', name: '3 Bombs', desc: 'Adds 3 Bomb Bag charges', cost: { stone: 6, wood: 3, crystal: 1 }, c: '#ff9a3d', glyph: 'BMB', make() { addSpecial('bomb', 3); } },
-  { id: 'sword', name: 'Giant Sword', desc: 'A hellfire blade as big as you. Tap Slash for a heavy burning swing, or hold it to charge a huge swing that sends out a wave of fire.', cost: { xp: 250, soul: 3, stone: 8, crystal: 5 }, c: '#e8eef8', glyph: 'SWD', icon: () => swordImg(40), make() { S.sword = true; useSword = true; syncWeapon(); banner('Giant Sword crafted!', 'Tap Slash to swing, hold it to charge a fire wave. Tap Switch for your wand', 'magic'); }, ok: () => !S.sword, done: 'You have it' },
+  { id: 'sword', name: 'Giant Sword', desc: 'A hellfire blade as big as you. Tap Slash for a heavy burning swing, or hold it to charge a huge swing that sends out a wave of fire.', cost: { xp: 250, soul: 3, stone: 8, crystal: 5 }, c: '#e8eef8', glyph: 'SWD', icon: () => swordImg(40), make() { S.sword = true; weapon = 'sword'; syncWeapon(); banner('Giant Sword crafted!', 'Tap Slash to swing, hold it to charge a fire wave. Tap Switch for your wand', 'magic'); }, ok: () => !S.sword, done: 'You have it' },
   { id: 'arrows', name: '5 Ice Arrows', desc: 'Adds 5 Ice Bow charges', cost: { crystal: 5, wood: 4 }, c: '#7fdcff', glyph: 'ARW', make() { addSpecial('bow', 5); } },
 ];
 const RARITY = {
@@ -2797,6 +2812,18 @@ $('swordBtn').addEventListener('pointermove', e => {
   if (Math.hypot(dx, dy) > 14) { swordDrag.on = true; swordDrag.a = Math.atan2(dy, dx); }
 });
 ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => $('swordBtn').addEventListener(ev, () => { swordRelease(); swordDrag = null; }));
+$('knifeBtn').onpointerdown = e => {
+  e.stopPropagation(); e.preventDefault();
+  try { $('knifeBtn').setPointerCapture(e.pointerId); } catch (_) {}
+  swordDrag = { id: e.pointerId, ox: e.clientX, oy: e.clientY, on: false, a: aim };
+  knifePress();
+};
+$('knifeBtn').addEventListener('pointermove', e => {
+  if (!swordDrag || e.pointerId !== swordDrag.id) return;
+  const dx = e.clientX - swordDrag.ox, dy = e.clientY - swordDrag.oy;
+  if (Math.hypot(dx, dy) > 14) { swordDrag.on = true; swordDrag.a = Math.atan2(dy, dx); }
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => $('knifeBtn').addEventListener(ev, () => { knifeRelease(); swordDrag = null; }));
 $('specialBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); useSpecial(); };
 $('openBtn').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); if (nearChest) openChest(nearChest); };
 $('bagBtn').onclick = () => toggleBag();
@@ -3003,22 +3030,28 @@ function updateSword(dt) {
     if (Math.random() < .3 + Math.min(1, swordCharge / SWORD.chargeTime) * .6) parts.push({ x: P.x + rand(-30, 30), y: P.y + rand(-50, 10), vx: rand(-20, 20), vy: rand(-90, -40), life: .5, max: .5, size: rand(2, 5), color: pick(['#ff7a2a', '#ffcf3f', '#ff3b3b']), glow: true });
   }
 }
+const WEAPON_INFO = {
+  wand: { name: 'Wand', label: 'WAND', icon: () => wandArt(curWand(), 32), color: () => SPELLS[cur].color },
+  sword: { name: 'Sword', label: 'SWORD', icon: () => swordImg(34), color: () => '#ff9a5c' },
+  knife: { name: 'Dagger', label: 'DAGGER', icon: () => knifeImg(34), color: () => '#c77dff' },
+};
+const nextWeapon = () => { const o = ownedWeapons(); return o[(o.indexOf(weapon) + 1) % o.length]; };
 function syncWeapon() {
   $('swordBtn').hidden = !swordOn();
-  const b = $('swapBtn'); b.hidden = !(S && S.sword);
-  b.querySelector('.swapico').innerHTML = useSword ? wandArt(curWand(), 32) : swordImg(34);
-  b.querySelector('small').textContent = useSword ? 'Wand' : 'Sword';
-  b.setAttribute('aria-label', useSword ? 'Switch to your wand' : 'Switch to the Giant Sword');
-}
-function wandIconSvg() {
-  const W = curWand();
-  return `<svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><g transform="rotate(-45 5 5)"><rect x="0" y="4" width="8" height="2" fill="#2d1f4f"/><rect x="0.5" y="4.4" width="7" height="1.2" fill="${W.shaft}"/><rect x="5" y="4" width="1" height="2" fill="${W.band}"/><rect x="7.5" y="3.5" width="2.5" height="3" fill="${SPELLS[cur].color}"/></g></svg>`;
+  $('knifeBtn').hidden = !knifeOn();
+  const kico = $('knifeBtn').querySelector('.kico'); if (!kico.firstChild) kico.innerHTML = knifeImg(46);
+  const b = $('swapBtn'), n = nextWeapon(), I = WEAPON_INFO[n];
+  b.hidden = !(S && ownedWeapons().length > 1);
+  b.querySelector('.swapico').innerHTML = I.icon();
+  b.querySelector('small').textContent = I.name;
+  b.setAttribute('aria-label', `Switch to ${I.name}`);
 }
 function switchWeapon() {
-  if (mode !== 'play' || !S.sword) return;
-  swordCharge = null; swordReady = false; swing = null; swordSfx.charge(false);
-  useSword = !useSword; SW.draw = 0; syncWeapon(); sfx('click'); retrigger($('swapBtn'), 'ready');
-  texts.push({ x: P.x, y: P.y - 50, text: useSword ? 'SWORD' : 'WAND', life: .8, max: .8, color: useSword ? '#ff9a5c' : SPELLS[cur].color, size: 15, vx: 0, vy: -40 });
+  if (mode !== 'play' || ownedWeapons().length < 2) return;
+  swordCharge = null; swordReady = false; swing = null; swordSfx.charge(false); knifeHold = false;
+  weapon = nextWeapon(); SW.draw = 0; KN.show = 0; KN.wait = 0; syncWeapon(); sfx('click'); retrigger($('swapBtn'), 'ready');
+  const I = WEAPON_INFO[weapon];
+  texts.push({ x: P.x, y: P.y - 50, text: I.label, life: .8, max: .8, color: I.color(), size: 15, vx: 0, vy: -40 });
 }
 function swordPress() {
   if (mode !== 'play' || !swordOn() || swordCharge !== null) return;
@@ -3031,11 +3064,12 @@ function swordRelease() {
   swordCharge = null; swordReady = false; swordSfx.charge(false);
   if (mode === 'play') swordSlash(charged);
 }
-function swordAimAngle() {
+function aimAngleFor(range) {
   if (swordDrag && swordDrag.on) return swordDrag.a;
-  if (!P.manual && SET.autoAim) { const t = nearest(P.x, P.y, SWORD.range + 80); if (t) return Math.atan2(t.y - P.y, t.x - P.x); }
+  if (!P.manual && SET.autoAim) { const t = nearest(P.x, P.y, range); if (t) return Math.atan2(t.y - P.y, t.x - P.x); }
   return aim;
 }
+const swordAimAngle = () => aimAngleFor(SWORD.range + 80);
 function swordSlash(charged) {
   if (!swordOn() || swordT > 0) return;
   swordT = charged ? SWORD.chargedCooldown : SWORD.cooldown;
@@ -3091,7 +3125,7 @@ function landSwordHit(e, w) {
   if (texts.length > n0) { const tx = texts[texts.length - 1]; tx.size = w.charged ? 30 : crit ? 24 : 18; tx.vy = -150; tx.life = tx.max = 1; tx.pop = 1; }
   const killed = e.dead;
   e.hs = w.charged ? .2 : .13; // hit-shake while time is frozen
-  if (!killed) { e.burn = SWORD.burnTime; e.burnDps = SWORD.burnDps * S.dmg * (w.charged ? 2 : 1); }
+  if (!killed) { e.burnCol = null; e.burn = SWORD.burnTime; e.burnDps = SWORD.burnDps * S.dmg * (w.charged ? 2 : 1); }
   if (!e.T.boss) { const kb = SWORD.knockback * (w.charged ? 1.6 : 1); e.kx += dx / d * kb; e.ky += dy / d * kb; }
   // the contact point sits on the edge of the monster facing you
   const cx = e.x - dx / d * e.r * .5, cy = e.y - dy / d * e.r * .5;
@@ -3116,6 +3150,292 @@ function landSwordHit(e, w) {
     swordSfx.impactSmall(killed, w.landed);
   }
   if (killed) swordSfx.slice(w.landed);
+}
+
+/* ---------- Hexfire Dagger ---------- */
+const KNIFE = {
+  speed: 1500,          // flight speed: very fast
+  range: 560,           // how far it flies before sticking in the ground
+  dmg: 34,              // damage per dagger (grows with waves and power-ups like the sword)
+  cooldown: .26,        // seconds between throws; hold the button to keep throwing
+  critBonus: .1,        // extra crit chance on top of yours
+  burnTime: 2.5, burnDps: 7,
+  stickTime: 2.2,       // how long a dagger stays stuck in a monster
+  knock: 170,
+};
+const PURPLE = { dark: '#1c0830', deep: '#3a1460', mid: '#7b2fd6', hot: '#b357ff', light: '#e6b8ff', core: '#fff0ff', pink: '#ff5df0' };
+let knives = [], drops = [], decals = [], splats = [], knifeT = 0, knifeHold = false;
+const KN = { show: 1, wait: 0, flick: 0 }; // dagger in hand: visible amount, time until it re-forms, throw flick
+function knifePress() { if (mode !== 'play' || !knifeOn()) return; knifeHold = true; if (knifeT <= 0) throwKnife(); }
+function knifeRelease() { knifeHold = false; }
+const knifeAimAngle = () => aimAngleFor(KNIFE.range);
+function throwKnife() {
+  knifeT = KNIFE.cooldown;
+  const a = knifeAimAngle(), side = Math.cos(a) < 0 ? -1 : 1;
+  P.face = side;
+  const hx = P.x + side * 19, hy = P.y + 6;
+  knives.push({ st: 'fly', x: hx, y: hy, px: hx, py: hy, a, vx: Math.cos(a) * KNIFE.speed, vy: Math.sin(a) * KNIFE.speed, dist: 0, t: 0, trail: [] });
+  KN.show = 0; KN.wait = .07; KN.flick = 1;
+  kick.x -= Math.cos(a) * 3; kick.y -= Math.sin(a) * 3;
+  retrigger($('knifeBtn'), 'thrown');
+  swordSfx.knifeThrow();
+  if (SET.fx === 'lots') for (let i = 0; i < 5; i++) parts.push({ x: hx, y: hy, vx: Math.cos(a + rand(-.5, .5)) * rand(60, 200), vy: Math.sin(a + rand(-.5, .5)) * rand(60, 200), life: .25, max: .25, size: rand(2, 4), color: pick([PURPLE.hot, PURPLE.pink, PURPLE.light]), kind: 'dot', glow: true });
+}
+// first enemy the segment p0 -> p1 passes through, and where along it (0..1)
+function sweepHit(x0, y0, x1, y1) {
+  const dx = x1 - x0, dy = y1 - y0, L2 = dx * dx + dy * dy || 1;
+  let best = null, bt = 2;
+  for (const e of enemies) {
+    if (e.dead) continue;
+    const t = Math.max(0, Math.min(1, ((e.x - x0) * dx + (e.y - y0) * dy) / L2));
+    const cx = x0 + dx * t, cy = y0 + dy * t, r = e.r + 5;
+    if ((e.x - cx) ** 2 + (e.y - cy) ** 2 <= r * r && t < bt) { bt = t; best = e; }
+  }
+  return best ? { e: best, t: bt } : null;
+}
+function updateKnife(dt) {
+  knifeT = Math.max(0, knifeT - dt);
+  if (knifeHold && knifeOn() && mode === 'play' && knifeT <= 0) throwKnife();
+  if (KN.wait > 0) KN.wait -= dt; else KN.show = Math.min(1, KN.show + dt * 7);
+  KN.flick = Math.max(0, KN.flick - dt * 6);
+  for (const k of knives) {
+    k.t += dt;
+    if (k.st === 'fly') {
+      const nx = k.x + k.vx * dt, ny = k.y + k.vy * dt;
+      const h = sweepHit(k.x, k.y, nx, ny);
+      k.trail.unshift({ x: k.x, y: k.y }); if (k.trail.length > 7) k.trail.pop();
+      if (Math.random() < .9) parts.push({ x: k.x + rand(-3, 3), y: k.y + rand(-3, 3), vx: -k.vx * .04 + rand(-20, 20), vy: -k.vy * .04 - rand(20, 60), life: rand(.18, .32), max: .32, size: rand(2.5, 5), color: pick([PURPLE.hot, PURPLE.pink, PURPLE.mid]), kind: 'dot', glow: true, fr: .05 });
+      if (h) {
+        k.x += (nx - k.x) * h.t; k.y += (ny - k.y) * h.t;
+        knifeHit(k, h.e);
+      } else {
+        k.dist += Math.hypot(nx - k.x, ny - k.y); k.x = nx; k.y = ny;
+        if (k.dist >= KNIFE.range) { k.st = 'ground'; k.t = 0; k.life = 1.2; swordSfx.knifeTink(); for (let i = 0; i < 6; i++) parts.push({ x: k.x, y: k.y, vx: rand(-60, 60), vy: rand(-80, -10), life: .35, max: .35, size: rand(2, 4), color: pick(['#c9b8a0', PURPLE.hot]), kind: 'dot', glow: false }); }
+      }
+    } else if (k.st === 'stuck') {
+      const e = k.e;
+      if (!e || e.dead || !enemies.includes(e)) { popKnife(k, e); continue; }
+      k.x = e.x + k.ox; k.y = e.y + k.oy;
+      if (k.t > KNIFE.stickTime) { k.st = 'fade'; k.t = 0; k.life = .25; }
+    } else if (k.st === 'drop') {
+      k.vz -= 900 * dt; k.z += k.vz * dt; k.x += k.vx * dt; k.y += k.vy * dt; k.a += k.spin * dt;
+      if (k.z <= 0) { k.z = 0; if (k.vz < -120) { k.vz *= -.35; k.vx *= .5; k.vy *= .5; k.spin *= .5; } else { k.st = 'ground'; k.t = 0; k.life = .9; } }
+    }
+  }
+  knives = knives.filter(k => !((k.st === 'ground' || k.st === 'fade') && k.t >= k.life));
+  if (knives.length > 40) knives.splice(0, knives.length - 40);
+  // flying paint droplets: arc up, land, leave a stain
+  for (const d of drops) {
+    d.vz -= 1100 * dt; d.z += d.vz * dt; d.x += d.vx * dt; d.y += d.vy * dt;
+    const f = Math.pow(.25, dt); d.vx *= f; d.vy *= f;
+    if (d.z <= 0) { d.dead = true; addDecal(d.x, d.y, d.r * rand(1.3, 2), rand(0, 6.28), d.r > 3 ? 3 : 1, .8); }
+  }
+  drops = drops.filter(d => !d.dead);
+  for (const sp of splats) sp.t += dt;
+  splats = splats.filter(sp => sp.t < sp.life);
+  for (const dc of decals) dc.t += dt;
+  decals = decals.filter(dc => dc.t < dc.life);
+}
+function popKnife(k, e) {
+  k.st = 'drop'; k.t = 0; k.z = 14; k.vz = rand(220, 340); k.vx = rand(-80, 80) + (e ? (k.ox || 0) * 3 : 0); k.vy = rand(-40, 40); k.spin = rand(14, 22) * (Math.random() < .5 ? -1 : 1);
+}
+function knifeHit(k, e) {
+  const a = k.a, ux = Math.cos(a), uy = Math.sin(a);
+  const power = KNIFE.dmg * S.dmg * playerDmgMul() * (1 + (wave - 1) * .12);
+  const crit = Math.random() < S.crit + KNIFE.critBonus;
+  const n0 = texts.length;
+  hurt(e, power * (crit ? 2 : 1), PURPLE.light, crit);
+  if (texts.length > n0) { const tx = texts[texts.length - 1]; tx.size = crit ? 22 : 16; tx.vy = -130; tx.color = crit ? '#ffcf3f' : PURPLE.light; }
+  const killed = e.dead;
+  e.hs = killed ? .1 : .07;
+  if (!killed) { e.burn = KNIFE.burnTime; e.burnDps = KNIFE.burnDps * S.dmg; e.burnCol = PURPLE.hot; }
+  if (!e.T.boss) { e.kx += ux * KNIFE.knock; e.ky += uy * KNIFE.knock; }
+  // the dagger sinks in: its tip sits just inside the monster
+  const ox = Math.max(-e.r * .6, Math.min(e.r * .6, k.x - e.x)), oy = Math.max(-e.r * .6, Math.min(e.r * .6, k.y - e.y));
+  k.e = e; k.ox = ox - ux * 4; k.oy = oy - uy * 4; k.t = 0; k.trail = [];
+  if (killed) { k.x = e.x + k.ox; k.y = e.y + k.oy; popKnife(k, e); } else k.st = 'stuck';
+  // keep at most 3 daggers in one monster
+  const mine = knives.filter(o => o.st === 'stuck' && o.e === e);
+  if (mine.length > 3) { mine[0].st = 'fade'; mine[0].t = 0; mine[0].life = .2; }
+  splatAt(e.x + ox, e.y + oy, a, killed, crit, e);
+  freeze = Math.max(freeze, killed ? .055 : crit ? .04 : .028);
+  if (SET.shake) { addShake(killed ? 4.5 : 2.5); kick.x += ux * (killed ? 5 : 3); kick.y += uy * (killed ? 5 : 3); }
+  swordSfx.splat(killed, crit);
+  if (SET.vibrate) { try { navigator.vibrate && navigator.vibrate(killed ? 22 : 10); } catch (_) {} }
+}
+// Splat: a blobby burst, paint droplets that arc and land, a stain on the ground, purple fire
+function splatAt(x, y, a, big, crit, e) {
+  const lots = SET.fx === 'lots';
+  const blob = []; for (let i = 0; i < 16; i++) blob.push(Math.random() < .3 ? rand(1.05, 1.3) : rand(.7, .95));
+  splats.push({ x, y, a, t: 0, life: big ? .32 : .24, r: (big ? 24 : crit ? 20 : 16) + (e ? e.r * .25 : 0), blob, spin: rand(-.3, .3) });
+  const n = (big ? 26 : crit ? 18 : 13) * (lots ? 1 : .5);
+  for (let i = 0; i < n; i++) {
+    const back = Math.random() < .22, ang = a + (back ? Math.PI : 0) + rand(-.85, .85) * (back ? .6 : 1);
+    const sp = rand(110, back ? 220 : 430) * (big ? 1.2 : 1);
+    drops.push({ x, y, z: rand(6, 16), vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, vz: rand(90, 300), r: rand(1.6, big ? 4.6 : 3.6), c: pick([PURPLE.hot, PURPLE.mid, PURPLE.mid, PURPLE.pink, PURPLE.deep]) });
+  }
+  if (drops.length > 260) drops.splice(0, drops.length - 260);
+  // the main stain, stretched along the throw
+  addDecal(x + Math.cos(a) * 10, y + Math.sin(a) * 10 + 8, big ? 17 : 12, a, big ? 7 : 5, 1.6);
+  for (let i = 0; i < (lots ? 8 : 4); i++) { const ang = a + rand(-.7, .7), sp = rand(200, 520); parts.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, life: rand(.12, .22), max: .22, size: rand(1.5, 3), color: pick([PURPLE.core, PURPLE.light, PURPLE.pink]), kind: 'spark', glow: true, fr: .003 }); }
+  for (let i = 0; i < (lots ? 7 : 3); i++) parts.push({ x: x + rand(-8, 8), y: y + rand(-8, 8), vx: rand(-25, 25), vy: rand(-110, -50), life: rand(.35, .7), max: .7, size: rand(3, 6), color: pick([PURPLE.hot, PURPLE.pink, PURPLE.mid]), kind: 'dot', glow: true, fr: .2 });
+  zaps.push({ ring: true, x1: x, y1: y, r: big ? 46 : 30, life: .18, max: .18, color: PURPLE.light, w: big ? 5 : 3.5 });
+}
+function addDecal(x, y, r, a, nBlobs, stretch) {
+  const blobs = [{ dx: 0, dy: 0, r }];
+  for (let i = 1; i < nBlobs; i++) { const d = rand(.4, 1.3) * r * stretch * .6, ang = a + rand(-.6, .6) * (Math.random() < .3 ? 3 : 1); blobs.push({ dx: Math.cos(ang) * d, dy: Math.sin(ang) * d * .6, r: r * rand(.25, .6) }); }
+  decals.push({ x, y, a, stretch, blobs, t: 0, life: rand(6, 8), c: pick([PURPLE.mid, PURPLE.mid, PURPLE.deep]) });
+  if (decals.length > 90) decals.splice(0, decals.length - 90);
+}
+
+/* ---------- dagger drawing ---------- */
+// Points along +x: pommel gem, wrapped grip, winged guard, violet blade with a hot edge
+function paintKnife(g, heat = 0) {
+  g.fillStyle = PURPLE.dark; g.fillRect(-17, -3, 5, 6); g.fillStyle = PURPLE.pink; g.fillRect(-16, -2, 3, 4); g.fillStyle = '#ffffff'; g.fillRect(-16, -2, 1, 1);
+  g.fillStyle = PURPLE.dark; g.fillRect(-13, -2.5, 10, 5);
+  g.fillStyle = '#4a2a5e'; g.fillRect(-12, -1.5, 8, 3);
+  g.fillStyle = '#7a5a8e'; for (let i = -12; i < -4; i += 2.5) g.fillRect(i, -1.5, 1, 3);
+  g.fillStyle = PURPLE.dark; g.fillRect(-4, -7, 4, 14); g.fillRect(-6, -8, 3, 3); g.fillRect(-6, 5, 3, 3);
+  g.fillStyle = '#9a86b8'; g.fillRect(-3, -6, 2, 12);
+  g.fillStyle = PURPLE.hot; g.fillRect(-3, -1, 2, 2);
+  g.fillStyle = PURPLE.dark; g.beginPath(); g.moveTo(0, -4.5); g.lineTo(17, -2.5); g.lineTo(23, 0); g.lineTo(17, 2.5); g.lineTo(0, 4.5); g.closePath(); g.fill();
+  g.fillStyle = PURPLE.deep; g.beginPath(); g.moveTo(1, -3); g.lineTo(17, -1.6); g.lineTo(21, 0); g.lineTo(17, 1.6); g.lineTo(1, 3); g.closePath(); g.fill();
+  g.fillStyle = PURPLE.hot; g.beginPath(); g.moveTo(1, -3); g.lineTo(17, -1.6); g.lineTo(21, 0); g.lineTo(17, -.4); g.lineTo(1, -1.4); g.closePath(); g.fill();
+  g.globalAlpha = .65 + heat * .35; g.fillStyle = PURPLE.light; g.fillRect(2, -.4, 14, 1); g.globalAlpha = 1;
+}
+let knifeIconURL = null;
+function knifeImg(size = 40) {
+  if (!knifeIconURL) {
+    const c = document.createElement('canvas'); c.width = c.height = 96;
+    const g = c.getContext('2d');
+    const fl = g.createRadialGradient(56, 40, 2, 56, 40, 34); fl.addColorStop(0, 'rgba(255,93,240,.55)'); fl.addColorStop(1, 'rgba(179,87,255,0)');
+    g.fillStyle = fl; g.fillRect(0, 0, 96, 96);
+    g.translate(48, 50); g.rotate(-Math.PI / 4); g.scale(2.3, 2.3); g.translate(2, 0);
+    for (let i = 0; i < 4; i++) { g.fillStyle = [PURPLE.pink, PURPLE.hot, PURPLE.light, PURPLE.core][i]; g.globalAlpha = .55; g.beginPath(); g.ellipse(6 + i * 3, -5 - i, 5 - i, 3 - i * .5, -.6, 0, 6.28); g.fill(); }
+    g.globalAlpha = 1; paintKnife(g, 1);
+    knifeIconURL = c.toDataURL();
+  }
+  return `<img src="${knifeIconURL}" alt="" style="width:${size}px;height:${size}px;display:block">`;
+}
+// purple flame tongues licking up (screen-up) from a point, flickering
+function knifeFlames(x, y, len, n, seed) {
+  for (let i = 0; i < n; i++) {
+    const f = Math.sin(T * 22 + i * 2.1 + seed) * .5 + .5, h = (6 + f * 6) * len, w = 3.2 - i * .4;
+    const ox = (i - n / 2) * 2.4;
+    ctx.fillStyle = [PURPLE.pink, PURPLE.hot, PURPLE.light][i % 3]; ctx.globalAlpha = .55 + f * .35;
+    ctx.beginPath(); ctx.moveTo(x + ox - w, y); ctx.quadraticCurveTo(x + ox - w * .3, y - h * .6, x + ox + Math.sin(T * 9 + i) * 2, y - h); ctx.quadraticCurveTo(x + ox + w * .4, y - h * .5, x + ox + w, y); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+function drawKnifeHeld(bob) {
+  if (!knifeOn() || mode === 'dead') return;
+  const a = knifeAimAngle(), side = SW.side, s = KN.show;
+  const hx = P.x + side * 19 + Math.cos(a) * KN.flick * 8, hy = P.y + 8 - bob + Math.sin(a) * KN.flick * 8;
+  if (s <= .02) return;
+  ctx.save(); ctx.translate(hx, hy); ctx.rotate(a); const sc = s < 1 ? 1 - Math.pow(1 - s, 3) : 1; ctx.scale(sc, sc); ctx.translate(6, 0);
+  glow(8, 0, 22, PURPLE.hot, .35 + Math.sin(T * 10) * .08);
+  paintKnife(ctx, .5 + Math.sin(T * 8) * .5);
+  ctx.restore();
+  // flames ride the blade, always licking upward
+  const bx = hx + Math.cos(a) * 16 * sc, by = hy + Math.sin(a) * 16 * sc;
+  knifeFlames(bx, by, .7 * sc, 3, 0);
+  if (s < 1 && Math.random() < .6) parts.push({ x: bx + rand(-8, 8), y: by + rand(-8, 8), vx: rand(-20, 20), vy: rand(-60, -20), life: .25, max: .25, size: rand(2, 3), color: pick([PURPLE.light, PURPLE.pink]), kind: 'star', glow: true });
+}
+function drawKnives() {
+  for (const k of knives) {
+    if (k.st === 'fly') {
+      // motion streak behind the dagger
+      const tr = [{ x: k.x, y: k.y }, ...k.trail];
+      for (let i = 0; i < tr.length - 1; i++) {
+        const f = 1 - i / tr.length;
+        ctx.strokeStyle = i < 2 ? PURPLE.light : PURPLE.hot; ctx.globalAlpha = .7 * f; ctx.lineCap = 'round'; ctx.lineWidth = 7 * f;
+        ctx.beginPath(); ctx.moveTo(tr[i].x, tr[i].y); ctx.lineTo(tr[i + 1].x, tr[i + 1].y); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      glow(k.x, k.y, 30, PURPLE.hot, .5);
+      ctx.save(); ctx.translate(k.x, k.y); ctx.rotate(k.a); ctx.scale(1.15, 1.15); ctx.translate(-12, 0); paintKnife(ctx, 1); ctx.restore();
+    } else {
+      const fade = k.st === 'fade' || k.st === 'ground' ? Math.max(0, 1 - Math.max(0, k.t - (k.life - .35)) / .35) : 1;
+      if (fade <= 0) continue;
+      const z = k.z || 0;
+      if (k.st === 'drop') { ctx.globalAlpha = .25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(k.x, k.y + 4, 10, 3, 0, 0, 6.28); ctx.fill(); }
+      ctx.globalAlpha = fade;
+      ctx.save(); ctx.translate(k.x, k.y - z); ctx.rotate(k.a);
+      // stuck daggers are half buried: draw only the hilt end
+      if (k.st === 'stuck' || k.st === 'fade' || k.st === 'ground') { ctx.beginPath(); ctx.rect(-40, -12, 40 + (k.st === 'ground' ? 8 : 6), 24); ctx.clip(); ctx.translate(-12, 0); }
+      paintKnife(ctx, .3);
+      ctx.restore();
+      if (k.st === 'stuck' && Math.random() < .35) parts.push({ x: k.x + rand(-3, 3), y: k.y - 2, vx: rand(-10, 10), vy: rand(-60, -30), life: .3, max: .3, size: rand(2, 3.5), color: pick([PURPLE.hot, PURPLE.pink]), kind: 'dot', glow: true });
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+function drawDrops() {
+  for (const d of drops) {
+    ctx.globalAlpha = .22; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(d.x, d.y + 2, d.r, d.r * .45, 0, 0, 6.28); ctx.fill();
+    ctx.globalAlpha = 1; ctx.fillStyle = d.c;
+    const sp = Math.hypot(d.vx, d.vy - d.vz) * .012, ang = Math.atan2(d.vy - d.vz, d.vx);
+    ctx.save(); ctx.translate(d.x, d.y - d.z); ctx.rotate(ang); ctx.beginPath(); ctx.ellipse(0, 0, d.r * (1 + Math.min(1.4, sp)), d.r, 0, 0, 6.28); ctx.fill();
+    ctx.fillStyle = PURPLE.light; ctx.globalAlpha = .7; ctx.beginPath(); ctx.arc(-d.r * .2, -d.r * .3, d.r * .35, 0, 6.28); ctx.fill(); ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+}
+function drawDecals() {
+  for (const dc of decals) {
+    const a = Math.min(1, dc.t / .08) * Math.min(1, (dc.life - dc.t) / 1.5) * .8;
+    if (a <= 0) continue;
+    ctx.globalAlpha = a; ctx.fillStyle = dc.c;
+    for (const b of dc.blobs) { ctx.beginPath(); ctx.ellipse(dc.x + b.dx, dc.y + b.dy, b.r * (b === dc.blobs[0] ? dc.stretch * .9 + .3 : 1), b.r * .62, b === dc.blobs[0] ? dc.a * .15 : 0, 0, 6.28); ctx.fill(); }
+    // wet sheen
+    const m = dc.blobs[0]; ctx.globalAlpha = a * .5; ctx.fillStyle = PURPLE.hot;
+    ctx.beginPath(); ctx.ellipse(dc.x - m.r * .25, dc.y - m.r * .15, m.r * .45, m.r * .18, 0, 0, 6.28); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+function drawSplats() {
+  for (const sp of splats) {
+    const k = sp.t / sp.life, g = 1 - Math.pow(1 - Math.min(1, sp.t / .07), 3), R = sp.r * (.5 + .7 * g), al = k < .45 ? 1 : 1 - (k - .45) / .55;
+    const shape = (scale) => {
+      ctx.beginPath();
+      const n = sp.blob.length;
+      for (let i = 0; i <= n; i++) {
+        const ang = sp.spin + i / n * Math.PI * 2, fwd = Math.max(0, Math.cos(ang - sp.a));
+        const rr = R * scale * sp.blob[i % n] * (1 + fwd * fwd * .9);
+        const x = sp.x + Math.cos(ang) * rr, y = sp.y + Math.sin(ang) * rr * .85;
+        if (i === 0) ctx.moveTo(x, y); else { const pa = sp.spin + (i - .5) / n * Math.PI * 2, pr = R * scale * .78; ctx.quadraticCurveTo(sp.x + Math.cos(pa) * pr, sp.y + Math.sin(pa) * pr * .85, x, y); }
+      }
+      ctx.closePath();
+    };
+    ctx.globalAlpha = al;
+    glow(sp.x, sp.y, R * 1.8, PURPLE.hot, .5 * al);
+    shape(1.08); ctx.fillStyle = PURPLE.dark; ctx.fill();
+    shape(1); ctx.fillStyle = PURPLE.mid; ctx.fill();
+    shape(.7); ctx.fillStyle = PURPLE.hot; ctx.fill();
+    if (k < .5) { ctx.globalAlpha = al * (1 - k * 2); shape(.38); ctx.fillStyle = PURPLE.core; ctx.fill(); }
+    ctx.globalAlpha = 1;
+  }
+}
+function drawKnifeAim() {
+  if (!knifeOn() || mode !== 'play') return;
+  const a = knifeAimAngle(), active = knifeHold || (swordDrag && swordDrag.on);
+  const tgt = (!swordDrag || !swordDrag.on) && !P.manual && SET.autoAim ? nearest(P.x, P.y, KNIFE.range) : null;
+  const len = tgt ? Math.hypot(tgt.x - P.x, tgt.y - P.y) - tgt.r - 6 : KNIFE.range;
+  const x0 = P.x + Math.cos(a) * 26, y0 = P.y + 6 + Math.sin(a) * 26, x1 = P.x + Math.cos(a) * len, y1 = P.y + 6 + Math.sin(a) * len;
+  ctx.save(); ctx.lineCap = 'round';
+  ctx.globalAlpha = active ? .85 : .5;
+  ctx.setLineDash([3, 9]); ctx.lineDashOffset = -T * 60; ctx.lineWidth = 3; ctx.strokeStyle = PURPLE.light;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); ctx.setLineDash([]);
+  if (tgt) {
+    // lock-on brackets
+    const r = tgt.r + 10 + Math.sin(T * 8) * 2, cx = tgt.x, cy = tgt.y, rot = T * 1.5;
+    ctx.strokeStyle = PURPLE.hot; ctx.lineWidth = 3;
+    for (let i = 0; i < 4; i++) { const q = rot + i * Math.PI / 2; ctx.beginPath(); ctx.arc(cx, cy, r, q - .35, q + .35); ctx.stroke(); }
+    ctx.fillStyle = PURPLE.light; ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, 6.28); ctx.fill();
+  } else {
+    ctx.translate(x1, y1); ctx.rotate(a); ctx.fillStyle = PURPLE.light;
+    ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(-4, -6); ctx.lineTo(-1, 0); ctx.lineTo(-4, 6); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
 }
 
 /* ---------- impact frame ---------- */
@@ -3317,6 +3637,36 @@ const swordSfx = (() => {
       osc('triangle', 880 * p, 1760 * p, .1, .045, { delay: .045, send: .3 });
       osc('sine', 1320 * p, 1320 * p, .25, .025, { delay: .09, send: .5 });
     },
+    knifeThrow() {
+      if (!ok()) return; const p = vary();
+      // a fast thin swish, a wrist flick and a soft flame puff
+      nz(.09, 0.468, 'bandpass', 1800 * p, 6500 * p, 2.2, { attack: .006, sweep: .07 });
+      nz(.05, 0.144, 'highpass', 5200, 0, .7, { attack: .003 });
+      osc('triangle', 950 * p, 320, .045, 0.063);
+      nz(.16, 0.126, 'lowpass', 420, 1500, .8, { attack: .02 });
+    },
+    splat(killed, crit) {
+      if (!ok()) return; const p = vary();
+      nz(.05, 0.672, 'lowpass', 2600, 280, .7);                                       // wet slap
+      osc('triangle', 220 * p, 75, .09, 0.416);                                       // thunk as it sinks in
+      nz(.16, 0.576, 'bandpass', 1150 * p, 210, 4.5, { sweep: .12, delay: .004 });    // squelch (resonant sweep down)
+      nz(.1, 0.32, 'bandpass', 2700 * p, 850, 3, { sweep: .08, delay: .012 });        // second wet layer
+      const nd = killed ? 6 : 4;                                                     // droplets pattering down
+      for (let i = 0; i < nd; i++) osc('sine', rand(900, 1800), rand(260, 460), .035, .045, { delay: rand(.07, .3) });
+      nz(.3, 0.064, 'highpass', 4600, 0, .7, { delay: .02, attack: .03 });           // purple fire sizzle
+      if (crit) osc('sine', 2500 * p, 2380 * p, .22, 0.026, { send: .4 });
+      if (killed) {
+        nz(.24, 0.512, 'lowpass', 750, 110, .8, { delay: .008 });                     // bigger, heavier splat
+        osc('sine', 145 * p, 42, .24, 0.544);
+        nz(.13, 0.224, 'bandpass', 320, 950, 5, { delay: .05, sweep: .1 });           // squish
+      }
+    },
+    knifeTink() {
+      if (!ok()) return; const p = vary();
+      osc('triangle', 320 * p, 120, .06, .09);
+      nz(.04, .1, 'bandpass', 3200 * p, 0, 6);
+      osc('square', 2300 * p, 1900 * p, .05, .012, { send: .3 });
+    },
     waveOnly() { if (!ok()) return; nz(.6, .22, 'lowpass', 400, 140, .6, { send: .5 }); osc('sine', 110, 40, .4, .3); },
     charge(on) {
       if (!ok()) { hum = null; return; }
@@ -3507,6 +3857,7 @@ function update(dt) {
   P.moving = ml > .05; if (P.moving) { P.walk += dt; P.mdx = mx / ml; P.mdy = my / ml; }
   updateAbilities(dt);
   updateSword(dt);
+  updateKnife(dt);
   updateCycle(dt);
   updateWorld(dt);
   updateTips(dt);
@@ -3524,7 +3875,7 @@ function update(dt) {
   if (aimJoy) { manual = true; const dx = aimJoy.x - aimJoy.ox, dy = aimJoy.y - aimJoy.oy; if (Math.hypot(dx, dy) > 8) aim = Math.atan2(dy, dx); }
   mouseT -= dt;
   if (!manual && mouseAim && mouseT > 0) { const px = VW / 2 + (P.x - cam.x) * ZOOM, py = VH / 2 + (P.y - cam.y) * ZOOM; aim = Math.atan2(mouseAim.y - py, mouseAim.x - px); manual = true; }
-  if (swordDrag && swordDrag.on && swordOn()) { manual = true; aim = swordDrag.a; }
+  if (swordDrag && swordDrag.on && (swordOn() || knifeOn())) { manual = true; aim = swordDrag.a; }
   P.manual = manual;
   const target = nearest(P.x, P.y, 440);
   if (manual) P.face = Math.cos(aim) < 0 ? -1 : 1;
@@ -3537,7 +3888,7 @@ function update(dt) {
     aim = Math.atan2(my, mx); if (Math.abs(mx) > .1) P.face = Math.sign(mx);
   }
   castT = Math.max(0, castT - dt); P.castFx = Math.max(0, (P.castFx || 0) - dt);
-  if (!swordOn() && castT <= 0 && (manual || (target && SET.autoAim))) { cast(target); castT = SPELLS[cur].cd / S.rate; }
+  if (weapon === 'wand' && castT <= 0 && (manual || (target && SET.autoAim))) { cast(target); castT = SPELLS[cur].cd / S.rate; }
 
   if (waveState === 'fighting') {
     spawnT -= dt;
@@ -3558,7 +3909,7 @@ function update(dt) {
     const slowMul = e.slow > 0 ? .45 : 1; e.slow -= dt; e.flash -= dt;
     if (e.burn > 0) {
       e.burn -= dt; e.burnTick -= dt;
-      if (Math.random() < dt * 14) parts.push({ x: e.x + rand(-e.r, e.r) * .6, y: e.y - rand(0, e.r), vx: rand(-10, 10), vy: -50, life: .4, max: .4, size: rand(3, 6), color: '#ff8a3d', kind: 'dot', glow: true });
+      if (Math.random() < dt * 14) parts.push({ x: e.x + rand(-e.r, e.r) * .6, y: e.y - rand(0, e.r), vx: rand(-10, 10), vy: -50, life: .4, max: .4, size: rand(3, 6), color: e.burnCol || '#ff8a3d', kind: 'dot', glow: true });
       if (e.burnTick <= 0) { e.burnTick = .4; hurt(e, e.burnDps * .4, '#ff9d5c'); }
       if (e.dead) continue;
     }
@@ -3899,7 +4250,7 @@ function drawPlayer() {
   const blink = P.inv > 0 && Math.floor(P.inv * 16) % 2 === 0;
   ctx.save(); if (blink) ctx.globalAlpha = .45;
   ctx.translate(P.x, P.y + h / 2 - bob); ctx.scale(P.face / squash, squash);
-  const img = swordOn() && WIZ_FIST.complete && WIZ_FIST.naturalWidth ? WIZ_FIST : WIZ;
+  const img = weapon !== 'wand' && WIZ_FIST.complete && WIZ_FIST.naturalWidth ? WIZ_FIST : WIZ;
   if (img.complete && img.naturalWidth) { try { ctx.drawImage(img, -w / 2, -h, w, h); } catch (e) {} }
   ctx.restore();
   if (S.shield > 0) {
@@ -3912,8 +4263,9 @@ function drawPlayer() {
     ctx.restore();
   }
   drawSword(bob);
+  drawKnifeHeld(bob);
   if (P.warm) glow(P.x, P.y + 10, 46, '#ff9a3d', .35 + Math.sin(T * 6) * .08);
-  if (swordOn()) return;
+  if (weapon !== 'wand') return;
   const tip = wandTip(), sp = SPELLS[cur];
   const pulse = 1 + Math.sin(T * 8) * .2 + (P.castFx || 0) * 4;
   glow(tip.x, tip.y - bob, 18 * pulse, sp.color, .7);
@@ -4032,7 +4384,9 @@ function render() {
   for (const it of items) drawTome(it);
   drawParts(false);
 
+  drawDecals();
   drawSwordAim();
+  drawKnifeAim();
   const actors = enemies.map(e => ({ y: e.y, f: e.hs > 0 ? () => { const j = e.hs * 30; ctx.save(); ctx.translate(rand(-j, j), rand(-j * .5, j * .5)); drawEnemy(e); ctx.restore(); } : () => drawEnemy(e) }));
   actors.push({ y: P.y + 10, f: drawPlayer });
   pushStructActors(actors);
@@ -4055,6 +4409,9 @@ function render() {
   for (const s of shots) drawShot(s);
   drawParts(true);
   drawCuts();
+  drawKnives();
+  drawDrops();
+  drawSplats();
   for (const z of zaps) {
     const k = z.life / z.max;
     if (z.ring) {
@@ -4162,10 +4519,7 @@ function hud() {
     const t = swordT > 0 ? swordT.toFixed(1) : '', c = b.querySelector('.cdt'); if (c.textContent !== t) c.textContent = t;
     b.classList.toggle('ready', swordReady);
   }
-  if (swordOn() && mode === 'play') {
-    const b = $('swordBtn'); b.style.setProperty('--p', swordT / SWORD.cooldown);
-    const c = b.querySelector('.cdt'); const txt = swordT > 0 ? '' : ''; if (c.textContent !== txt) c.textContent = txt;
-  }
+  if (knifeOn() && mode === 'play') $('knifeBtn').style.setProperty('--p', Math.min(1, knifeT / KNIFE.cooldown));
   if (mode !== 'menu' && mode !== 'loading') {
     const c = cycleInfo(), txt = (c.night ? 'Day in ' : 'Night in ') + fmtClock(c.left);
     const cls = c.night ? 'night' : (c.left <= DAYNIGHT.arrowWarning ? 'soon' : '');

@@ -688,7 +688,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     </div>
     <p id="storeTabNote"></p>
     <div class="sgrid" id="storeGrid"></div>
-    <div class="info"><img id="infoKing" alt=""><div><b>How to get gems</b><span>A boss comes every 5 waves: Slime King (5 gems), Lich Lord (8), Stone Titan (10) and Spider Queen (12), then they repeat. Save 30 gems for the Giant Sword!</span></div></div>
+    <div class="info"><img id="infoKing" alt=""><div><b>How to get gems</b><span>A boss comes every 5 waves: Slime King (5 gems), Lich Lord (8), Stone Titan (10) and Spider Queen (12), then they repeat.</span></div></div>
   </div>
 </div>
 
@@ -1228,9 +1228,10 @@ if (!Array.isArray(META.abilities)) META.abilities = ['dash'];
 if (!Array.isArray(META.abEquip)) META.abEquip = ['dash'];
 const curWand = () => WANDS.find(w => w.id === META.wand) || WANDS[0];
 const WEAPONS = [
-  { id: 'sword', name: 'Giant Sword', price: 30, c: '#ff9a5c', desc: 'A hellfire blade as big as you. Start every run with it: tap Slash for a heavy burning swing, hold it to charge a wave of fire.' },
+  // Giant Sword is free for testing; set price back to 30 later
+  { id: 'sword', name: 'Giant Sword', price: 0, c: '#ff9a5c', desc: 'A hellfire blade as big as you. Start every run with it: tap Slash for a heavy burning swing, hold it to charge a wave of fire.' },
 ];
-const weaponIcon = w => `<span class="abico" style="--c:${w.c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg></span>`;
+const weaponIcon = w => w.id === 'sword' ? `<span class="tile" style="--c:#3b1a22">${swordImg(40)}</span>` : `<span class="abico" style="--c:${w.c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg></span>`;
 if (!Array.isArray(META.weapons)) META.weapons = [];
 function applyLoadout() {
   if (META.weapons.includes('sword')) S.sword = true;
@@ -1529,7 +1530,7 @@ function renderStore(enter = true) {
   const list = storeList(storeTab);
   $('storeGrid').innerHTML = list.map((x, k) => {
     const poor = !x.owned && META.gems < x.it.price;
-    const price = x.owned ? 'Owned' : `<i class="gem sm"></i>${x.it.price}`;
+    const price = x.owned ? 'Owned' : x.it.price === 0 ? 'Free' : `<i class="gem sm"></i>${x.it.price}`;
     return `<button class="scard ${enter ? 'enter' : ''} ${x.owned ? 'owned' : ''} ${poor ? 'poor' : ''}" data-k="${k}" style="--c:${x.color};--i:${k}">
       <span class="sicon">${x.icon}</span><b>${x.it.name}</b><span class="sdesc">${x.it.desc}</span><span class="sprice">${price}</span></button>`;
   }).join('');
@@ -1548,7 +1549,7 @@ function openSheet(x) {
   const it = x.it, miss = it.price - META.gems;
   let action;
   if (x.owned) action = `<p class="sd" style="color:var(--ink)"><b>${equippedText(x)}</b></p>`;
-  else if (miss <= 0) action = `<button class="btn go" id="sheetBuy">Buy for ${it.price} gems</button>`;
+  else if (miss <= 0) action = `<button class="btn go" id="sheetBuy">${it.price === 0 ? 'Get it free' : `Buy for ${it.price} gems`}</button>`;
   else action = `<button class="btn ghost" disabled style="opacity:.7">Buy for ${it.price} gems</button><span class="need">You need ${miss} more gem${miss > 1 ? 's' : ''}. Beat a boss to earn some!</span>`;
   $('sheetBody').innerHTML = `
     <em class="chip soft">${x.cat}</em>
@@ -2321,7 +2322,7 @@ const RECIPES = [
   { id: 'potion', name: 'Health Potion', desc: 'Heal 40% of your health', cost: { herb: 6, wood: 3 }, c: '#ff5d73', glyph: 'POT', make() { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .4); } },
   { id: 'shieldc', name: 'Mana Shield', desc: 'Block the next hit', cost: { crystal: 6, stone: 2 }, c: '#38c6ff', glyph: 'SHD', make() { S.shield = Math.min(3, S.shield + 1); }, ok: () => S.shield < 3 },
   { id: 'bombs', name: '3 Bombs', desc: 'Adds 3 Bomb Bag charges', cost: { stone: 6, wood: 3, crystal: 1 }, c: '#ff9a3d', glyph: 'BMB', make() { addSpecial('bomb', 3); } },
-  { id: 'sword', name: 'Giant Sword', desc: 'A hellfire blade as big as you. Tap Slash for a heavy burning swing, or hold it to charge a huge swing that sends out a wave of fire.', cost: { xp: 250, soul: 3, stone: 8, crystal: 5 }, c: '#e8eef8', glyph: 'SWD', make() { S.sword = true; $('swordBtn').hidden = false; banner('Giant Sword crafted!', 'Tap Slash to swing, hold it to charge a fire wave (X on a keyboard)', 'magic'); }, ok: () => !S.sword, done: 'You have it' },
+  { id: 'sword', name: 'Giant Sword', desc: 'A hellfire blade as big as you. Tap Slash for a heavy burning swing, or hold it to charge a huge swing that sends out a wave of fire.', cost: { xp: 250, soul: 3, stone: 8, crystal: 5 }, c: '#e8eef8', glyph: 'SWD', icon: () => swordImg(40), make() { S.sword = true; $('swordBtn').hidden = false; banner('Giant Sword crafted!', 'Tap Slash to swing, hold it to charge a fire wave (X on a keyboard)', 'magic'); }, ok: () => !S.sword, done: 'You have it' },
   { id: 'arrows', name: '5 Ice Arrows', desc: 'Adds 5 Ice Bow charges', cost: { crystal: 5, wood: 4 }, c: '#7fdcff', glyph: 'ARW', make() { addSpecial('bow', 5); } },
 ];
 const RARITY = {
@@ -2523,7 +2524,7 @@ function renderBag() {
       ? `<span class="cost ${xpAvail() < n ? 'short' : ''}"><span class="resico sm" style="--c:#38c6ff"><svg viewBox="0 0 9 8" shape-rendering="crispEdges"><path fill="#2d1f4f" d="M4 0h1v1H4zM3 1h3v1H3zM0 2h9v1H0zM1 3h7v1H1zM2 4h5v2H2zM1 6h3v1H1zM5 6h3v1H5z"/></svg></span>${n} XP</span>`
       : `<span class="cost ${res[k] < n ? 'short' : ''}">${resIcon(k, true)}${n} ${RES[k].name}</span>`).join(' ');
     const doneTxt = rc.done && rc.ok && !rc.ok();
-    return `<div class="row-item"><span class="tile" style="--c:${rc.c}">${rc.glyph}</span><div><b>${rc.name}</b><span class="d">${rc.desc}</span><div class="meta">${cost}</div></div>${doneTxt ? `<button class="act mint" disabled>${rc.done}</button>` : `<button class="act ${can ? '' : 'poor'}" data-craft="${i}" ${can ? '' : 'aria-disabled="true"'}>Craft</button>`}</div>`;
+    return `<div class="row-item"><span class="tile" style="--c:${rc.c}">${rc.icon ? rc.icon() : rc.glyph}</span><div><b>${rc.name}</b><span class="d">${rc.desc}</span><div class="meta">${cost}</div></div>${doneTxt ? `<button class="act mint" disabled>${rc.done}</button>` : `<button class="act ${can ? '' : 'poor'}" data-craft="${i}" ${can ? '' : 'aria-disabled="true"'}>Craft</button>`}</div>`;
   }).join('');
   document.querySelectorAll('#bag [data-hold]').forEach(b => b.onclick = () => { held = b.dataset.hold; buildSpecialBtn(); sfx('click'); renderBag(); });
   document.querySelectorAll('#bag [data-craft]').forEach(b => b.onclick = () => {
@@ -2740,6 +2741,33 @@ function swordSlash(charged) {
   }
   sfx('slash'); addShake(hits ? 6 : 2); if (hits) freeze = Math.max(freeze, .05);
 }
+function paintSword(g, heat) {
+  // blade: dark crimson with a molten edge
+  g.fillStyle = '#1a0a0e'; g.fillRect(-8, -76, 16, 66); g.fillRect(-5, -82, 10, 8); g.fillRect(-2, -86, 4, 5);
+  g.fillStyle = '#5a0f14'; g.fillRect(-6, -76, 12, 64); g.fillRect(-3, -81, 6, 6);
+  g.fillStyle = heat > .5 ? '#ffcf3f' : '#ff7a2a'; g.fillRect(-6, -76, 3, 62); g.fillRect(-3, -81, 2, 5);
+  g.fillStyle = '#ff3b3b'; g.fillRect(3, -74, 2, 60);
+  g.fillStyle = '#ffcf3f'; g.globalAlpha = .6 + heat * .4; g.fillRect(-1, -70, 2, 52); g.globalAlpha = 1;
+  // winged guard with a fire gem
+  g.fillStyle = '#1a0a0e'; g.fillRect(-22, -14, 44, 9); g.fillRect(-26, -20, 8, 8); g.fillRect(18, -20, 8, 8);
+  g.fillStyle = '#3b1a22'; g.fillRect(-20, -12, 40, 5); g.fillRect(-24, -18, 4, 5); g.fillRect(20, -18, 4, 5);
+  g.fillStyle = '#ff3b3b'; g.fillRect(-3, -13, 6, 6); g.fillStyle = '#ffcf3f'; g.fillRect(-1, -12, 2, 2);
+  // grip and pommel
+  g.fillStyle = '#1a0a0e'; g.fillRect(-4, -6, 8, 18);
+  g.fillStyle = '#5a2c1a'; g.fillRect(-2, -5, 4, 15);
+  g.fillStyle = '#ff7a2a'; g.fillRect(-4, 11, 8, 6);
+}
+let swordIconURL = null;
+function swordImg(size = 40) {
+  if (!swordIconURL) {
+    const c = document.createElement('canvas'); c.width = c.height = 96;
+    const g = c.getContext('2d');
+    g.translate(48, 48); g.rotate(Math.PI / 4); g.scale(.85, .85); g.translate(0, 34);
+    paintSword(g, 0);
+    swordIconURL = c.toDataURL();
+  }
+  return `<img src="${swordIconURL}" alt="" style="width:${size}px;height:${size}px;display:block">`;
+}
 function drawSword() {
   if (!S.sword || mode === 'dead') return;
   const hx = P.x - P.face * 14, hy = P.y + 8;
@@ -2763,20 +2791,7 @@ function drawSword() {
   } else ang = -Math.PI / 2 - P.face * .5 + Math.sin(T * 2) * .05;
   ctx.save(); ctx.translate(hx, hy); ctx.rotate(ang + Math.PI / 2);
   glow(0, -46, 40 + heat * 30, '#ff5d3b', .25 + heat * .45);
-  // blade: dark crimson with a molten edge
-  ctx.fillStyle = '#1a0a0e'; ctx.fillRect(-8, -76, 16, 66); ctx.fillRect(-5, -82, 10, 8); ctx.fillRect(-2, -86, 4, 5);
-  ctx.fillStyle = '#5a0f14'; ctx.fillRect(-6, -76, 12, 64); ctx.fillRect(-3, -81, 6, 6);
-  ctx.fillStyle = heat > .5 ? '#ffcf3f' : '#ff7a2a'; ctx.fillRect(-6, -76, 3, 62); ctx.fillRect(-3, -81, 2, 5);
-  ctx.fillStyle = '#ff3b3b'; ctx.fillRect(3, -74, 2, 60);
-  ctx.fillStyle = '#ffcf3f'; ctx.globalAlpha = .6 + heat * .4; ctx.fillRect(-1, -70, 2, 52); ctx.globalAlpha = 1;
-  // winged guard with a fire gem
-  ctx.fillStyle = '#1a0a0e'; ctx.fillRect(-22, -14, 44, 9); ctx.fillRect(-26, -20, 8, 8); ctx.fillRect(18, -20, 8, 8);
-  ctx.fillStyle = '#3b1a22'; ctx.fillRect(-20, -12, 40, 5); ctx.fillRect(-24, -18, 4, 5); ctx.fillRect(20, -18, 4, 5);
-  ctx.fillStyle = '#ff3b3b'; ctx.fillRect(-3, -13, 6, 6); ctx.fillStyle = '#ffcf3f'; ctx.fillRect(-1, -12, 2, 2);
-  // grip and pommel
-  ctx.fillStyle = '#1a0a0e'; ctx.fillRect(-4, -6, 8, 18);
-  ctx.fillStyle = '#5a2c1a'; ctx.fillRect(-2, -5, 4, 15);
-  ctx.fillStyle = '#ff7a2a'; ctx.fillRect(-4, 11, 8, 6);
+  paintSword(ctx, heat);
   ctx.restore();
   if (swing && Math.random() < .8) parts.push({ x: hx + Math.cos(ang) * 70, y: hy + Math.sin(ang) * 70, vx: rand(-40, 40), vy: rand(-80, -20), life: .4, max: .4, size: rand(2, 5), color: pick(['#ff7a2a', '#ffcf3f']), glow: true });
 }

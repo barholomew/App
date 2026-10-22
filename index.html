@@ -391,7 +391,7 @@ button { font: inherit; color: inherit; }
 #resetBtn.armed { background: var(--berry); color: #fff; }
 /* inventory */
 .tabs { display: flex; gap: 4px; background: var(--paper); border: 3px solid var(--ink); border-radius: 99px; padding: 4px; }
-.tabs button { flex: 1; appearance: none; border: 0; cursor: pointer; background: none; border-radius: 99px; padding: 8px 4px; font: 900 15px var(--font-body); color: var(--ink-soft); }
+.tabs button { flex: 1; min-width: 0; appearance: none; border: 0; cursor: pointer; background: none; border-radius: 99px; padding: 8px 2px; font: 900 14px var(--font-body); color: var(--ink-soft); }
 .tabs button small { display: block; font-size: 11px; font-weight: 800; opacity: .75; }
 .tabs button[aria-selected="true"] { background: var(--sun); color: var(--ink); box-shadow: inset 0 0 0 3px var(--ink); }
 .card.item { grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; }
@@ -687,15 +687,16 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <div class="awning" aria-hidden="true"></div>
     <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button><span class="stars" aria-label="Gems"><i class="gem"></i><span id="storeGems">0</span></span></div>
     <div class="shophello"><h2>Shop</h2></div>
-    <p>Spend gems from bosses on new wands, abilities and relics. Tap an item to see more.</p>
+    <p>Spend gems from bosses on new wands, abilities, relics and weapons. Tap an item to see more.</p>
     <div class="tabs" role="tablist">
       <button role="tab" data-stab="wands">Wands<small id="cntWands"></small></button>
       <button role="tab" data-stab="abilities">Abilities<small id="cntAbilities"></small></button>
       <button role="tab" data-stab="relics">Relics<small id="cntRelics"></small></button>
+      <button role="tab" data-stab="weapons">Weapons<small id="cntWeapons"></small></button>
     </div>
     <p id="storeTabNote"></p>
     <div class="sgrid" id="storeGrid"></div>
-    <div class="info"><img id="infoKing" alt=""><div><b>How to get gems</b><span>A boss comes every 5 waves: Slime King (5 gems), Lich Lord (8), Stone Titan (10) and Spider Queen (12), then they repeat.</span></div></div>
+    <div class="info"><img id="infoKing" alt=""><div><b>How to get gems</b><span>A boss comes every 5 waves: Slime King (5 gems), Lich Lord (8), Stone Titan (10) and Spider Queen (12), then they repeat. Save 30 gems for the Giant Sword!</span></div></div>
   </div>
 </div>
 
@@ -1185,7 +1186,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
 const SET = Object.assign({ autoAim: true, music: true, sfx: true, shake: true, numbers: true, vibrate: true, fx: 'lots' }, store.get('wgSettings', {}));
-const META_DEFAULT = { gems: 0, gemsTotal: 0, wands: ['oak'], relics: [], wand: 'oak', equip: [], abilities: ['dash'], abEquip: ['dash'], chests: 0, runs: 0, kills: 0, bestCombo: 0, bosses: 0 };
+const META_DEFAULT = { gems: 0, gemsTotal: 0, wands: ['oak'], relics: [], wand: 'oak', equip: [], abilities: ['dash'], abEquip: ['dash'], weapons: [], chests: 0, runs: 0, kills: 0, bestCombo: 0, bosses: 0 };
 let META = Object.assign({}, META_DEFAULT, store.get('wgMeta', {}));
 delete META.stars; delete META.starsTotal;
 const GEMS_BY_BOSS = { boss: 5, lich: 8, titan: 10, queen: 12 };
@@ -1234,7 +1235,13 @@ const abIcon = A => `<span class="abico" style="--c:${A.c}">${abSvg(A)}</span>`;
 if (!Array.isArray(META.abilities)) META.abilities = ['dash'];
 if (!Array.isArray(META.abEquip)) META.abEquip = ['dash'];
 const curWand = () => WANDS.find(w => w.id === META.wand) || WANDS[0];
+const WEAPONS = [
+  { id: 'sword', name: 'Giant Sword', price: 30, c: '#ff9a5c', desc: 'A hellfire blade as big as you. Start every run with it: tap Slash for a heavy burning swing, hold it to charge a wave of fire.' },
+];
+const weaponIcon = w => `<span class="abico" style="--c:${w.c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg></span>`;
+if (!Array.isArray(META.weapons)) META.weapons = [];
 function applyLoadout() {
+  if (META.weapons.includes('sword')) S.sword = true;
   META.equip.forEach(id => { const r = RELICS.find(x => x.id === id); if (r) r.apply(); });
 }
 
@@ -1482,7 +1489,7 @@ $('resetBtn').onclick = () => {
     sfx('nope'); return;
   }
   clearTimeout(resetTimer);
-  META = Object.assign({}, META_DEFAULT, { wands: ['oak'], relics: [], equip: [], abilities: ['dash'], abEquip: ['dash'] }); saveMeta();
+  META = Object.assign({}, META_DEFAULT, { wands: ['oak'], relics: [], equip: [], abilities: ['dash'], abEquip: ['dash'], weapons: [] }); saveMeta();
   best = 0; try { localStorage.setItem('wizardGroveBest', 0); } catch (e) {}
   b.classList.remove('armed'); b.textContent = 'Progress erased';
   setTimeout(() => { b.textContent = 'Reset progress'; }, 2000);
@@ -1507,12 +1514,15 @@ function storeList(tab) {
   });
   if (tab === 'abilities') return ABILITIES.map(A => ({ kind: 'a', it: A, owned: META.abilities.includes(A.id), color: A.c, icon: abIcon(A), cat: 'Ability',
     facts: [`Recharges in ${A.cd} seconds`, 'Equip up to 2'] }));
+  if (tab === 'weapons') return WEAPONS.map(w => ({ kind: 'g', it: w, owned: META.weapons.includes(w.id), color: w.c, icon: weaponIcon(w), cat: 'Weapon',
+    facts: ['Ready at the start of every run', 'Tap: burning swing', 'Hold: charged fire wave'] }));
   return RELICS.map(r => ({ kind: 'r', it: r, owned: META.relics.includes(r.id), color: r.c, icon: relicIcon(r), cat: 'Relic', facts: ['Works every run', 'Equip up to 2'] }));
 }
 const STORE_NOTES = {
   wands: 'Each wand shoots a different spell. You pick one wand before every run.',
   abilities: 'Abilities are buttons you tap during a run. They recharge after each use.',
   relics: 'Relics give you a bonus in every run, without tapping anything.',
+  weapons: 'Big weapons you keep forever. You start every run with them.',
 };
 function renderStore(enter = true) {
   $('storeGems').textContent = META.gems;
@@ -1521,6 +1531,7 @@ function renderStore(enter = true) {
   $('cntWands').textContent = count(storeList('wands'));
   $('cntAbilities').textContent = count(storeList('abilities'));
   $('cntRelics').textContent = count(storeList('relics'));
+  $('cntWeapons').textContent = count(storeList('weapons'));
   document.querySelectorAll('[data-stab]').forEach(b => b.setAttribute('aria-selected', b.dataset.stab === storeTab));
   $('storeTabNote').textContent = STORE_NOTES[storeTab];
   const list = storeList(storeTab);
@@ -1537,6 +1548,7 @@ function closeSheet() { $('sheet').hidden = true; }
 $('sheet').onclick = e => { if (e.target === $('sheet')) closeSheet(); };
 function equippedText(x) {
   if (x.kind === 'w') return 'You can pick it when you press Play.';
+  if (x.kind === 'g') return 'Owned. You start every run with it.';
   const eq = x.kind === 'a' ? META.abEquip : META.equip;
   return eq.includes(x.it.id) ? 'Equipped. It is ready for your next run.' : 'Owned. Equip it in your Inventory.';
 }
@@ -1563,6 +1575,7 @@ function openSheet(x) {
     let msg = `${it.name} bought!`;
     if (x.kind === 'w') { META.wands.push(it.id); msg += ' Pick it when you press Play.'; }
     else if (x.kind === 'a') { META.abilities.push(it.id); if (META.abEquip.length < 2) { META.abEquip.push(it.id); msg = `${it.name} bought and equipped!`; } else msg += ' Swap it in from your Inventory.'; }
+    else if (x.kind === 'g') { META.weapons.push(it.id); msg = `${it.name} bought! You will start every run with it.`; }
     else { META.relics.push(it.id); if (META.equip.length < 2) { META.equip.push(it.id); msg = `${it.name} bought and equipped!`; } else msg += ' Swap it in from your Inventory.'; }
     saveMeta(); sfx('buy'); confetti(30); toast(msg);
     x.owned = true; openSheet(x); renderStore(false);
@@ -1784,7 +1797,7 @@ function startGame(i) {
   initAudio(); keepAwake(); sfx('click');
   resetRun(i); applyLoadout();
   [...SCREENS, 'dead', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
-  $('warmPill').hidden = true; lastCyc = ''; $('swordBtn').hidden = true; swordCharge = null; swordReady = false; joy = null; aimJoy = null;
+  $('warmPill').hidden = true; lastCyc = ''; $('swordBtn').hidden = !S.sword; swordCharge = null; swordReady = false; joy = null; aimJoy = null;
   buildSpellbar(); buildSpecialBtn(); $('bagBadge').hidden = true;
   $('hint').hidden = true; tipStep = -1; movedT = 0;
   let seen = false; try { seen = localStorage.getItem('wgTips') === '1'; } catch (e) {}
@@ -2316,7 +2329,7 @@ const RECIPES = [
   { id: 'potion', name: 'Health Potion', desc: 'Heal 40% of your health', cost: { herb: 6, wood: 3 }, c: '#ff5d73', glyph: 'POT', make() { P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .4); } },
   { id: 'shieldc', name: 'Mana Shield', desc: 'Block the next hit', cost: { crystal: 6, stone: 2 }, c: '#38c6ff', glyph: 'SHD', make() { S.shield = Math.min(3, S.shield + 1); }, ok: () => S.shield < 3 },
   { id: 'bombs', name: '3 Bombs', desc: 'Adds 3 Bomb Bag charges', cost: { stone: 6, wood: 3, crystal: 1 }, c: '#ff9a3d', glyph: 'BMB', make() { addSpecial('bomb', 3); } },
-  { id: 'sword', name: 'Giant Sword', desc: 'A sword as big as you. A hellfire blade as big as you. Tap Slash for a heavy burning swing, or hold it to charge a huge swing that sends out a wave of fire.', cost: { xp: 250, soul: 3, stone: 8, crystal: 5 }, c: '#e8eef8', glyph: 'SWD', make() { S.sword = true; $('swordBtn').hidden = false; banner('Giant Sword crafted!', 'Tap Slash to swing, hold it to charge a fire wave (X on a keyboard)', 'magic'); }, ok: () => !S.sword, done: 'Crafted' },
+  { id: 'sword', name: 'Giant Sword', desc: 'A hellfire blade as big as you. Tap Slash for a heavy burning swing, or hold it to charge a huge swing that sends out a wave of fire.', cost: { xp: 250, soul: 3, stone: 8, crystal: 5 }, c: '#e8eef8', glyph: 'SWD', make() { S.sword = true; $('swordBtn').hidden = false; banner('Giant Sword crafted!', 'Tap Slash to swing, hold it to charge a fire wave (X on a keyboard)', 'magic'); }, ok: () => !S.sword, done: 'You have it' },
   { id: 'arrows', name: '5 Ice Arrows', desc: 'Adds 5 Ice Bow charges', cost: { crystal: 5, wood: 4 }, c: '#7fdcff', glyph: 'ARW', make() { addSpecial('bow', 5); } },
 ];
 const RARITY = {

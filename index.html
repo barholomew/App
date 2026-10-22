@@ -356,6 +356,12 @@ button { font: inherit; color: inherit; }
 .realm.locked .rboss img { filter: brightness(0); opacity: .6; }
 .realm.nope { animation: nope .3s; }
 .starico { width: 18px; height: 18px; background: #ffd23a; clip-path: polygon(50% 0, 62% 35%, 100% 38%, 70% 60%, 80% 100%, 50% 78%, 20% 100%, 30% 60%, 0 38%, 38% 35%); display: inline-block; }
+.shardico { width: 12px; height: 16px; display: inline-block; background: var(--sc, #ff5fae); clip-path: polygon(50% 0, 100% 40%, 50% 100%, 0 40%); filter: drop-shadow(0 0 3px var(--sc, #ff5fae)); }
+.shardpill { --sc: #ff5fae; }
+.shardpill span { font-size: 13px; }
+.shardbar { position: relative; width: 100%; height: 26px; border: 3px solid var(--ink); border-radius: 99px; background: #2a2340; overflow: hidden; }
+.shardbar i { position: absolute; inset: 0; width: calc(var(--p) * 100%); background: var(--sc); box-shadow: inset 0 -4px 0 rgba(0,0,0,.2); }
+.shardbar span { position: relative; display: grid; place-items: center; height: 100%; font: 900 14px var(--font-body); color: #fff; text-shadow: var(--outline-sm); }
 .newweapon { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; text-align: left; padding: 10px 12px; border: 3px solid var(--ink); border-radius: 16px; background: linear-gradient(135deg, #2a1846, #4a2a6a); color: #fff; box-shadow: 0 4px 0 var(--ink), 0 0 24px rgba(255,207,63,.45); animation: badge .6s cubic-bezier(.2, 1.8, .4, 1) backwards .9s; }
 .newweapon small { display: block; font: 900 12px var(--font-body); color: #ffd23a; text-transform: uppercase; letter-spacing: .05em; }
 .newweapon b { display: block; font: 700 22px/1.1 var(--font-display); }
@@ -677,6 +683,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     </div>
     <div class="pill wave" id="wavePill"><span id="waveText">Wave 1</span></div>
     <div class="pill" id="goldPill"><i class="coin"></i><span id="goldText">0</span></div>
+    <div class="pill shardpill" id="shardPill" hidden><i class="shardico"></i><span id="shardText"></span></div>
     <div class="pill cycle" id="cyclePill"><i class="cyc-ico" id="cycleIco"></i><span id="cycleText">Night in 2:30</span></div>
     <div class="pill warm" id="warmPill" hidden><i class="flame"></i><span>Warmed by the fire!</span></div>
   </div>
@@ -754,7 +761,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <div class="awning" aria-hidden="true"></div>
     <div class="topline"><button class="back" data-to="title"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 1h1v1H3zM2 2h1v1H2zM1 3h6v2H1zM2 5h1v1H2zM3 6h1v1H3z"/></svg>Back</button><span class="wallet"><span class="stars" aria-label="Gems"><i class="gem"></i><span id="storeGems">0</span></span><span class="stars" aria-label="Gold"><i class="coin"></i><span id="storeGold">0</span></span></span></div>
     <div class="shophello"><h2>Shop</h2></div>
-    <p>Spend gems from bosses or gold from your runs on new abilities. Unlock weapons by beating realms. Tap an item to see more.</p>
+    <p>Spend gems and gold on abilities. Weapons are forged from shards you find in the realms. Tap an item to see more.</p>
     <div class="tabs" role="tablist">
       <button role="tab" data-stab="weapons">Weapons<small id="cntWeapons"></small></button>
       <button role="tab" data-stab="abilities">Abilities<small id="cntAbilities"></small></button>
@@ -872,6 +879,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <div class="statgrid" id="wonStats"></div>
     <div class="earn"><i class="gem"></i><span id="wonGems"></span></div>
     <div class="earn"><i class="coin"></i><span id="wonGold"></span></div>
+    <div class="earn"><i class="shardico"></i><span id="wonShards"></span></div>
     <button class="btn go" id="wonNext" style="width:100%">Next realm</button>
     <button class="btn ghost small" id="wonMap" style="width:100%">Realm map</button>
   </div>
@@ -885,6 +893,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <div class="statgrid" id="deadStats"></div>
     <div class="earn"><i class="gem"></i><span id="deadGems"></span></div>
     <div class="earn"><i class="coin"></i><span id="deadGold"></span></div>
+    <div class="earn"><i class="shardico"></i><span id="deadShards"></span></div>
     <p id="deadBestLine"></p>
     <button class="btn go" id="againBtn" style="width:100%">Play again</button>
     <button class="btn ghost small" id="deadMenuBtn" style="width:100%">Main menu</button>
@@ -1157,6 +1166,7 @@ function makeSprites() {
   def('titan', GOLEM, { o: '#1a100b', s: '#86684f', d: '#5a3e2e', y: '#ff3b1f' }, 'y');
   def('queen', SPIDER, { o: '#16060f', s: '#621f42', r: '#ffcf3f' }, 'r');
   def('lich', LICH, { o: '#100820', p: '#3a2470', w: '#d6ccb4', k: '#5dff8a', l: '#ffd166' }, 'k');
+  def('tslime', SLIME, { o: '#4a3000', h: '#ffc93a', w: '#fff2b0', k: '#3a2400', E: '#ffffff' });
   def('king', KNIGHT, { o: '#070407', m: '#3a2832', k: '#070407', r: '#b01e36', E: '#ff2020' });
   SPR.crown = sprite(CROWN.trim().split('\n').map(r => r.trim().padEnd(5, '.')).join('\n'), { o: '#5a3a00', y: '#ffd166', r: '#ef4b5c' });
 }
@@ -1181,6 +1191,7 @@ const TYPES = {
   knight:   { name: 'Knight', hp: 140, speed: 42, dmg: 28, r: 17, scale: 3, spr: 'knight', xp: 5, gold: 5, color: '#b8c0d0', armor: .5, note: 'armor halves damage' },
   titan:    { name: 'Stone Titan', hp: 1500, speed: 30, dmg: 45, r: 44, scale: 6, spr: 'titan', xp: 60, gold: 60, color: '#9a7a62', boss: true, note: 'boss, wave 15' },
   queen:    { name: 'Spider Queen', hp: 1300, speed: 52, dmg: 40, r: 38, scale: 7, spr: 'queen', xp: 70, gold: 70, color: '#7a2a52', boss: true, note: 'boss, wave 20' },
+  tslime:   { name: 'Treasure Slime', hp: 160, speed: 104, dmg: 0, r: 15, scale: 3, spr: 'tslime', xp: 6, gold: 10, color: '#ffd23a', note: 'flees with treasure' },
   king:     { name: 'The Hollow King', hp: 2200, speed: 40, dmg: 48, r: 34, scale: 6, spr: 'king', xp: 100, gold: 100, color: '#b01e36', boss: true, note: 'final boss of the Ashen Throne' },
   lich:     { name: 'Lich Lord', hp: 1000, speed: 34, dmg: 30, r: 30, scale: 4, spr: 'lich', xp: 50, gold: 50, color: '#7dff9a', boss: true, note: 'boss, wave 10' },
 };
@@ -1352,8 +1363,47 @@ const WEAPONS = [
 ];
 // weapons come from beating realms: you own exactly the ones whose realm you've cleared
 const weaponForRealm = r => WEAPONS.find(w => w.realm === r);
-const weaponEarned = w => (META.realm || 0) > w.realm;
-META.weapons = WEAPONS.filter(weaponEarned).map(w => w.id);
+// Weapons are forged from shards. Each weapon's shards drop in its own realm:
+// from the boss, elite monsters, Treasure Slimes and mysterious shrines.
+const SHARDS_NEED = { sword: 15, knife: 25, gaunt: 35, prism: 45 };
+META.shards = Object.assign({}, META.shards);
+WEAPONS.forEach(w => { if (META.weapons.includes(w.id)) META.shards[w.id] = Math.max(META.shards[w.id] || 0, SHARDS_NEED[w.id]); });
+const weaponOwned = id => META.weapons.includes(id);
+const shardHave = id => Math.min(SHARDS_NEED[id], META.shards[id] || 0);
+// which weapon's shards drop in this run (null = everything forged, shards turn into gems)
+function shardTarget() {
+  if (realmOn()) { const w = weaponForRealm(RUN.realm); if (w && !weaponOwned(w.id)) return w.id; }
+  if (RUN.alt && !weaponOwned(RUN.alt)) return RUN.alt;
+  const left = WEAPONS.filter(w => !weaponOwned(w.id));
+  RUN.alt = left.length ? left.sort((a, b) => a.realm - b.realm)[0].id : null;
+  return RUN.alt;
+}
+function dropShard(x, y, n = 1) {
+  for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, sp = rand(80, 200); gems.push({ shard: shardTarget() || 'gem', x, y: y - 10, v: 1, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, delay: .5, pull: false, ph: Math.random() * 6 }); }
+}
+const SHARD_FLAG = { sword: 'sword', knife: 'knife', prism: 'prism', gaunt: 'gaunt' };
+function gainShard(id) {
+  RUN.shardsGot = (RUN.shardsGot || 0) + 1;
+  if (id === 'gem' || weaponOwned(id)) { META.gems++; META.gemsTotal++; saveMeta(); texts.push({ x: P.x, y: P.y - 36, text: '+1 GEM', life: .9, max: .9, color: '#ff5fae', size: 14, vx: 0, vy: -50 }); swordSfx.shardPickup(0); return; }
+  META.shards[id] = (META.shards[id] || 0) + 1; saveMeta();
+  const w = WEAPONS.find(x => x.id === id), have = shardHave(id), need = SHARDS_NEED[id];
+  texts.push({ x: P.x, y: P.y - 36, text: `${w.name} shard ${have}/${need}`, life: 1.1, max: 1.1, color: w.c, size: 14, vx: 0, vy: -50 });
+  swordSfx.shardPickup(have / need);
+  retrigger($('shardPill'), 'bump');
+  if (have >= need) forgeWeapon(id);
+}
+function forgeWeapon(id) {
+  if (weaponOwned(id)) return;
+  META.weapons.push(id); saveMeta();
+  const w = WEAPONS.find(x => x.id === id);
+  (RUN.forged = RUN.forged || []).push(w);
+  S[SHARD_FLAG[id]] = true; weapon = id; SW.draw = 0; KN.show = 0; syncWeapon();
+  banner(`${w.name} forged!`, 'It\'s yours forever. It\'s already in your hands.', 'magic');
+  swordSfx.forge();
+  freeze = Math.max(freeze, .12); addShake(10); flashW = .35;
+  RAINBOW.forEach((c, i) => zaps.push({ ring: true, x1: P.x, y1: P.y, r: 60 + i * 22, life: .5 + i * .05, max: .5 + i * .05, color: c, w: 6 }));
+  for (let i = 0; i < 50; i++) { const a = Math.random() * 6.28, sp = rand(120, 420); parts.push({ x: P.x, y: P.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(.5, 1), max: 1, size: rand(3, 6), color: pick([w.c, '#ffffff', '#ffd23a']), kind: 'star', glow: true }); }
+}
 const weaponIcon = w => w.id === 'sword' ? `<span class="tile" style="--c:#3b1a22">${swordImg(40)}</span>` : w.id === 'knife' ? `<span class="tile" style="--c:#2a1240">${knifeImg(40)}</span>` : w.id === 'prism' ? `<span class="tile" style="--c:#1b2140">${prismImg(40)}</span>` : w.id === 'gaunt' ? `<span class="tile" style="--c:#2a0a16">${gauntImg(40)}</span>` : `<span class="abico" style="--c:${w.c}"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1a0a0e" d="M8 0h2v2H8zM7 1h1v2H7zM6 2h1v2H6zM5 3h1v2H5zM4 4h1v2H4zM1 4h1v1H1zM2 5h2v1H2zM3 6h1v1H3zM1 7h2v1H1zM0 8h2v2H0z"/><path fill="#ff3b3b" d="M2 5h1v1H2z"/></svg></span>`;
 if (!Array.isArray(META.weapons)) META.weapons = [];
 function applyLoadout() {
@@ -1761,7 +1811,7 @@ function storeList(tab) {
 }
 const STORE_NOTES = {
   abilities: 'Abilities are buttons you tap during a run. They recharge after each use.',
-  weapons: 'Beat a realm\'s boss to unlock a new weapon. In a run, tap Switch to swap between the ones you own.',
+  weapons: 'Weapons are forged from shards found in their realm. Replay realms, hunt elites and explore shrines to collect them.',
 };
 function renderStore(enter = true) {
   $('storeGems').textContent = META.gems; $('storeGold').textContent = META.gold || 0;
@@ -1774,7 +1824,7 @@ function renderStore(enter = true) {
   const list = storeList(storeTab);
   $('storeGrid').innerHTML = list.map((x, k) => {
     const poor = !x.owned && (x.kind === 'g' || (META.gems < x.it.price && (META.gold || 0) < goldPrice(x.it)));
-    const price = x.owned ? 'Owned' : x.kind === 'g' ? `Beat realm ${x.it.realm + 1}` : `<i class="gem sm"></i>${x.it.price}<span class="or">or</span><i class="coin"></i>${goldPrice(x.it)}`;
+    const price = x.owned ? 'Owned' : x.kind === 'g' ? `<i class="shardico" style="--sc:${x.it.c}"></i>${shardHave(x.it.id)}/${SHARDS_NEED[x.it.id]}` : `<i class="gem sm"></i>${x.it.price}<span class="or">or</span><i class="coin"></i>${goldPrice(x.it)}`;
     return `<button class="scard ${enter ? 'enter' : ''} ${x.owned ? 'owned' : ''} ${poor ? 'poor' : ''}" data-k="${k}" style="--c:${x.color};--i:${k}">
       <span class="sicon">${x.icon}</span><b>${x.it.name}</b><span class="sdesc">${x.it.desc}</span><span class="sprice">${price}</span></button>`;
   }).join('');
@@ -1793,7 +1843,7 @@ function openSheet(x) {
   const it = x.it, miss = it.price - META.gems, gp = goldPrice(it), gmiss = gp - (META.gold || 0);
   let action;
   if (x.owned) action = `<p class="sd" style="color:var(--ink)"><b>${equippedText(x)}</b></p>`;
-  else if (x.kind === 'g') action = `<button class="btn ghost" disabled style="opacity:.7">Locked</button><span class="need">Defeat ${TYPES[REALMS[it.realm].boss].name} in ${REALMS[it.realm].name} (realm ${it.realm + 1}) to unlock it.</span>`;
+  else if (x.kind === 'g') { const h = shardHave(it.id), n = SHARDS_NEED[it.id]; action = `<div class="shardbar" style="--sc:${it.c};--p:${h / n}"><i></i><span>${h} / ${n} shards</span></div><span class="need" style="color:var(--ink)">Collect shards in <b>${REALMS[it.realm].name}</b> (realm ${it.realm + 1}). They drop from its boss, elite monsters, Treasure Slimes and mysterious shrines. When you have them all the weapon is forged on the spot.</span>`; }
   else if (it.price === 0) action = `<button class="btn go" id="sheetBuy" data-cur="gems">Get it free</button>`;
   else {
     const gemBtn = miss <= 0 ? `<button class="btn go" id="sheetBuy" data-cur="gems"><i class="gem sm"></i> Buy for ${it.price} gems</button>` : `<button class="btn ghost" disabled style="opacity:.7"><i class="gem sm"></i> ${it.price} gems</button>`;
@@ -1889,7 +1939,7 @@ function renderRealms() {
     return `<button class="realm ${locked ? 'locked' : ''} ${done ? 'done' : ''} ${i === META.realm ? 'current' : ''}" data-r="${i}" style="--a:${R.a};--b:${R.b};--i:${i}" ${locked ? 'aria-disabled="true"' : ''}>
       <span class="rboss"><img src="${sprURL(boss.spr)}" alt=""></span>
       <span class="rtext"><small>Realm ${i + 1} · ${R.waves} waves</small><b>${R.name}</b><em>${locked ? `Beat ${REALMS[i - 1].name} to unlock` : R.sub}</em>
-        <span class="rfoes">${foes}<span class="rvs">Boss: ${boss.name}</span></span>${(() => { const w = weaponForRealm(i); return w ? `<span class="rreward">${w.id === 'sword' ? swordImg(18) : w.id === 'knife' ? knifeImg(18) : w.id === 'prism' ? prismImg(18) : gauntImg(18)}${done ? `${w.name} unlocked` : `Reward: ${w.name}`}</span>` : ''; })()}</span>
+        <span class="rfoes">${foes}<span class="rvs">Boss: ${boss.name}</span></span>${(() => { const w = weaponForRealm(i); return w ? `<span class="rreward">${w.id === 'sword' ? swordImg(18) : w.id === 'knife' ? knifeImg(18) : w.id === 'prism' ? prismImg(18) : gauntImg(18)}${weaponOwned(w.id) ? `${w.name} forged` : `${w.name} shards ${shardHave(w.id)}/${SHARDS_NEED[w.id]}`}</span>` : ''; })()}</span>
       <span class="rstars">${[0, 1, 2].map(k => `<i class="${k < st ? 'on' : ''}"></i>`).join('')}<small>${done ? 'Cleared' + best : locked ? 'Locked' : 'Next'}</small></span>
     </button>`;
   });
@@ -2047,7 +2097,7 @@ async function keepAwake() { try { if ('wakeLock' in navigator && !wakeLock) { w
 
 function startGame(i, realm = RUN.realm) {
   initAudio(); keepAwake(); sfx('click');
-  RUN.realm = realm; RUN.stage = 0;
+  RUN.realm = realm; RUN.stage = 0; RUN.shardsGot = 0; RUN.event = null; RUN.forged = []; RUN.alt = null; RUN.lastEvent = null;
   resetRun(i); applyLoadout();
   [...SCREENS, 'dead', 'won', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
   $('warmPill').hidden = true; lastCyc = ''; weapon = S.sword ? 'sword' : S.knife ? 'knife' : S.prism ? 'prism' : S.gaunt ? 'gaunt' : 'wand'; prismReset(); gauntReset(); syncWeapon(); IMP = null; cuts = []; knives = []; drops = []; decals = []; splats = []; knifeT = 0; knifeHold = false; KN.show = 1; swordSfx.charge(false); swordCharge = null; swordReady = false; joy = null; aimJoy = null;
@@ -2055,6 +2105,7 @@ function startGame(i, realm = RUN.realm) {
   $('hint').hidden = true; tipStep = -1; movedT = 0;
   let seen = false; try { seen = localStorage.getItem('wgTips') === '1'; } catch (e) {}
 
+  genBiomes();
   mode = 'play';
   startWave(1);
 }
@@ -2144,17 +2195,180 @@ function startWave(n) {
   } else { wave = n; boss = bossFor(n); count = 5 + n * 3; }
   queue = [];
   for (let i = 0; i < count; i++) queue.push(pickType(wave));
+  // a special wave now and then keeps things unpredictable
+  RUN.event = null;
+  const lastStage = realmOn() ? REALMS[RUN.realm].waves : 1e9, stg = realmOn() ? n : wave;
+  if (!boss && stg >= 2 && stg < lastStage && Math.random() < .42) {
+    const evs = ['swarm', 'hunt', 'treasure'].filter(x => x !== RUN.lastEvent);
+    RUN.event = RUN.lastEvent = pick(evs);
+  }
+  if (RUN.event === 'swarm') { const fast = ['bat', 'spider', 'wolf', 'slime']; for (let i = 0; i < 16; i++) queue.push(pick(fast)); }
+  // elites hide among the rest
+  let elites = stg >= 2 ? (Math.random() < .65 ? 1 : 0) + (stg >= 4 && Math.random() < .45 ? 1 : 0) : 0;
+  if (RUN.event === 'hunt') elites += 3;
+  for (let i = 0; i < elites && queue.length; i++) { const k = Math.floor(Math.random() * queue.length); if (queue[k][0] !== '!') queue[k] = '!' + queue[k]; }
   if (boss) { queue.length = Math.ceil(queue.length * .5); queue.unshift(boss); }
   spawnT = 1.2;
   if (realmOn()) {
     const R = REALMS[RUN.realm];
     if (n === 1) banner(R.name, R.sub, 'boss');
     else if (boss) banner('Final wave', `${TYPES[boss].name} is coming`, 'boss');
+    else if (RUN.event) eventBanner(n, R.waves);
     else banner(`Wave ${n} of ${R.waves}`, '', '');
-  } else banner(`Wave ${n}`, '', boss ? 'boss' : '');
+  } else if (RUN.event) eventBanner(n); else banner(`Wave ${n}`, '', boss ? 'boss' : '');
+  if (RUN.event === 'treasure') setTimeout(() => { if (mode === 'play') spawnTreasure(); }, 2500);
   sfx('wave');
 }
+function eventBanner(n, of) {
+  const head = of ? `Wave ${n} of ${of}: ` : `Wave ${n}: `;
+  if (RUN.event === 'swarm') banner(head + 'Swarm!', 'They pour in from every side', 'boss');
+  else if (RUN.event === 'hunt') banner(head + 'Elite hunt', 'Champions walk among them. They carry shards.', 'magic');
+  else if (RUN.event === 'treasure') banner(head + 'Treasure Slime!', 'Catch it before it escapes', 'good');
+  swordSfx.eliteSting();
+}
+function spawnTreasure() {
+  const a = Math.random() * 6.28;
+  const e = spawnEnemy('tslime', P.x + Math.cos(a) * 220, P.y + Math.sin(a) * 180);
+  e.escape = 14; swordSfx.tslime();
+}
 const nextWave = () => startWave(realmOn() ? RUN.stage + 1 : wave + 1);
+// Mysterious biomes: hidden zones out in the wilds, each marked by a pillar of light.
+// Each has its own look and effect, and a shrine that wakes guardians and pays out shards.
+const BIOMES = {
+  crystal: { name: 'The Singing Geodes', lore: 'Crystals hum here. Your magic resonates: +25% damage', c: '#3fd0ff', dark: '#06222e', guard: ['golem', 'knight'] },
+  grave: { name: 'Restless Graves', lore: 'The dead keep waking up. Watch your back', c: '#9fe0b0', dark: '#0e1a14', guard: ['skel', 'ghost'] },
+  ember: { name: 'The Ember Scar', lore: 'The ground erupts. Watch for the red rings', c: '#ff6a2a', dark: '#2a0a04', guard: ['beetle', 'boar'] },
+  void: { name: 'Void Garden', lore: 'Time drags here. Monsters move at half speed', c: '#b47dff', dark: '#0a0618', guard: ['darkmage', 'spider'] },
+  golden: { name: 'The Gilded Glade', lore: 'Gold glitters in the grass. Something shiny lives here', c: '#ffd23a', dark: '#2a2004', guard: ['knight', 'wolf'] },
+};
+let biomes = [], erupts = [];
+function genBiomes() {
+  biomes = []; erupts = [];
+  const kinds = ['crystal', 'grave', 'ember', 'void'].sort(() => Math.random() - .5).slice(0, 3);
+  if (Math.random() < .25) kinds[2] = 'golden';
+  const a0 = Math.random() * 6.28;
+  kinds.forEach((k, i) => {
+    const a = a0 + i * 2.1 + rand(-.4, .4), d = rand(650, 1050), x = Math.cos(a) * d, y = Math.sin(a) * d, R = 240;
+    const decor = Array.from({ length: 26 }, () => { const da = Math.random() * 6.28, dr = Math.sqrt(Math.random()) * R * .92; return { x: x + Math.cos(da) * dr, y: y + Math.sin(da) * dr, s: rand(.7, 1.3), ph: Math.random() * 6 }; }).filter(o => Math.hypot(o.x - x, o.y - y) > 50);
+    const b = { k, x, y, r: R, found: false, decor, altar: { st: 'idle', t: 0 }, timer: 2, ghosts: 0 };
+    if (k === 'golden') for (let j = 0; j < 22; j++) { const da = Math.random() * 6.28, dr = Math.sqrt(Math.random()) * R * .85; gems.push({ gold: true, x: x + Math.cos(da) * dr, y: y + Math.sin(da) * dr, v: 2, vx: 0, vy: 0, delay: 0, pull: false, ph: Math.random() * 6 }); }
+    biomes.push(b);
+  });
+}
+const inBiome = (b, x, y) => (x - b.x) ** 2 + (y - b.y) ** 2 < b.r * b.r;
+const voidMul = e => { for (const b of biomes) if (b.k === 'void' && inBiome(b, e.x, e.y)) return .5; return 1; };
+function updateBiomes(dt) {
+  P.inCrystal = false;
+  for (const b of biomes) {
+    const inside = inBiome(b, P.x, P.y);
+    if (inside && !b.found) {
+      b.found = true; const B = BIOMES[b.k];
+      banner(`Discovered: ${B.name}`, B.lore, 'magic'); swordSfx.discover();
+      if (b.k === 'golden') setTimeout(() => { if (mode === 'play') { const e = spawnEnemy('tslime', b.x + rand(-80, 80), b.y + rand(-80, 80)); e.escape = 16; swordSfx.tslime(); } }, 1200);
+    }
+    if (inside && b.k === 'crystal') P.inCrystal = true;
+    if (inside && b.k === 'grave') { b.timer -= dt; if (b.timer <= 0) { b.timer = 3.2; const g = pick(b.decor); if (enemies.filter(e => e.graveOf === b).length < 4) { const e = spawnEnemy(Math.random() < .6 ? 'ghost' : 'skel', g.x, g.y); e.graveOf = b; } } }
+    if (inside && b.k === 'ember') { b.timer -= dt; if (b.timer <= 0) { b.timer = 1.1; const a = Math.random() * 6.28, rr = rand(0, 120); erupts.push({ x: P.x + Math.cos(a) * rr, y: P.y + Math.sin(a) * rr, t: 0 }); } }
+    // the shrine: stand on it to wake it, beat its guardians, collect the reward
+    const A = b.altar, near = (P.x - b.x) ** 2 + (P.y - b.y - 6) ** 2 < 48 * 48;
+    if (A.st === 'idle') {
+      A.t = near ? A.t + dt : Math.max(0, A.t - dt * 2);
+      if (near && Math.random() < dt * 14) { const a = Math.random() * 6.28; parts.push({ x: b.x + Math.cos(a) * 46, y: b.y + Math.sin(a) * 20, vx: -Math.cos(a) * 60, vy: -40, life: .5, max: .5, size: 3, color: BIOMES[b.k].c, kind: 'star', glow: true }); }
+      if (A.t >= 2.2) {
+        A.st = 'guarded'; swordSfx.shrineWake(); addShake(8);
+        banner('The shrine awakens!', 'Defeat its guardians', 'boss');
+        const G = BIOMES[b.k].guard;
+        for (let i = 0; i < 5; i++) { const a = i / 5 * 6.28, e = spawnEnemy(G[i % 2], b.x + Math.cos(a) * 140, b.y + Math.sin(a) * 110); e.guardOf = b; if (i < 2) makeElite(e); }
+      }
+    } else if (A.st === 'guarded' && !enemies.some(e => e.guardOf === b && !e.dead)) {
+      A.st = 'done'; swordSfx.shrineCleanse();
+      banner('Shrine cleansed!', 'Its treasure is yours', 'good');
+      dropShard(b.x, b.y, 3);
+      for (let i = 0; i < 12; i++) { const a = Math.random() * 6.28, sp = rand(80, 200); gems.push({ gold: true, x: b.x, y: b.y, v: 3, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, delay: .4, pull: false, ph: Math.random() * 6 }); }
+      gems.push({ x: b.x, y: b.y, v: 12, vx: 0, vy: -60, delay: .3, pull: false, ph: 0 });
+      RAINBOW.forEach((c, i) => zaps.push({ ring: true, x1: b.x, y1: b.y, r: 50 + i * 18, life: .45, max: .45, color: c, w: 5 }));
+    }
+  }
+  // ember eruptions: a warning ring, then a burst that hurts everyone inside
+  for (const r of erupts) {
+    r.t += dt;
+    if (r.t >= .85 && !r.boom) {
+      r.boom = true; sfx('boom'); addShake(4);
+      zaps.push({ ring: true, x1: r.x, y1: r.y, r: 62, life: .3, max: .3, color: '#ff6a2a', w: 7 });
+      for (let i = 0; i < 18; i++) { const a = Math.random() * 6.28, sp = rand(60, 260); parts.push({ x: r.x, y: r.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80, g: 400, life: .5, max: .5, size: rand(3, 6), color: pick(['#ff6a2a', '#ffd23a', '#ff3b1f']), kind: 'dot', glow: true }); }
+      if ((P.x - r.x) ** 2 + (P.y - r.y) ** 2 < 55 * 55) damagePlayer(12);
+      for (const e of enemies) if (!e.dead && (e.x - r.x) ** 2 + (e.y - r.y) ** 2 < 62 * 62) hurt(e, 45 * S.dmg, '#ff6a2a');
+    }
+  }
+  erupts = erupts.filter(r => r.t < 1.1);
+}
+function drawBiomesGround() {
+  const vw = VW / ZOOM, vh = VH / ZOOM;
+  for (const b of biomes) {
+    if (Math.abs(b.x - cam.x) > vw / 2 + b.r || Math.abs(b.y - cam.y) > vh / 2 + b.r) continue;
+    const B = BIOMES[b.k];
+    const g = ctx.createRadialGradient(b.x, b.y, b.r * .2, b.x, b.y, b.r);
+    g.addColorStop(0, B.dark + 'cc'); g.addColorStop(.75, B.dark + '88'); g.addColorStop(1, B.dark + '00');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.28); ctx.fill();
+    const g2 = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+    g2.addColorStop(0, B.c + '33'); g2.addColorStop(1, B.c + '00');
+    ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 6.28); ctx.fill();
+    for (const o of b.decor) {
+      ctx.save(); ctx.translate(o.x, o.y); ctx.scale(o.s, o.s);
+      if (b.k === 'crystal') { glow(0, -8, 18, '#3fd0ff', .4 + Math.sin(T * 2 + o.ph) * .15); ctx.fillStyle = '#0a2a3a'; ctx.beginPath(); ctx.moveTo(-7, 0); ctx.lineTo(-3, -20); ctx.lineTo(2, -4); ctx.lineTo(5, -14); ctx.lineTo(8, 0); ctx.closePath(); ctx.fill(); ctx.fillStyle = o.ph > 3 ? '#7fe6ff' : '#ff9ae0'; ctx.beginPath(); ctx.moveTo(-5, -1); ctx.lineTo(-3, -17); ctx.lineTo(0, -4); ctx.lineTo(4, -12); ctx.lineTo(6, -1); ctx.closePath(); ctx.fill(); }
+      else if (b.k === 'grave') { ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(-9, 2, 18, 4); ctx.fillStyle = '#1a2420'; ctx.beginPath(); ctx.roundRect(-8, -18, 16, 20, 7); ctx.fill(); ctx.fillStyle = '#6a7a72'; ctx.beginPath(); ctx.roundRect(-6, -16, 12, 17, 6); ctx.fill(); ctx.fillStyle = '#3a4a42'; ctx.fillRect(-1, -13, 2, 8); ctx.fillRect(-3, -11, 6, 2); }
+      else if (b.k === 'ember') { const f = .5 + Math.sin(T * 3 + o.ph) * .3; ctx.strokeStyle = `rgba(255,${100 + f * 80},40,${.6 + f * .3})`; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(-5, -3); ctx.lineTo(0, 2); ctx.lineTo(7, -2); ctx.lineTo(14, 1); ctx.stroke(); glow(0, 0, 14, '#ff6a2a', .25 * f); }
+      else if (b.k === 'void') { const tw = .5 + Math.sin(T * 4 + o.ph * 3) * .5; ctx.globalAlpha = tw; drawStar(0, -4, 5 + tw * 3, o.ph > 3 ? '#ffffff' : '#c99dff'); ctx.globalAlpha = 1; }
+      else { ctx.fillStyle = '#ffd23a'; ctx.globalAlpha = .6 + Math.sin(T * 5 + o.ph) * .4; ctx.fillRect(-1, -6, 2, 2); ctx.globalAlpha = 1; ctx.fillStyle = '#f2c94c'; ctx.beginPath(); ctx.arc(0, 0, 3, 0, 6.28); ctx.fill(); }
+      ctx.restore();
+    }
+  }
+  // eruption warnings
+  for (const r of erupts) if (!r.boom) { const k = r.t / .85; ctx.save(); ctx.strokeStyle = '#ff3b1f'; ctx.globalAlpha = .5 + k * .5; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(r.x, r.y, 60, 26, 0, 0, 6.28); ctx.stroke(); ctx.fillStyle = `rgba(255,60,20,${.15 + k * .25})`; ctx.beginPath(); ctx.ellipse(r.x, r.y, 60 * k, 26 * k, 0, 0, 6.28); ctx.fill(); ctx.restore(); }
+}
+function drawBiomeHints() {
+  if (mode !== 'play') return;
+  for (const b of biomes) {
+    if (b.found) continue;
+    const dx = b.x - P.x, dy = b.y - P.y, d = Math.hypot(dx, dy);
+    if (d > 1300 || d < 260) continue;
+    const a = Math.atan2(dy, dx), k = Math.min(1, (1300 - d) / 700) * (.55 + Math.sin(T * 1.6 + b.x) * .2);
+    // where the direction meets the edge of the screen
+    const hw = VW / 2, hh = VH / 2, t = Math.min(hw / Math.abs(Math.cos(a) || 1e-6), hh / Math.abs(Math.sin(a) || 1e-6));
+    const ex = hw + Math.cos(a) * t, ey = hh + Math.sin(a) * t, c = BIOMES[b.k].c;
+    ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const g = ctx.createRadialGradient(ex, ey, 0, ex, ey, 150);
+    g.addColorStop(0, c + 'aa'); g.addColorStop(1, c + '00');
+    ctx.globalAlpha = k * .55; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ex, ey, 150, 0, 6.28); ctx.fill();
+    ctx.restore();
+  }
+}
+function drawShrine(b) {
+  const B = BIOMES[b.k], A = b.altar, x = b.x, y = b.y;
+  // a pillar of light you can spot from far away
+  if (A.st !== 'done') {
+    const pulse = .5 + Math.sin(T * 2.5) * .15, col = A.st === 'guarded' ? '#ff2a4a' : B.c;
+    const g = ctx.createLinearGradient(x, y - 900, x, y);
+    g.addColorStop(0, col + '00'); g.addColorStop(.7, col + '55'); g.addColorStop(1, col + 'aa');
+    ctx.save(); ctx.globalAlpha = pulse + .3; ctx.fillStyle = g; ctx.fillRect(x - 18, y - 900, 36, 896); ctx.fillStyle = '#ffffff'; ctx.globalAlpha = .25; ctx.fillRect(x - 3, y - 860, 6, 856); ctx.restore();
+  }
+  shadow(x, y + 8, 30);
+  ctx.fillStyle = '#1a1424'; ctx.beginPath(); ctx.roundRect(x - 26, y - 14, 52, 22, 6); ctx.fill();
+  ctx.fillStyle = '#4a4458'; ctx.beginPath(); ctx.roundRect(x - 23, y - 12, 46, 16, 5); ctx.fill();
+  ctx.fillStyle = '#6a647a'; ctx.fillRect(x - 21, y - 12, 42, 3);
+  ctx.fillStyle = '#1a1424'; ctx.fillRect(x - 10, y - 30, 20, 18); ctx.fillStyle = '#5a546a'; ctx.fillRect(x - 8, y - 28, 16, 16);
+  const gy = y - 48 + Math.sin(T * 2) * 4, lit = A.st === 'done' ? .3 : 1;
+  glow(x, gy, 30, A.st === 'guarded' ? '#ff2a4a' : B.c, .6 * lit);
+  ctx.save(); ctx.translate(x, gy); ctx.rotate(T * (A.st === 'guarded' ? 3 : 1)); ctx.globalAlpha = lit;
+  ctx.fillStyle = '#120a1e'; ctx.beginPath(); ctx.moveTo(0, -14); ctx.lineTo(10, 0); ctx.lineTo(0, 14); ctx.lineTo(-10, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = A.st === 'guarded' ? '#ff2a4a' : B.c; ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(7, 0); ctx.lineTo(0, 11); ctx.lineTo(-7, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.globalAlpha = .7 * lit; ctx.fillRect(-2, -8, 3, 6);
+  ctx.restore();
+  if (A.st === 'idle' && A.t > 0) {
+    ctx.save(); ctx.strokeStyle = '#120a1e'; ctx.lineWidth = 7; ctx.beginPath(); ctx.arc(x, y - 6, 40, 0, 6.28); ctx.stroke();
+    ctx.strokeStyle = B.c; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y - 6, 40, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, A.t / 2.2)); ctx.stroke(); ctx.restore();
+  }
+}
 let rifts = [], lastRiftSfx = 0;
 function drawRifts() {
   for (const r of rifts) {
@@ -2229,6 +2443,25 @@ function drawBossIntro() {
     ctx.globalAlpha = ez * (.6 + Math.sin(T * 20) * .2); ctx.fillStyle = '#ff2a4a'; ctx.fillText(e.T.name.toUpperCase(), x + 16 + jitter, y + 16);
   }
   ctx.restore();
+}
+// Elite monsters: tougher, glowing, with a twist, and they carry shards
+const ELITES = {
+  swift: { name: 'Swift', c: '#3affff', hp: 2.2 },
+  armored: { name: 'Armored', c: '#c9d2e0', hp: 2.4 },
+  vampiric: { name: 'Vampiric', c: '#ff2a4a', hp: 2.6 },
+  volatile: { name: 'Volatile', c: '#ff8a2a', hp: 2.2 },
+  hulking: { name: 'Hulking', c: '#b47dff', hp: 4.5 },
+};
+function makeElite(e, mod = pick(Object.keys(ELITES))) {
+  const M = ELITES[mod];
+  e.elite = mod; e.eliteScale = mod === 'hulking' ? 1.45 : 1.18;
+  e.maxHp *= M.hp; e.hp = e.maxHp; e.baseMaxHp *= M.hp;
+  e.dmg = Math.round(e.dmg * 1.3); e.baseDmg = Math.round(e.baseDmg * 1.3);
+  e.r *= mod === 'hulking' ? 1.35 : 1.1;
+  if (mod === 'swift') { e.speed *= 1.6; e.baseSpeed *= 1.6; }
+  if (mod === 'hulking') { e.speed *= .85; e.baseSpeed *= .85; }
+  if (Math.hypot(e.x - P.x, e.y - P.y) < 700) swordSfx.eliteSting();
+  return e;
 }
 // Monster strength per player level above 1 (6% more health, 4% more damage each level)
 const LEVEL_SCALE = { hp: .06, dmg: .04 };
@@ -2317,6 +2550,7 @@ function cast(target) {
 function hurt(e, d, color, crit, quiet) {
   if (e.dead) return;
   if (e.T.armor) d *= e.T.armor;
+  if (e.elite === 'armored') d *= .5;
   e.hp -= d; e.flash = .09; e.sq = 1;
   if (SET.numbers && !quiet) texts.push({
     x: e.x + rand(-8, 8), y: e.y - e.r - 6, text: crit ? Math.round(d) + '!' : Math.max(1, Math.round(d)),
@@ -2352,7 +2586,27 @@ function kill(e) {
   const coins = e.T.boss ? 8 : 1;
   for (let i = 0; i < coins; i++) gems.push({ gold: true, x: e.x, y: e.y, v: Math.ceil(e.T.gold / coins), ...spray(), delay: .4, pull: false, ph: Math.random() * 6 });
   if (e.type === 'bigslime') for (let k = -1; k <= 1; k += 2) { const s = spawnEnemy('slime', e.x + k * 14, e.y); s.kx = k * 200; s.age = .3; s.baseMaxHp *= .7; s.maxHp *= .7; s.hp = s.maxHp; }
+  if (e.elite) {
+    for (let i = 0; i < 4; i++) gems.push({ gold: true, x: e.x, y: e.y, v: e.T.gold * 2, ...spray(), delay: .4, pull: false, ph: Math.random() * 6 });
+    gems.push({ x: e.x, y: e.y, v: e.T.xp * 3, ...spray(), delay: .35, pull: false, ph: Math.random() * 6 });
+    if (Math.random() < .55) dropShard(e.x, e.y, 1);
+    texts.push({ x: e.x, y: e.y - e.r - 20, text: 'ELITE SLAIN', life: 1, max: 1, color: ELITES[e.elite].c, size: 14, vx: 0, vy: -40 });
+    addShake(5); freeze = Math.max(freeze, .05);
+    if (e.elite === 'volatile') {
+      // bursts on death: get away from it
+      zaps.push({ ring: true, x1: e.x, y1: e.y, r: 85, life: .3, max: .3, color: '#ff8a2a', w: 8 }); sfx('boom');
+      for (let i = 0; i < 26; i++) { const a = Math.random() * 6.28, s2 = rand(80, 300); parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * s2, vy: Math.sin(a) * s2, life: .4, max: .4, size: rand(4, 7), color: pick(['#ff8a2a', '#ffd23a', '#ff3b1f']), kind: 'dot', glow: true }); }
+      if (Math.hypot(P.x - e.x, P.y - e.y) < 85) damagePlayer(Math.round(18 * e.dmgMul));
+      for (const o of enemies) if (o !== e && !o.dead && (o.x - e.x) ** 2 + (o.y - e.y) ** 2 < 85 * 85) hurt(o, 40, '#ff8a2a');
+    }
+  }
+  if (e.type === 'tslime') {
+    for (let i = 0; i < 24; i++) gems.push({ gold: true, x: e.x, y: e.y, v: 3, ...spray(), delay: .4, pull: false, ph: Math.random() * 6 });
+    dropShard(e.x, e.y, 2);
+    banner('Treasure!', 'The Treasure Slime burst into loot', 'good'); swordSfx.shrineCleanse();
+  }
   if (e.T.boss) {
+    dropShard(e.x, e.y, realmOn() && RUN.realm >= META.realm ? 4 : 3);
     bossKills++; addShake(18); freeze = .35; flashW = .5; sfx('boom');
     const gg = GEMS_BY_BOSS[e.type] || 0, sl = SOULS_BY_BOSS[e.type] || 2;
     for (let i = 0; i < sl; i++) dropRes(e.x, e.y, 'soul', 1);
@@ -2413,6 +2667,12 @@ function bankGold() {
   if (add > 0) { META.gold = (META.gold || 0) + add; bankedGold = totalGold; saveMeta(); }
   return add;
 }
+function shardLine() {
+  const id = shardTarget(), n = RUN.shardsGot || 0;
+  if (!id) return n ? `+${n} shards (turned into gems)` : 'Find shards from elites and shrines';
+  const w = WEAPONS.find(x => x.id === id);
+  return `+${n} shards · ${w.name} ${shardHave(id)}/${SHARDS_NEED[id]}`;
+}
 function winRealm() {
   if (mode !== 'play') return;
   mode = 'won'; joy = null; freeze = 0; prismStop(false); swordSfx.charge(false);
@@ -2422,8 +2682,8 @@ function winRealm() {
   const got = [true, P.hp >= P.maxHp * .5, time <= R.par];
   const n = got.filter(Boolean).length, prev = META.realmStars[id] || 0, first = RUN.realm >= META.realm;
   let gems = 0;
-  let newWeapon = null;
-  if (first) { gems += R.gems; META.realm = RUN.realm + 1; const w = weaponForRealm(RUN.realm); if (w && !META.weapons.includes(w.id)) { META.weapons.push(w.id); newWeapon = w; } }
+  const newWeapon = (RUN.forged || [])[0] || null;
+  if (first) { gems += R.gems; META.realm = RUN.realm + 1; }
   if (n > prev) { gems += (n - prev) * 2; META.realmStars[id] = n; }
   META.bestTime[id] = Math.min(META.bestTime[id] || 1e9, Math.round(time));
   META.gems += gems; META.gemsTotal += gems;
@@ -2437,11 +2697,12 @@ function winRealm() {
     $('wonStats').innerHTML = statsHTML();
     $('wonGems').textContent = gems ? `+${gems} gems${first ? ' for your first clear' : ' for new stars'}` : 'Beat your star record for more gems';
     $('wonGold').textContent = `+${goldWon} gold for the Shop`;
+    $('wonShards').textContent = shardLine();
     const next = REALMS[RUN.realm + 1];
     $('wonUnlock').hidden = !(first && next);
     if (next) $('wonUnlock').textContent = `Unlocked: ${next.name}`;
     $('wonWeapon').hidden = !newWeapon;
-    if (newWeapon) $('wonWeapon').innerHTML = `${weaponIcon(newWeapon)}<div><small>New weapon unlocked!</small><b>${newWeapon.name}</b><span>It's ready in your next run. Tap Switch to use it.</span></div>`;
+    if (newWeapon) $('wonWeapon').innerHTML = `${weaponIcon(newWeapon)}<div><small>New weapon unlocked!</small><b>${newWeapon.name}</b><span>Forged from shards in this run. It's yours forever.</span></div>`;
     $('wonEndless').hidden = !(first && !next);
     $('wonNext').textContent = next ? `Next: ${next.name}` : 'Back to the map';
     $('won').hidden = false;
@@ -2464,6 +2725,7 @@ function die() {
     $('deadStats').innerHTML = statsHTML();
     $('deadGems').textContent = runGems ? `+${runGems} gems earned` : 'Beat a boss to earn gems';
     $('deadGold').textContent = `+${goldWon} gold for the Shop`;
+    $('deadShards').textContent = shardLine();
     $('deadBest').hidden = !isBest;
     $('deadBestLine').textContent = realmOn() ? 'Grab better weapons in the Shop and try again!' : isBest ? '' : `Your best is wave ${best}. You can beat it!`;
     $('deadBestLine').hidden = isBest;
@@ -2515,7 +2777,7 @@ function addMaxHp(n) {
   P.hp = Math.min(P.maxHp, P.hp + n * m);
 }
 const playerSpeedMul = () => P.warm ? DAYNIGHT.campfire.speedMul : 1;
-const playerDmgMul = () => P.warm ? DAYNIGHT.campfire.dmgMul : 1;
+const playerDmgMul = () => (P.warm ? DAYNIGHT.campfire.dmgMul : 1) * (P.inCrystal ? 1.25 : 1);
 const isImmune = () => false;
 const specialsLocked = () => DAYNIGHT.lockSpecialsAtNight && isNight;
 function immunePopup(e) {
@@ -2852,7 +3114,8 @@ function openChest(ch) {
     texts.push({ x: ch.x, y: ch.y - 60, text: SPECIALS[k].name.toUpperCase() + '!', life: 1.4, max: 1.4, color: SPECIALS[k].c, size: 18, vx: 0, vy: -40 });
   };
   if (Math.random() < roll.spChance) giveSpecial();
-  if (ch.rarity === 'epic') giveSpecial();
+  if (ch.rarity === 'epic') { giveSpecial(); dropShard(ch.x, ch.y, 1); lines.push('a weapon shard'); }
+  else if (ch.rarity === 'rare' && Math.random() < .4) { dropShard(ch.x, ch.y, 1); lines.push('a weapon shard'); }
   banner(`${R.name} chest!`, lines.join(' · '), ch.rarity === 'epic' ? 'magic' : ch.rarity === 'rare' ? '' : 'good');
   retrigger($('bagBtn'), 'bump'); $('bagBadge').hidden = false;
 }
@@ -4577,6 +4840,41 @@ const swordSfx = (() => {
       nz(.5, .09, 'highpass', 5200, 2600, .8, { attack: .04, sweep: .4 });
       nz(.25, .05, 'lowpass', 500, 150, .7);
     },
+    shardPickup(prog) {
+      if (!ok()) return; const f = 880 * (1 + prog * .8);
+      osc('triangle', f, f * 1.5, .08, .22); osc('sine', f * 2, f * 2, .35, .11, { delay: .05, send: .6 }); osc('sine', f * 3, f * 3, .25, .06, { delay: .09, send: .7 });
+    },
+    forge() {
+      if (!ok()) return;
+      // anvil strike, then a shining chord
+      nz(.04, .5, 'highpass', 2500, 0, .8); [1250, 1890, 2710].forEach((f, i) => osc('triangle', f, f * .995, .9, [.08, .05, .03][i], { send: .6 }));
+      osc('sine', 90, 45, .4, .4);
+      [523.3, 659.3, 784, 1046.5].forEach((f, i) => osc('sawtooth', f, f, 1.2, .025, { delay: .15 + i * .05, attack: .05, send: .6 }));
+    },
+    discover() {
+      if (!ok()) return;
+      // a mysterious bell with a long, shimmering tail
+      [392, 587.3, 783.9, 1174.7].forEach((f, i) => osc('sine', f, f * .998, 2.2, [.06, .04, .03, .02][i], { delay: i * .12, send: .9 }));
+      nz(1.6, .05, 'bandpass', 3000, 6000, 3, { attack: .4, send: .9 });
+      osc('sine', 98, 98, 1.8, .06, { attack: .3 });
+    },
+    eliteSting() {
+      if (!ok()) return;
+      osc('sawtooth', 110, 104, .5, .05, { dist: true, attack: .02 }); osc('sawtooth', 164.8, 156, .5, .035, { dist: true, attack: .02 }); osc('sine', 55, 50, .6, .2);
+    },
+    shrineWake() {
+      if (!ok()) return;
+      osc('sawtooth', 60, 120, 1, .045, { dist: 2, attack: .2 }); nz(1.1, .14, 'bandpass', 200, 1600, 2, { attack: .3, send: .7 }); osc('sine', 45, 40, 1.2, .18, { attack: .1 });
+    },
+    shrineCleanse() {
+      if (!ok()) return;
+      [523.3, 659.3, 784, 1046.5, 1318.5].forEach((f, i) => { osc('triangle', f, f, .8, .045, { delay: i * .07, send: .6 }); });
+      nz(.8, .06, 'highpass', 6000, 9000, .7, { attack: .1, send: .8 });
+    },
+    tslime() {
+      if (!ok()) return;
+      [880, 1175, 988, 1319, 1568].forEach((f, i) => osc('square', f, f * 1.1, .06, .09, { delay: i * .07 }));
+    },
     victory() {
       if (!ok()) return;
       // a triumphant rising fanfare
@@ -4898,6 +5196,7 @@ function update(dt) {
   updatePrism(dt);
   updateGaunt(dt);
   updateRifts(dt);
+  updateBiomes(dt);
   realmAmbient(dt);
   updateIntro(dt);
   updateCycle(dt);
@@ -4936,10 +5235,12 @@ function update(dt) {
   if (waveState === 'fighting') {
     spawnT -= dt;
     if (spawnT <= 0 && queue.length && enemies.length < 70) {
-      const t = queue.shift(); spawnEnemy(t);
+      let t = queue.shift(), el = false;
+      if (t[0] === '!') { el = true; t = t.slice(1); }
+      const ne = spawnEnemy(t); if (el) makeElite(ne);
       if (t === 'bat' && queue[0] === 'bat') spawnEnemy(queue.shift());
       if (t === 'wolf') { const lead = enemies[enemies.length - 1]; for (let i = 0; i < 2; i++) spawnEnemy('wolf', lead.x + rand(-40, 40), lead.y + rand(-40, 40)); }
-      spawnT = Math.max(.18, 1 - wave * .05) * rand(.6, 1.2);
+      spawnT = Math.max(.18, 1 - wave * .05) * rand(.6, 1.2) * (RUN.event === 'swarm' ? .35 : 1);
     }
     if (!queue.length && !enemies.length) waveCleared();
   } else if (waveState === 'cleared') {
@@ -4952,7 +5253,7 @@ function update(dt) {
 
   for (const e of enemies) {
     e.age += dt; e.sq = Math.max(0, e.sq - dt * 7);
-    const slowMul = e.slow > 0 ? .45 : 1; e.slow -= dt; e.flash -= dt;
+    const slowMul = (e.slow > 0 ? .45 : 1) * (biomes.length ? voidMul(e) : 1); e.slow -= dt; e.flash -= dt;
     if (e.burn > 0) {
       e.burn -= dt; e.burnTick -= dt;
       if (Math.random() < dt * 14) parts.push({ x: e.x + rand(-e.r, e.r) * .6, y: e.y - rand(0, e.r), vx: rand(-10, 10), vy: -50, life: .4, max: .4, size: rand(3, 6), color: e.burnCol || '#ff8a3d', kind: 'dot', glow: true });
@@ -4965,7 +5266,13 @@ function update(dt) {
     const ux = dx, uy = dy;
     let sp = e.speed * slowMul;
     e.spCd -= dt;
-    if (e.type === 'bat' || e.type === 'ghost') {
+    if (e.type === 'tslime') {
+      // runs away, zig-zagging, and vanishes if you're too slow
+      const w = Math.sin(time * 4 + e.ph) * .8; dx = -ux - uy * w; dy = -uy + ux * w;
+      if (Math.random() < dt * 8) parts.push({ x: e.x, y: e.y + 8, vx: rand(-20, 20), vy: rand(-40, -10), life: .4, max: .4, size: rand(2, 3), color: '#ffd23a', kind: 'star', glow: true });
+      e.escape -= dt;
+      if (e.escape <= 0) { e.dead = true; for (let i = 0; i < 20; i++) { const a = Math.random() * 6.28; parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * 140, vy: Math.sin(a) * 140, life: .4, max: .4, size: 4, color: '#ffd23a', kind: 'star', glow: true }); } texts.push({ x: e.x, y: e.y - 30, text: 'IT ESCAPED!', life: 1.2, max: 1.2, color: '#ffd23a', size: 15, vx: 0, vy: -40 }); continue; }
+    } else if (e.type === 'bat' || e.type === 'ghost') {
       const w = e.type === 'bat' ? Math.sin(time * 5 + e.ph) * .9 : Math.sin(time * 2 + e.ph) * .5;
       const px = -dy, py = dx; dx += px * w; dy += py * w;
     } else if (e.type === 'mush') {
@@ -5056,8 +5363,9 @@ function update(dt) {
     e.x += (dx * sp + e.kx) * dt; e.y += (dy * sp + e.ky) * dt;
     const damp = Math.pow(.02, dt); e.kx *= damp; e.ky *= damp;
     if (Math.abs(P.x - e.x) > 4) e.face = P.x < e.x ? -1 : 1;
-    if (d < e.r + P.r) {
+    if (d < e.r + P.r && e.T.dmg > 0) {
       damagePlayer(e.dmg);
+      if (e.elite === 'vampiric' && !e.dead) { e.hp = Math.min(e.maxHp, e.hp + e.maxHp * .15); for (let i = 0; i < 8; i++) parts.push({ x: P.x, y: P.y, vx: (e.x - P.x) * rand(2, 4), vy: (e.y - P.y) * rand(2, 4), life: .3, max: .3, size: 3, color: '#ff2a4a', kind: 'dot', glow: true }); }
       if (!e.T.boss) { e.kx -= ux * 260; e.ky -= uy * 260; }
       if (e.st === 'charge') { e.st = 'rest'; e.stT = .9; }
     }
@@ -5138,7 +5446,8 @@ function update(dt) {
     g.x += g.vx * dt; g.y += g.vy * dt;
     if (d < P.r + 8) {
       g.got = true;
-      if (g.res) { res[g.res] += g.v; sfx('coin'); texts.push({ x: P.x, y: P.y - 34, text: `+${g.v} ${RES[g.res].name}`, life: .9, max: .9, color: RES[g.res].c, size: 13, vx: 0, vy: -50 }); }
+      if (g.shard) gainShard(g.shard);
+      else if (g.res) { res[g.res] += g.v; sfx('coin'); texts.push({ x: P.x, y: P.y - 34, text: `+${g.v} ${RES[g.res].name}`, life: .9, max: .9, color: RES[g.res].c, size: 13, vx: 0, vy: -50 }); }
       else if (g.gold) { const v = g.v * (Math.random() < S.coinLuck ? 2 : 1); gold += v; totalGold += v; sfx('coin'); }
       else { xp += g.v; xpEarned += g.v; sfx('gem', gemChain); gemChain++; gemChainT = .6; }
       parts.push({ x: g.x, y: g.y, vx: 0, vy: -30, life: .3, max: .3, size: 7, color: g.gold ? '#ffcf3f' : '#9fe6ff', kind: 'star', glow: true });
@@ -5276,6 +5585,7 @@ function drawEnemy(e) {
   // lean in and swell right before biting
   const dd = Math.hypot(P.x - e.x, P.y - e.y), wantL = !e.T.boss && dd < e.r + 52 ? 1 : 0;
   e.lunge = (e.lunge || 0) + (wantL - (e.lunge || 0)) * Math.min(1, (drawDt || .016) * 12);
+  if (e.elite) { const M = ELITES[e.elite]; glow(e.x, e.y - e.r * .3, e.r * 2.6, M.c, .3 + Math.sin(T * 5 + e.ph) * .1); ctx.save(); ctx.strokeStyle = M.c; ctx.globalAlpha = .8; ctx.lineWidth = 2.5; ctx.setLineDash([6, 6]); ctx.lineDashOffset = -T * 30; ctx.beginPath(); ctx.ellipse(e.x, e.y + e.r * .8, e.r * 1.25, e.r * .5, 0, 0, 6.28); ctx.stroke(); ctx.restore(); }
   shadow(e.x, e.y + e.r * .8, e.r * (floaty ? .75 : 1.12) * born);
   shadow(e.x, e.y + e.r * .8, e.r * (floaty ? .5 : .8) * born);
   if (e.fuse > 0) glow(e.x, e.y, 50, '#ff3b3b', .35 + Math.sin(T * 30) * .2);
@@ -5286,7 +5596,7 @@ function drawEnemy(e) {
   const rise = (1 - born) * (1 - born) * h * .6; // claws up out of the ground
   ctx.translate(e.x + shakeX, e.y + e.r * .8 - fly + rise);
   ctx.globalAlpha = Math.min(1, born * 1.6) * (e.type === 'ghost' ? .6 + Math.sin(T * 3 + e.ph) * .2 : 1);
-  const grow = .7 + born * .3 + e.lunge * .1;
+  const grow = (.7 + born * .3 + e.lunge * .1) * (e.eliteScale || 1);
   ctx.scale(grow, grow);
   if (e.lunge > .02) ctx.rotate((P.x < e.x ? -1 : 1) * e.lunge * .12);
   if (e.fuse > 0) { const s = 1 + (.7 - e.fuse) * .4; ctx.scale(s, s); }
@@ -5314,8 +5624,9 @@ function drawEnemy(e) {
     ctx.fillStyle = '#2d1f4f'; ctx.beginPath(); ctx.roundRect(e.x - bw / 2 - 3, by - 3, bw + 6, 12, 6); ctx.fill();
     ctx.fillStyle = '#ff5d73'; ctx.beginPath(); ctx.roundRect(e.x - bw / 2, by, Math.max(4, bw * Math.max(0, e.hp / e.maxHp)), 6, 3); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.fillRect(e.x - bw / 2 + 2, by + 1, Math.max(0, bw * (e.hp / e.maxHp) - 4), 2);
-  } else if (e.hp < e.maxHp) {
+  } else if (e.hp < e.maxHp || e.elite) {
     const bw = e.r * 1.8, by = e.y - e.r * 1.7 - fly;
+    if (e.elite) { const M = ELITES[e.elite]; ctx.save(); ctx.font = '800 11px Nunito, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#120a1e'; ctx.strokeText(`${M.name} ${e.T.name}`, e.x, by - 6); ctx.fillStyle = M.c; ctx.fillText(`${M.name} ${e.T.name}`, e.x, by - 6); ctx.restore(); }
     ctx.fillStyle = '#2d1f4f'; ctx.fillRect(e.x - bw / 2 - 1, by - 1, bw + 2, 5);
     ctx.fillStyle = '#ff5d73'; ctx.fillRect(e.x - bw / 2, by, bw * Math.max(0, e.hp / e.maxHp), 3);
   }
@@ -5442,6 +5753,17 @@ function render() {
 
   for (const g of gems) {
     const y = g.y + Math.sin(T * 4 + g.ph) * 2;
+    if (g.shard) {
+      const w = WEAPONS.find(x => x.id === g.shard), c = w ? w.c : '#ff5fae', yy = y - 6 + Math.sin(T * 3 + g.ph) * 3;
+      glow(g.x, yy, 26, c, .55 + Math.sin(T * 6 + g.ph) * .15);
+      ctx.save(); ctx.translate(g.x, yy); ctx.rotate(Math.sin(T * 2 + g.ph) * .25);
+      ctx.fillStyle = '#1a1030'; ctx.beginPath(); ctx.moveTo(0, -13); ctx.lineTo(7, -2); ctx.lineTo(0, 12); ctx.lineTo(-7, -2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(5, -2); ctx.lineTo(0, 9); ctx.lineTo(-5, -2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.globalAlpha = .8; ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(2, -2); ctx.lineTo(-1, 3); ctx.lineTo(-3, -2); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.restore();
+      if (Math.sin(T * 3 + g.ph * 7) > .96) drawStar(g.x + 5, yy - 9, 5, '#ffffff');
+      continue;
+    }
     if (g.res) {
       const c = RES[g.res].c;
       glow(g.x, y, 14, c, .4);
@@ -5469,6 +5791,7 @@ function render() {
   for (const it of items) drawTome(it);
   drawParts(false);
 
+  drawBiomesGround();
   drawDecals();
   drawRifts();
   drawSwordAim();
@@ -5476,6 +5799,7 @@ function render() {
   const actors = enemies.map(e => ({ y: e.y, f: e.hs > 0 ? () => { const j = e.hs * 30; ctx.save(); ctx.translate(rand(-j, j), rand(-j * .5, j * .5)); drawEnemy(e); ctx.restore(); } : () => drawEnemy(e) }));
   actors.push({ y: P.y + 10, f: drawPlayer });
   pushStructActors(actors);
+  for (const b of biomes) if (Math.abs(b.x - cam.x) < VW / ZOOM && Math.abs(b.y - cam.y) < VH / ZOOM + 900) actors.push({ y: b.y, f: () => drawShrine(b) });
   actors.push({ y: DAYNIGHT.campfire.y, f: drawCampfireTop });
   actors.sort((a, b) => a.y - b.y).forEach(a => a.f());
   for (const d of deaths) {
@@ -5567,6 +5891,7 @@ function render() {
   if (realmOn() && REALMS[RUN.realm].grade && mode !== 'menu') { ctx.fillStyle = REALMS[RUN.realm].grade; ctx.fillRect(0, 0, VW, VH); }
   if (flash > 0) { ctx.fillStyle = `rgba(255,93,115,${flash * .45})`; ctx.fillRect(0, 0, VW, VH); }
   if (flashW > 0) { ctx.fillStyle = `rgba(255,255,255,${flashW * .8})`; ctx.fillRect(0, 0, VW, VH); }
+  drawBiomeHints();
   drawCineBars();
   drawBossIntro();
   drawImpact();
@@ -5600,6 +5925,7 @@ function render() {
 }
 
 /* ---------- HUD ---------- */
+let lastShardKey = null;
 let lastHud = '', lastGold = 0, lastCombo = 0, lastWave = 0;
 let abLast = [0, 0], lastNear = null, lastCyc = '';
 function hud() {
@@ -5609,6 +5935,10 @@ function hud() {
     b.style.setProperty('--q', swordCharge === null ? 0 : Math.min(1, swordCharge / SWORD.chargeTime));
     const t = swordT > 0 ? swordT.toFixed(1) : '', c = b.querySelector('.cdt'); if (c.textContent !== t) c.textContent = t;
     b.classList.toggle('ready', swordReady);
+  }
+  {
+    const id = mode === 'play' ? shardTarget() : null, key = id ? id + shardHave(id) : '';
+    if (key !== lastShardKey) { lastShardKey = key; $('shardPill').hidden = !id; if (id) { const w = WEAPONS.find(x => x.id === id); $('shardPill').style.setProperty('--sc', w.c); $('shardText').textContent = `${w.name} ${shardHave(id)}/${SHARDS_NEED[id]}`; } }
   }
   if (knifeOn() && mode === 'play') $('knifeBtn').style.setProperty('--p', Math.min(1, knifeT / KNIFE.cooldown));
   if (gauntOn() && mode === 'play') {

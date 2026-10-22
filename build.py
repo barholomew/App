@@ -8,7 +8,7 @@ root = pathlib.Path(__file__).parent
 def uri(name):
     return "data:image/png;base64," + base64.b64encode((root / "assets" / name).read_bytes()).decode()
 src = (root / "src" / "game.html").read_text()
-body = src.replace("__WIZARD__", uri("wizard.png")).replace("__GRASS__", uri("grass.png"))
+body = src.replace("__WIZARD__", uri("wizard.png")).replace("__GRASS__", uri("grass.png")).replace("__WIZARD_FIST__", uri("wizard_nostaff.png"))
 (root / "dist").mkdir(exist_ok=True)
 (root / "dist" / "wizard-grove.html").write_text(body)
 head = '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">\n<meta name="apple-mobile-web-app-capable" content="yes">\n'

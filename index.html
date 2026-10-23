@@ -362,6 +362,33 @@ button { font: inherit; color: inherit; }
 .shardbar { position: relative; width: 100%; height: 26px; border: 3px solid var(--ink); border-radius: 99px; background: #2a2340; overflow: hidden; }
 .shardbar i { position: absolute; inset: 0; width: calc(var(--p) * 100%); background: var(--sc); box-shadow: inset 0 -4px 0 rgba(0,0,0,.2); }
 .shardbar span { position: relative; display: grid; place-items: center; height: 100%; font: 900 14px var(--font-body); color: #fff; text-shadow: var(--outline-sm); }
+.quests { display: grid; gap: 8px; width: 100%; }
+.qhead { margin: 6px 0 -2px; }
+.quest { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; background: var(--paper); border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink); text-align: left; }
+.quest b { display: block; font: 800 13px/1.2 var(--font-body); }
+.quest .qbar { display: block; height: 7px; margin-top: 5px; border-radius: 99px; background: #e6dcc8; overflow: hidden; }
+.quest .qbar i { display: block; height: 100%; background: linear-gradient(90deg, #ffb13a, #ffd23a); border-radius: 99px; }
+.quest em { font: 900 13px var(--font-body); font-style: normal; text-align: right; }
+.quest em small { display: block; font: 800 10px var(--font-body); opacity: .7; }
+.qico { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--ink); background: #ffd23a; }
+.qico.gems { background: #ff5fae; } .qico.shard { background: #b47dff; }
+.qdone { display: grid; gap: 4px; justify-items: center; font: 800 12px var(--font-body); color: #2a8a4a; }
+.pactline { font: 700 12px/1.4 var(--font-body); margin: 0; text-align: center; }
+.darkmodal { background: #1c1430 !important; color: #f4efff; }
+.darkmodal h2 { color: #ffd23a; }
+.pactcards { display: grid; gap: 10px; width: 100%; }
+.pactcard { display: grid; gap: 4px; text-align: left; padding: 12px 14px; border-radius: 16px; border: 3px solid var(--c); background: linear-gradient(135deg, #2a1f44, #160f26); color: #fff; box-shadow: 0 4px 0 #000, 0 0 18px color-mix(in srgb, var(--c) 35%, transparent); cursor: pointer; font: inherit; animation: cardIn .45s cubic-bezier(.2, 1.4, .4, 1) backwards; animation-delay: calc(var(--i) * 90ms); }
+.pactcard b { font: 700 22px/1.1 var(--font-display); color: var(--c); }
+.pactcard .up { font: 800 14px var(--font-body); color: #7dff9a; }
+.pactcard .up::before { content: '+ '; }
+.pactcard .down { font: 800 13px var(--font-body); color: #ff8a95; }
+.pactcard .down::before { content: '- '; }
+.pactcard:active { transform: translateY(3px); }
+.dailydots { display: flex; gap: 6px; justify-content: center; }
+.dailydots i { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 900 12px var(--font-body); font-style: normal; background: #e6dcc8; border: 2px solid var(--ink); }
+.dailydots i.on { background: #ffd23a; box-shadow: 0 0 10px #ffd23a; }
+.dailyreward { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.dailyreward span { display: inline-flex; align-items: center; gap: 6px; font: 900 16px var(--font-body); background: var(--paper); border: 3px solid var(--ink); border-radius: 99px; padding: 4px 12px 4px 8px; box-shadow: 0 3px 0 var(--ink); }
 .respawn-note { margin: -4px 0 0; font: 700 12px var(--font-body); opacity: .75; text-align: center; }
 .newweapon { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; text-align: left; padding: 10px 12px; border: 3px solid var(--ink); border-radius: 16px; background: linear-gradient(135deg, #2a1846, #4a2a6a); color: #fff; box-shadow: 0 4px 0 var(--ink), 0 0 24px rgba(255,207,63,.45); animation: badge .6s cubic-bezier(.2, 1.8, .4, 1) backwards .9s; }
 .newweapon small { display: block; font: 900 12px var(--font-body); color: #ffd23a; text-transform: uppercase; letter-spacing: .05em; }
@@ -732,6 +759,8 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
       <button class="mbtn" id="guideBtn" style="--c: var(--mint)"><svg viewBox="0 0 10 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="M3 0h4v1H3zM1 1h8v1H1zM0 2h10v7H0z"/><path fill="#fff8e6" d="M2 2h2v1H2z"/><path fill="#fff8e6" d="M3 4h1v2H3zM6 4h1v2H6z"/></svg>Monsters</button>
       <button class="mbtn" id="recBtn" style="--c: var(--sun)"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2d1f4f" d="M1 0h8v1H1zM0 1h2v3H0zM8 1h2v3H8zM2 1h6v4H2zM3 5h4v1H3zM4 6h2v2H4zM2 8h6v2H2z"/><path fill="#fff8e6" d="M3 2h1v2H3z"/></svg>Records</button>
     </div>
+    <h3 class="sub qhead">Quests</h3>
+    <div class="quests" id="titleQuests"></div>
     <div class="foot">Clear realms for gems and stars. Spend gems and gold in the Shop.</div>
   </div>
 </div>
@@ -861,11 +890,33 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <h2>Paused</h2>
     <p>Take a breather. The monsters will wait.</p>
     <div class="statgrid" id="pauseStats"></div>
+    <p class="pactline" id="pausePact"></p>
+    <div class="quests" id="pauseQuests"></div>
     <button class="btn go" id="resumeBtn" style="width:100%">Resume</button>
     <div class="row" style="width:100%">
       <button class="btn ghost small" id="pauseSetBtn">Settings</button>
       <button class="btn ghost small" id="quitBtn">Main menu</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="pact" hidden>
+  <div class="modal center darkmodal">
+    <h2>Make a pact</h2>
+    <p>Every power has a price. Pick one for this run.</p>
+    <div class="pactcards" id="pactCards"></div>
+    <button class="btn ghost small" id="pactSkip" style="width:100%">No deal</button>
+  </div>
+</div>
+
+<div class="overlay" id="daily" hidden>
+  <div class="modal center">
+    <h2>Daily chest</h2>
+    <p id="dailyDay"></p>
+    <div class="dailydots" id="dailyDots"></div>
+    <div class="dailyreward" id="dailyReward"></div>
+    <button class="btn go" id="dailyClaim" style="width:100%">Claim</button>
+    <p class="respawn-note" id="dailyNote"></p>
   </div>
 </div>
 
@@ -881,6 +932,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <div class="earn"><i class="gem"></i><span id="wonGems"></span></div>
     <div class="earn"><i class="coin"></i><span id="wonGold"></span></div>
     <div class="earn"><i class="shardico"></i><span id="wonShards"></span></div>
+    <div class="qdone" id="wonQuests"></div>
     <button class="btn go" id="wonNext" style="width:100%">Next realm</button>
     <button class="btn ghost small" id="wonMap" style="width:100%">Realm map</button>
   </div>
@@ -895,6 +947,7 @@ body.menu-mode .hud-top, body.menu-mode .spellbar, body.menu-mode #combo { visib
     <div class="earn"><i class="gem"></i><span id="deadGems"></span></div>
     <div class="earn"><i class="coin"></i><span id="deadGold"></span></div>
     <div class="earn"><i class="shardico"></i><span id="deadShards"></span></div>
+    <div class="qdone" id="deadQuests"></div>
     <p id="deadBestLine"></p>
     <button class="btn go" id="respawnBtn" style="width:100%">Respawn</button>
     <p class="respawn-note" id="respawnNote"></p>
@@ -1385,8 +1438,154 @@ function dropShard(x, y, n = 1) {
   for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, sp = rand(80, 200); gems.push({ shard: shardTarget() || 'gem', x, y: y - 10, v: 1, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, delay: .5, pull: false, ph: Math.random() * 6 }); }
 }
 const SHARD_FLAG = { sword: 'sword', knife: 'knife', prism: 'prism', gaunt: 'gaunt' };
+/* ---------- quests: always three goals on the go ---------- */
+const QUEST_KINDS = {
+  kill:   { n: [50, 90, 140], rw: 'gold', text: q => `Defeat ${q.n} monsters` },
+  elite:  { n: [3, 5, 8], rw: 'shard', text: q => `Slay ${q.n} elite monsters` },
+  shrine: { n: [1, 2], rw: 'shard', text: q => `Cleanse ${q.n} shrine${q.n > 1 ? 's' : ''}` },
+  biome:  { n: [2, 3], rw: 'gems', text: q => `Discover ${q.n} mysterious biomes` },
+  tslime: { n: [1], rw: 'gems', text: () => 'Catch a Treasure Slime' },
+  combo:  { n: [20, 30, 45], rw: 'gems', text: q => `Reach a ${q.n} kill combo` },
+  frenzy: { n: [20, 40], rw: 'gold', text: q => `Get ${q.n} kills during Frenzy` },
+  shard:  { n: [5, 8], rw: 'gems', text: q => `Collect ${q.n} weapon shards` },
+  wave:   { n: [5, 10, 15], rw: 'gold', text: q => `Clear ${q.n} waves` },
+  realm:  { n: [1], rw: 'shard', text: () => 'Clear any realm' },
+  boss:   { n: [1, 2], rw: 'gems', text: q => `Defeat ${q.n} boss${q.n > 1 ? 'es' : ''}` },
+  weapon: { n: [25, 50], rw: 'gold', text: q => `Defeat ${q.n} monsters with the ${(WEAPONS.find(w => w.id === q.w) || {}).name}` },
+};
+const QUEST_PAY = { gems: [3, 5, 8], gold: [80, 150, 250], shard: [2, 3, 4] };
+function newQuest() {
+  const active = (META.quests || []).map(q => q.k);
+  const kinds = Object.keys(QUEST_KINDS).filter(k => !active.includes(k) && (k !== 'weapon' || META.weapons.length));
+  const k = pick(kinds), K = QUEST_KINDS[k], tier = Math.floor(Math.random() * K.n.length);
+  return { k, n: K.n[tier], prog: 0, tier, rw: K.rw, amt: QUEST_PAY[K.rw][Math.min(tier, 2)], w: k === 'weapon' ? pick(META.weapons) : undefined };
+}
+function ensureQuests() { META.quests = (META.quests || []).filter(q => QUEST_KINDS[q.k]); while (META.quests.length < 3) META.quests.push(newQuest()); }
+ensureQuests();
+const questText = q => QUEST_KINDS[q.k].text(q);
+const payText = q => q.rw === 'gems' ? `${q.amt} gems` : q.rw === 'gold' ? `${q.amt} gold` : `${q.amt} shards`;
+function questProgress(k, amt = 1, extra) {
+  for (let i = 0; i < META.quests.length; i++) {
+    const q = META.quests[i];
+    if (q.k !== k || (k === 'weapon' && q.w !== extra)) continue;
+    const before = q.prog;
+    q.prog = k === 'combo' ? Math.max(q.prog, amt) : q.prog + amt;
+    if (q.prog >= q.n) { completeQuest(i); continue; }
+    // little check-ins at the halfway and three-quarter marks
+    for (const m of [.5, .75]) if (before < q.n * m && q.prog >= q.n * m && mode === 'play') texts.push({ x: P.x, y: P.y - 62, text: `Quest ${Math.floor(q.prog)}/${q.n}`, life: 1, max: 1, color: '#ffd23a', size: 13, vx: 0, vy: -40 });
+  }
+}
+function completeQuest(i) {
+  const q = META.quests[i];
+  if (q.rw === 'gems') { META.gems += q.amt; META.gemsTotal += q.amt; }
+  else if (q.rw === 'gold') META.gold = (META.gold || 0) + q.amt;
+  else for (let k = 0; k < q.amt; k++) { if (mode === 'play') gainShard(shardTarget() || 'gem'); else addShardMeta(); }
+  (RUN.questsDone = RUN.questsDone || []).push(q);
+  META.questsDone = (META.questsDone || 0) + 1;
+  META.quests[i] = newQuest(); saveMeta();
+  toast(`Quest complete: ${questText(q)}  +${payText(q)}`);
+  swordSfx.questDone();
+  if (mode === 'play') { texts.push({ x: P.x, y: P.y - 70, text: 'QUEST COMPLETE!', life: 1.4, max: 1.4, color: '#ffd23a', size: 18, vx: 0, vy: -40 }); confetti(30); }
+}
+function addShardMeta() {
+  const w = WEAPONS.filter(x => !weaponOwned(x.id)).sort((a, b) => a.realm - b.realm)[0];
+  if (!w) { META.gems++; return; }
+  META.shards[w.id] = (META.shards[w.id] || 0) + 1;
+  if (META.shards[w.id] >= SHARDS_NEED[w.id] && !weaponOwned(w.id)) { META.weapons.push(w.id); toast(`${w.name} forged!`); }
+}
+function questsHTML(list = META.quests) {
+  return list.map(q => {
+    const p = Math.min(1, q.prog / q.n);
+    return `<div class="quest"><span class="qico ${q.rw}"></span><div><b>${questText(q)}</b><span class="qbar"><i style="width:${p * 100}%"></i></span></div><em>${Math.floor(Math.min(q.prog, q.n))}/${q.n}<small>+${payText(q)}</small></em></div>`;
+  }).join('');
+}
+
+/* ---------- Frenzy: chain kills to go berserk ---------- */
+const FRENZY = { at: 15, time: 6, max: 10, perKill: .4, dmg: 1.3, speed: 1.25, rate: 1.35 };
+const FR = { on: false, t: 0 };
+function startFrenzy() {
+  FR.on = true; FR.t = FRENZY.time;
+  banner('FRENZY!', 'Faster, stronger, double loot', 'boss');
+  swordSfx.frenzy(); addShake(8);
+  ['#ff4d6d', '#ffd23a', '#ff9a3d'].forEach((c, i) => zaps.push({ ring: true, x1: P.x, y1: P.y, r: 80 + i * 40, life: .45, max: .45, color: c, w: 6 }));
+}
+function updateFrenzy(dt) {
+  if (!FR.on) return;
+  FR.t -= dt;
+  if (Math.random() < dt * 20) parts.push({ x: P.x + rand(-16, 16), y: P.y + rand(-20, 16), vx: rand(-20, 20), vy: rand(-90, -40), life: .4, max: .4, size: rand(2, 4), color: pick(['#ff4d6d', '#ffd23a', '#ff9a3d']), kind: 'dot', glow: true });
+  if (FR.t <= 0) { FR.on = false; combo = 0; texts.push({ x: P.x, y: P.y - 46, text: 'Frenzy over', life: 1, max: 1, color: '#ff8a95', size: 14, vx: 0, vy: -40 }); }
+}
+function drawFrenzy() {
+  if (!FR.on || mode !== 'play') return;
+  const k = Math.min(1, FR.t / FRENZY.time), pulse = .55 + Math.sin(T * 10) * .2;
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const g = ctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * .35, VW / 2, VH / 2, Math.hypot(VW, VH) * .6);
+  g.addColorStop(0, 'rgba(255,60,90,0)'); g.addColorStop(1, `rgba(255,60,90,${.32 * pulse})`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
+  const w = Math.min(220, VW * .55), x = VW / 2 - w / 2, y = VH - 230;
+  ctx.fillStyle = 'rgba(20,8,20,.7)'; ctx.beginPath(); ctx.roundRect(x - 3, y - 3, w + 6, 14, 7); ctx.fill();
+  const bar = ctx.createLinearGradient(x, 0, x + w, 0); bar.addColorStop(0, '#ff4d6d'); bar.addColorStop(1, '#ffd23a');
+  ctx.fillStyle = bar; ctx.beginPath(); ctx.roundRect(x, y, w * Math.min(1, FR.t / FRENZY.max), 8, 4); ctx.fill();
+  ctx.font = '700 18px "Pixelify Sans", sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 5; ctx.strokeStyle = '#1a0a14'; ctx.strokeText('FRENZY', VW / 2, y - 8); ctx.fillStyle = '#ffd23a'; ctx.fillText('FRENZY', VW / 2, y - 8);
+  ctx.restore();
+}
+
+/* ---------- Pacts: one deal at the start of every run, each with a price ---------- */
+const PACTS = [
+  { id: 'glass', name: 'Glass Cannon', c: '#ff5d73', up: '+60% damage', down: '-35% max health' },
+  { id: 'blood', name: 'Blood Pact', c: '#ff2a4a', up: 'Heal 3 health per kill', down: 'No healing over time' },
+  { id: 'gold', name: 'Gold Fever', c: '#ffd23a', up: 'Double gold', down: 'Monsters move 15% faster' },
+  { id: 'seeker', name: 'Shard Seeker', c: '#b47dff', up: 'Elites always drop a shard', down: 'One extra elite every wave' },
+  { id: 'swift', name: 'Quicksilver', c: '#38c6ff', up: '+30% move speed', down: '-15% damage' },
+  { id: 'berserk', name: 'Berserker', c: '#ff7a2a', up: 'Up to +80% damage when hurt', down: 'Healing is halved' },
+  { id: 'thorns', name: 'Bramble Skin', c: '#3fd99a', up: 'Monsters that touch you take 40 damage', down: '-20% damage' },
+  { id: 'rush', name: 'Bloodrush', c: '#ff4df0', up: 'Frenzy starts at 8 kills', down: 'Monsters have 20% more health' },
+  { id: 'lucky', name: 'Lucky Star', c: '#fff1a8', up: '+20% critical chance', down: 'Bosses have 30% more health' },
+  { id: 'hunter', name: 'Giant Slayer', c: '#c9d2e0', up: '+60% damage to elites and bosses', down: '-10% damage to everything else' },
+];
+const pact = id => RUN.pact === id;
+function showPacts() {
+  mode = 'pact';
+  const opts = [...PACTS].sort(() => Math.random() - .5).slice(0, 3);
+  $('pactCards').innerHTML = opts.map((x, i) => `<button class="pactcard" data-p="${x.id}" style="--c:${x.c};--i:${i}"><b>${x.name}</b><span class="up">${x.up}</span><span class="down">${x.down}</span></button>`).join('');
+  $('pactCards').querySelectorAll('.pactcard').forEach(b => b.onclick = () => choosePact(b.dataset.p));
+  $('pact').hidden = false;
+}
+function choosePact(id) {
+  $('pact').hidden = true; RUN.pact = id || null;
+  if (id === 'glass') { S.dmg *= 1.6; P.maxHp = P.baseMaxHp = Math.round(P.maxHp * .65); P.hp = P.maxHp; }
+  if (id === 'swift') S.dmg *= .85;
+  if (id === 'thorns') S.dmg *= .8;
+  if (id === 'lucky') S.crit += .2;
+  mode = 'play'; sfx('click');
+  if (id) { const x = PACTS.find(p => p.id === id); banner(x.name, `${x.up} · ${x.down}`, 'magic'); swordSfx.eliteSting(); }
+}
+$('pactSkip').onclick = () => choosePact(null);
+
+/* ---------- daily chest: come back every day, the streak grows the reward ---------- */
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+function checkDaily() {
+  const t = today(), D = META.daily || (META.daily = { last: '', streak: 0 });
+  if (D.last === t) return;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  const ystr = `${y.getFullYear()}-${y.getMonth() + 1}-${y.getDate()}`;
+  const streak = D.last === ystr ? D.streak + 1 : 1, day = Math.min(streak, 7);
+  const reward = { gems: 2 + day, gold: 40 * day, shards: day === 7 ? 3 : day >= 4 ? 1 : 0 };
+  $('dailyDay').textContent = `Day ${streak}${streak > 1 ? ' streak' : ''}`;
+  $('dailyDots').innerHTML = Array.from({ length: 7 }, (_, i) => `<i class="${i < day ? 'on' : ''}">${i + 1}</i>`).join('');
+  $('dailyReward').innerHTML = `<span><i class="gem"></i>${reward.gems} gems</span><span><i class="coin"></i>${reward.gold} gold</span>${reward.shards ? `<span><i class="shardico"></i>${reward.shards} shard${reward.shards > 1 ? 's' : ''}</span>` : ''}`;
+  $('dailyNote').textContent = day < 7 ? 'Come back tomorrow for a bigger chest. Day 7 holds weapon shards!' : 'Max streak! Keep it going for the best chest every day.';
+  $('daily').hidden = false;
+  $('dailyClaim').onclick = () => {
+    META.daily = { last: t, streak };
+    META.gems += reward.gems; META.gemsTotal += reward.gems; META.gold = (META.gold || 0) + reward.gold;
+    for (let i = 0; i < reward.shards; i++) addShardMeta();
+    saveMeta(); $('daily').hidden = true; confetti(60); swordSfx.questDone(); renderTitle();
+  };
+}
+
 function gainShard(id) {
-  RUN.shardsGot = (RUN.shardsGot || 0) + 1;
+  RUN.shardsGot = (RUN.shardsGot || 0) + 1; questProgress('shard');
   if (id === 'gem' || weaponOwned(id)) { META.gems++; META.gemsTotal++; saveMeta(); texts.push({ x: P.x, y: P.y - 36, text: '+1 GEM', life: .9, max: .9, color: '#ff5fae', size: 14, vx: 0, vy: -50 }); swordSfx.shardPickup(0); return; }
   META.shards[id] = (META.shards[id] || 0) + 1; saveMeta();
   const w = WEAPONS.find(x => x.id === id), have = shardHave(id), need = SHARDS_NEED[id];
@@ -1604,6 +1803,8 @@ function renderTitle() {
   $('titleGems').textContent = META.gems; $('titleGold').textContent = META.gold || 0;
   $('titleBest').hidden = !META.realm;
   $('titleBest').textContent = META.realm >= REALMS.length ? 'All realms cleared' : `Realm ${META.realm + 1} of ${REALMS.length}`;
+  ensureQuests(); $('titleQuests').innerHTML = questsHTML();
+  checkDaily();
 }
 
 /* settings screen */
@@ -2100,9 +2301,10 @@ async function keepAwake() { try { if ('wakeLock' in navigator && !wakeLock) { w
 
 function startGame(i, realm = RUN.realm) {
   initAudio(); keepAwake(); sfx('click');
+  RUN.pact = null; RUN.questsDone = []; FR.on = false; FR.t = 0;
   RUN.realm = realm; RUN.stage = 0; RUN.shardsGot = 0; RUN.event = null; RUN.respawns = 0; RUN.endPending = false; RUN.forged = []; RUN.alt = null; RUN.lastEvent = null;
   resetRun(i); applyLoadout();
-  [...SCREENS, 'dead', 'won', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
+  [...SCREENS, 'dead', 'won', 'pact', 'pause', 'levelup', 'shop', 'bag'].forEach(id => $(id).hidden = true);
   $('warmPill').hidden = true; lastCyc = ''; weapon = S.sword ? 'sword' : S.knife ? 'knife' : S.prism ? 'prism' : S.gaunt ? 'gaunt' : 'wand'; prismReset(); gauntReset(); syncWeapon(); IMP = null; cuts = []; knives = []; drops = []; decals = []; splats = []; knifeT = 0; knifeHold = false; KN.show = 1; swordSfx.charge(false); swordCharge = null; swordReady = false; joy = null; aimJoy = null;
   buildSpellbar(); buildSpecialBtn(); $('bagBadge').hidden = true;
   $('hint').hidden = true; tipStep = -1; movedT = 0;
@@ -2111,13 +2313,14 @@ function startGame(i, realm = RUN.realm) {
   genBiomes();
   mode = 'play';
   startWave(1);
+  showPacts();
 }
 function togglePause() {
   knifeHold = false; prismStop(true);
   if (swordCharge !== null) { swordCharge = null; swordReady = false; swordSfx.charge(false); }
   if (mode === 'bag') { toggleBag(); return; }
   if (!$('settings').hidden) return;
-  if (mode === 'play') { mode = 'paused'; joy = null; $('pauseStats').innerHTML = statsHTML(); $('pause').hidden = false; sfx('click'); }
+  if (mode === 'play') { mode = 'paused'; joy = null; $('pauseStats').innerHTML = statsHTML(); const px = PACTS.find(x => x.id === RUN.pact); $('pausePact').innerHTML = px ? `<b style="color:${px.c}">${px.name}</b> · ${px.up} · ${px.down}` : 'No pact this run'; $('pauseQuests').innerHTML = questsHTML(); $('pause').hidden = false; sfx('click'); }
   else if (mode === 'paused') { mode = 'play'; $('pause').hidden = true; sfx('click'); }
 }
 $('pauseBtn').onclick = () => togglePause();
@@ -2210,6 +2413,7 @@ function startWave(n) {
   // elites hide among the rest
   let elites = stg >= 2 ? (Math.random() < .65 ? 1 : 0) + (stg >= 4 && Math.random() < .45 ? 1 : 0) : 0;
   if (RUN.event === 'hunt') elites += 3;
+  if (pact('seeker') && stg >= 1) elites += 1;
   for (let i = 0; i < elites && queue.length; i++) { const k = Math.floor(Math.random() * queue.length); if (queue[k][0] !== '!') queue[k] = '!' + queue[k]; }
   if (boss) { queue.length = Math.ceil(queue.length * .5); queue.unshift(boss); }
   spawnT = 1.2;
@@ -2267,7 +2471,7 @@ function updateBiomes(dt) {
     const inside = inBiome(b, P.x, P.y);
     if (inside && !b.found) {
       b.found = true; const B = BIOMES[b.k];
-      banner(`Discovered: ${B.name}`, B.lore, 'magic'); swordSfx.discover();
+      banner(`Discovered: ${B.name}`, B.lore, 'magic'); swordSfx.discover(); questProgress('biome');
       if (b.k === 'golden') setTimeout(() => { if (mode === 'play') { const e = spawnEnemy('tslime', b.x + rand(-80, 80), b.y + rand(-80, 80)); e.escape = 16; swordSfx.tslime(); } }, 1200);
     }
     if (inside && b.k === 'crystal') P.inCrystal = true;
@@ -2286,7 +2490,7 @@ function updateBiomes(dt) {
       }
     } else if (A.st === 'guarded' && !enemies.some(e => e.guardOf === b && !e.dead)) {
       A.st = 'done'; swordSfx.shrineCleanse();
-      banner('Shrine cleansed!', 'Its treasure is yours', 'good');
+      banner('Shrine cleansed!', 'Its treasure is yours', 'good'); questProgress('shrine');
       dropShard(b.x, b.y, 3);
       for (let i = 0; i < 12; i++) { const a = Math.random() * 6.28, sp = rand(80, 200); gems.push({ gold: true, x: b.x, y: b.y, v: 3, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, delay: .4, pull: false, ph: Math.random() * 6 }); }
       gems.push({ x: b.x, y: b.y, v: 12, vx: 0, vy: -60, delay: .3, pull: false, ph: 0 });
@@ -2490,6 +2694,8 @@ function spawnEnemy(type, x, y) {
     kx: 0, ky: 0, flash: 0, slow: 0, burn: 0, burnDps: 0, burnTick: 0, ph: Math.random() * 6, face: 1,
     shotT: type === 'mush' ? rand(1, 2) : 2.5, dashT: 4, summonT: 5, st: 'walk', stT: 0, cx: 0, cy: 0, fuse: 0, spCd: 0,
   };
+  if (pact('gold')) e.speed *= 1.15;
+  if (pact('rush') || (pact('lucky') && T.boss)) { const m = pact('rush') ? 1.2 : 1.3; e.hp *= m; e.maxHp *= m; }
   e.baseMaxHp = e.maxHp; e.baseDmg = e.dmg; e.baseSpeed = e.speed; e.nightBuff = false; e.lunge = 0;
   rifts.push({ x, y: y + T.r * .8, r: T.r * (T.boss ? 2.2 : 1.5), t: 0, life: T.boss ? 1.4 : .7 });
   if (rifts.length > 40) rifts.shift();
@@ -2500,7 +2706,7 @@ function spawnEnemy(type, x, y) {
   return e;
 }
 function waveCleared() {
-  waveState = 'cleared'; clearT = 1.6;
+  waveState = 'cleared'; clearT = 1.6; questProgress('wave');
   gems.forEach(g => { g.pull = true; g.delay = 0; });
   const bonus = 5 + wave * 2;
   gold += bonus; totalGold += bonus;
@@ -2557,6 +2763,8 @@ function hurt(e, d, color, crit, quiet) {
   if (e.dead) return;
   if (e.T.armor) d *= e.T.armor;
   if (e.elite === 'armored') d *= .5;
+  if (pact('berserk')) d *= 1 + .8 * (1 - P.hp / P.maxHp);
+  if (pact('hunter')) d *= e.elite || e.T.boss ? 1.6 : .9;
   e.hp -= d; e.flash = .09; e.sq = 1;
   if (SET.numbers && !quiet) texts.push({
     x: e.x + rand(-8, 8), y: e.y - e.r - 6, text: crit ? Math.round(d) + '!' : Math.max(1, Math.round(d)),
@@ -2569,6 +2777,14 @@ function kill(e) {
   e.dead = true; kills++;
   for (let i = 0; i < 4; i++) parts.push({ x: e.x + rand(-e.r, e.r) * .5, y: e.y - rand(0, e.r), vx: rand(-25, 25), vy: rand(-60, -20), life: rand(.5, .8), max: .8, size: rand(6, 10), color: '#1e1428', kind: 'smoke' });
   combo++; comboT = 2.2; bestCombo = Math.max(bestCombo, combo);
+  questProgress('kill'); questProgress('combo', combo);
+  if (weapon !== 'wand') questProgress('weapon', 1, weapon);
+  if (e.elite) questProgress('elite');
+  if (e.T.boss) questProgress('boss');
+  if (e.type === 'tslime') questProgress('tslime');
+  if (FR.on) { questProgress('frenzy'); FR.t = Math.min(FRENZY.max, FR.t + FRENZY.perKill); }
+  else if (combo >= (pact('rush') ? 8 : FRENZY.at) && mode === 'play') startFrenzy();
+  if (pact('blood')) P.hp = Math.min(P.maxHp, P.hp + 3);
   if (combo >= 5 && combo % 5 === 0) {
     const b = Math.floor(combo / 5) * 2;
     gold += b; totalGold += b;
@@ -2588,14 +2804,14 @@ function kill(e) {
   zaps.push({ ring: true, x1: e.x, y1: e.y, r: e.r * 2.4, life: .22, max: .22, color: '#ffffff', w: 4 });
   const pieces = e.T.boss ? 10 : 1;
   const spray = () => { const a = Math.random() * 6.28, s = rand(70, e.T.boss ? 320 : 150); return { vx: Math.cos(a) * s, vy: Math.sin(a) * s }; };
-  for (let i = 0; i < pieces; i++) gems.push({ x: e.x, y: e.y, v: Math.ceil(e.T.xp / pieces), ...spray(), delay: .35, pull: false, ph: Math.random() * 6 });
+  for (let i = 0; i < pieces * (FR.on ? 2 : 1); i++) gems.push({ x: e.x, y: e.y, v: Math.ceil(e.T.xp / pieces), ...spray(), delay: .35, pull: false, ph: Math.random() * 6 });
   const coins = e.T.boss ? 8 : 1;
-  for (let i = 0; i < coins; i++) gems.push({ gold: true, x: e.x, y: e.y, v: Math.ceil(e.T.gold / coins), ...spray(), delay: .4, pull: false, ph: Math.random() * 6 });
+  for (let i = 0; i < coins * (FR.on ? 2 : 1); i++) gems.push({ gold: true, x: e.x, y: e.y, v: Math.ceil(e.T.gold / coins), ...spray(), delay: .4, pull: false, ph: Math.random() * 6 });
   if (e.type === 'bigslime') for (let k = -1; k <= 1; k += 2) { const s = spawnEnemy('slime', e.x + k * 14, e.y); s.kx = k * 200; s.age = .3; s.baseMaxHp *= .7; s.maxHp *= .7; s.hp = s.maxHp; }
   if (e.elite) {
     for (let i = 0; i < 4; i++) gems.push({ gold: true, x: e.x, y: e.y, v: e.T.gold * 2, ...spray(), delay: .4, pull: false, ph: Math.random() * 6 });
     gems.push({ x: e.x, y: e.y, v: e.T.xp * 3, ...spray(), delay: .35, pull: false, ph: Math.random() * 6 });
-    if (Math.random() < .55) dropShard(e.x, e.y, 1);
+    if (pact('seeker') || Math.random() < .55) dropShard(e.x, e.y, 1);
     texts.push({ x: e.x, y: e.y - e.r - 20, text: 'ELITE SLAIN', life: 1, max: 1, color: ELITES[e.elite].c, size: 14, vx: 0, vy: -40 });
     addShake(5); freeze = Math.max(freeze, .05);
     if (e.elite === 'volatile') {
@@ -2681,6 +2897,7 @@ function shardLine() {
 }
 function winRealm() {
   if (mode !== 'play') return;
+  questProgress('realm');
   mode = 'won'; joy = null; freeze = 0; prismStop(false); swordSfx.charge(false);
   const R = REALMS[RUN.realm], id = R.id;
   const goldWon = bankGold();
@@ -2705,6 +2922,7 @@ function winRealm() {
     $('wonGems').textContent = gems ? `+${gems} gems${first ? ' for your first clear' : ' for new stars'}` : 'Beat your star record for more gems';
     $('wonGold').textContent = `+${goldWon} gold for the Shop`;
     $('wonShards').textContent = shardLine();
+    $('wonQuests').innerHTML = (RUN.questsDone || []).map(q => `<span>✓ ${questText(q)} +${payText(q)}</span>`).join('');
     const next = REALMS[RUN.realm + 1];
     $('wonUnlock').hidden = !(first && next);
     if (next) $('wonUnlock').textContent = `Unlocked: ${next.name}`;
@@ -2756,6 +2974,7 @@ function die() {
     $('deadGems').textContent = runGems ? `+${runGems} gems earned` : 'Beat a boss to earn gems';
     $('deadGold').textContent = `+${goldWon} gold for the Shop`;
     $('deadShards').textContent = shardLine();
+    $('deadQuests').innerHTML = (RUN.questsDone || []).map(q => `<span>✓ ${questText(q)} +${payText(q)}</span>`).join('');
     $('deadBest').hidden = !isBest;
     $('deadBestLine').textContent = realmOn() ? 'Grab better weapons in the Shop and try again!' : isBest ? '' : `Your best is wave ${best}. You can beat it!`;
     $('deadBestLine').hidden = isBest;
@@ -2806,8 +3025,8 @@ function addMaxHp(n) {
   P.maxHp = Math.round(P.baseMaxHp * m);
   P.hp = Math.min(P.maxHp, P.hp + n * m);
 }
-const playerSpeedMul = () => P.warm ? DAYNIGHT.campfire.speedMul : 1;
-const playerDmgMul = () => (P.warm ? DAYNIGHT.campfire.dmgMul : 1) * (P.inCrystal ? 1.25 : 1);
+const playerSpeedMul = () => (P.warm ? DAYNIGHT.campfire.speedMul : 1) * (FR.on ? FRENZY.speed : 1) * (pact('swift') ? 1.3 : 1);
+const playerDmgMul = () => (P.warm ? DAYNIGHT.campfire.dmgMul : 1) * (P.inCrystal ? 1.25 : 1) * (FR.on ? FRENZY.dmg : 1);
 const isImmune = () => false;
 const specialsLocked = () => DAYNIGHT.lockSpecialsAtNight && isNight;
 function immunePopup(e) {
@@ -4870,6 +5089,17 @@ const swordSfx = (() => {
       nz(.5, .09, 'highpass', 5200, 2600, .8, { attack: .04, sweep: .4 });
       nz(.25, .05, 'lowpass', 500, 150, .7);
     },
+    questDone() {
+      if (!ok()) return;
+      [659.3, 784, 987.8, 1318.5].forEach((f, i) => osc('square', f, f, .22, .1, { delay: i * .07, send: .4 }));
+      osc('sine', 1318.5, 1318.5, .9, .08, { delay: .3, send: .8 });
+    },
+    frenzy() {
+      if (!ok()) return;
+      osc('sawtooth', 110, 440, .45, .1, { dist: 2, attack: .02 }); osc('sawtooth', 112, 448, .45, .07, { dist: 2, attack: .02 });
+      nz(.5, .25, 'bandpass', 400, 4000, 2, { attack: .05, sweep: .45 });
+      [440, 554.4, 659.3, 880].forEach((f, i) => osc('square', f, f, .15, .05, { delay: .3 + i * .05 }));
+    },
     shardPickup(prog) {
       if (!ok()) return; const f = 880 * (1 + prog * .8);
       osc('triangle', f, f * 1.5, .08, .22); osc('sine', f * 2, f * 2, .35, .11, { delay: .05, send: .6 }); osc('sine', f * 3, f * 3, .25, .06, { delay: .09, send: .7 });
@@ -5227,6 +5457,7 @@ function update(dt) {
   updateGaunt(dt);
   updateRifts(dt);
   updateBiomes(dt);
+  updateFrenzy(dt);
   realmAmbient(dt);
   updateIntro(dt);
   updateCycle(dt);
@@ -5236,8 +5467,8 @@ function update(dt) {
   if (S.regen) P.hp = Math.min(P.maxHp, P.hp + S.regen * dt);
   // out of combat healing: after a few seconds without getting hit, health slowly comes back
   P.calm = (P.calm || 0) + dt;
-  if (P.calm >= REGEN.delay && P.hp < P.maxHp && P.hp > 0) {
-    P.hp = Math.min(P.maxHp, P.hp + REGEN.perSec * dt);
+  if (P.calm >= REGEN.delay && P.hp < P.maxHp && P.hp > 0 && !pact('blood')) {
+    P.hp = Math.min(P.maxHp, P.hp + REGEN.perSec * (pact('berserk') ? .5 : 1) * dt);
     if (Math.random() < dt * 3) parts.push({ x: P.x + rand(-14, 14), y: P.y + rand(-6, 14), vx: rand(-6, 6), vy: rand(-45, -25), life: .7, max: .7, size: rand(3, 4.5), color: '#5dff8f', kind: 'star', glow: true });
   }
   P.beat = (P.beat || 0) - dt;
@@ -5266,7 +5497,7 @@ function update(dt) {
   }
   if (PR.on) P.face = PR.side; // sideways toward the beam while firing
   castT = Math.max(0, castT - dt); P.castFx = Math.max(0, (P.castFx || 0) - dt);
-  if (weapon === 'wand' && castT <= 0 && (manual || (target && SET.autoAim))) { cast(target); castT = SPELLS[cur].cd / S.rate; }
+  if (weapon === 'wand' && castT <= 0 && (manual || (target && SET.autoAim))) { cast(target); castT = SPELLS[cur].cd / (S.rate * (FR.on ? FRENZY.rate : 1)); }
 
   if (waveState === 'fighting') {
     spawnT -= dt;
@@ -5288,7 +5519,7 @@ function update(dt) {
   }
 
   for (const e of enemies) {
-    e.age += dt; e.sq = Math.max(0, e.sq - dt * 7);
+    e.age += dt; e.sq = Math.max(0, e.sq - dt * 7); if (e.thornT) e.thornT = Math.max(0, e.thornT - dt);
     const slowMul = (e.slow > 0 ? .45 : 1) * (biomes.length ? voidMul(e) : 1); e.slow -= dt; e.flash -= dt;
     if (e.burn > 0) {
       e.burn -= dt; e.burnTick -= dt;
@@ -5401,6 +5632,7 @@ function update(dt) {
     if (Math.abs(P.x - e.x) > 4) e.face = P.x < e.x ? -1 : 1;
     if (d < e.r + P.r && e.T.dmg > 0) {
       damagePlayer(e.dmg);
+      if (pact('thorns') && !e.thornT) { e.thornT = .5; hurt(e, 40, '#3fd99a'); }
       if (e.elite === 'vampiric' && !e.dead) { e.hp = Math.min(e.maxHp, e.hp + e.maxHp * .15); for (let i = 0; i < 8; i++) parts.push({ x: P.x, y: P.y, vx: (e.x - P.x) * rand(2, 4), vy: (e.y - P.y) * rand(2, 4), life: .3, max: .3, size: 3, color: '#ff2a4a', kind: 'dot', glow: true }); }
       if (!e.T.boss) { e.kx -= ux * 260; e.ky -= uy * 260; }
       if (e.st === 'charge') { e.st = 'rest'; e.stT = .9; }
@@ -5484,7 +5716,7 @@ function update(dt) {
       g.got = true;
       if (g.shard) gainShard(g.shard);
       else if (g.res) { res[g.res] += g.v; sfx('coin'); texts.push({ x: P.x, y: P.y - 34, text: `+${g.v} ${RES[g.res].name}`, life: .9, max: .9, color: RES[g.res].c, size: 13, vx: 0, vy: -50 }); }
-      else if (g.gold) { const v = g.v * (Math.random() < S.coinLuck ? 2 : 1); gold += v; totalGold += v; sfx('coin'); }
+      else if (g.gold) { const v = g.v * (Math.random() < S.coinLuck ? 2 : 1) * (pact('gold') ? 2 : 1); gold += v; totalGold += v; sfx('coin'); }
       else { xp += g.v; xpEarned += g.v; sfx('gem', gemChain); gemChain++; gemChainT = .6; }
       parts.push({ x: g.x, y: g.y, vx: 0, vy: -30, life: .3, max: .3, size: 7, color: g.gold ? '#ffcf3f' : '#9fe6ff', kind: 'star', glow: true });
     }
@@ -5928,6 +6160,7 @@ function render() {
   if (flash > 0) { ctx.fillStyle = `rgba(255,93,115,${flash * .45})`; ctx.fillRect(0, 0, VW, VH); }
   if (flashW > 0) { ctx.fillStyle = `rgba(255,255,255,${flashW * .8})`; ctx.fillRect(0, 0, VW, VH); }
   drawBiomeHints();
+  drawFrenzy();
   drawCineBars();
   drawBossIntro();
   drawImpact();
